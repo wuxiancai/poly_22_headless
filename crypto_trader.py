@@ -1271,8 +1271,8 @@ class CryptoTrader:
                     # 继续监控
                     if self.running:
                         self.url_check_timer = threading.Timer(10.0, check_url)
-            self.url_check_timer.daemon = True
-            self.url_check_timer.start()
+                        self.url_check_timer.daemon = True
+                        self.url_check_timer.start()
             
             # 开始第一次检查
             self.url_check_timer = threading.Timer(1.0, check_url)
@@ -3919,6 +3919,59 @@ class CryptoTrader:
                         text-align: center; padding: 10px; background: #e9ecef; 
                         border-radius: 5px; margin-top: 20px; color: #666;
                     }
+                    .control-section {
+                        margin-top: 15px;
+                        padding-top: 15px;
+                        border-top: 1px solid #eee;
+                    }
+                    .url-input-group {
+                        display: flex;
+                        gap: 10px;
+                        margin-bottom: 10px;
+                    }
+                    .url-input-group input {
+                        flex: 1;
+                        padding: 8px 12px;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        font-size: 14px;
+                    }
+                    .url-input-group button {
+                        padding: 8px 16px;
+                        background: #007bff;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        white-space: nowrap;
+                    }
+                    .url-input-group button:hover {
+                        background: #0056b3;
+                    }
+                    .url-input-group button:disabled {
+                        background: #6c757d;
+                        cursor: not-allowed;
+                    }
+                    .status-message {
+                        padding: 8px;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        text-align: center;
+                        display: none;
+                    }
+                    .status-message.success {
+                        background: #d4edda;
+                        color: #155724;
+                        border: 1px solid #c3e6cb;
+                        display: block;
+                    }
+                    .status-message.error {
+                        background: #f8d7da;
+                        color: #721c24;
+                        border: 1px solid #f5c6cb;
+                        display: block;
+                    }
                 </style>
                 <script>
                     function refreshPage() {
@@ -3961,6 +4014,15 @@ class CryptoTrader:
                                 <label>F币种:</label>
                                 <div class="value">{{ data.f_coin or '未设置' }}</div>
                             </div>
+                        </div>
+                        
+                        <!-- URL输入和启动控制 -->
+                        <div class="control-section">
+                            <div class="url-input-group">
+                                <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
+                                <button id="startBtn" onclick="startTrading()">启动监控</button>
+                            </div>
+                            <div id="statusMessage" class="status-message"></div>
                         </div>
                     </div>
 
@@ -4078,6 +4140,64 @@ class CryptoTrader:
                         🔄 页面每30秒自动刷新 | 📊 数据实时更新 | 🕐 最后更新: {{ current_time }}
                     </div>
                 </div>
+                
+                <script>
+                function startTrading() {
+                    const urlInput = document.getElementById('urlInput');
+                    const startBtn = document.getElementById('startBtn');
+                    const statusMessage = document.getElementById('statusMessage');
+                    
+                    const url = urlInput.value.trim();
+                    if (!url) {
+                        showMessage('请输入有效的URL地址', 'error');
+                        return;
+                    }
+                    
+                    // 禁用按钮，显示加载状态
+                    startBtn.disabled = true;
+                    startBtn.textContent = '启动中...';
+                    
+                    // 发送启动请求
+                    fetch('/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ url: url })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showMessage(data.message, 'success');
+                            // 3秒后刷新页面以显示最新状态
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 3000);
+                        } else {
+                            showMessage(data.message, 'error');
+                            startBtn.disabled = false;
+                            startBtn.textContent = '启动监控';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showMessage('启动失败，请检查网络连接', 'error');
+                        startBtn.disabled = false;
+                        startBtn.textContent = '启动监控';
+                    });
+                }
+                
+                function showMessage(message, type) {
+                    const statusMessage = document.getElementById('statusMessage');
+                    statusMessage.textContent = message;
+                    statusMessage.className = `status-message ${type}`;
+                    
+                    // 5秒后隐藏消息
+                    setTimeout(() => {
+                        statusMessage.style.display = 'none';
+                    }, 5000);
+                }
+                </script>
             </body>
             </html>
             """
@@ -4086,6 +4206,31 @@ class CryptoTrader:
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
             return render_template_string(dashboard_template, data=current_data, current_time=current_time)
+        
+        @app.route("/start", methods=['POST'])
+        def start_trading():
+            """处理启动按钮点击事件"""
+            try:
+                data = request.get_json()
+                url = data.get('url', '').strip()
+                
+                if not url:
+                    return jsonify({'success': False, 'message': '请输入有效的URL地址'})
+                
+                # 更新URL到web_values
+                self.set_web_value('url_entry', url)
+                
+                # 保存URL到配置文件
+                self.config['website']['url'] = url
+                self.save_config()
+                
+                # 启动监控
+                self.start_monitoring()
+                
+                return jsonify({'success': True, 'message': '交易监控已启动'})
+            except Exception as e:
+                self.logger.error(f"启动交易失败: {str(e)}")
+                return jsonify({'success': False, 'message': f'启动失败: {str(e)}'})
         
         @app.route("/history")
         def history():
@@ -4297,7 +4442,9 @@ if __name__ == "__main__":
             
         # 创建并运行主程序
         app = CryptoTrader()
-        app.start_monitoring()  # 启动无头模式监控
+        
+        # 在Web模式下，不自动启动监控，等待用户在Web界面输入URL后再启动
+        logger.info("✅ Web模式初始化完成，等待用户在Web界面配置URL后启动监控")
         
         # 保持程序运行
         try:
@@ -4305,7 +4452,8 @@ if __name__ == "__main__":
                 time.sleep(1)
         except KeyboardInterrupt:
             logger.info("程序被用户中断")
-            app.stop_event.set()
+            if hasattr(app, 'stop_event'):
+                app.stop_event.set()
         
     except Exception as e:
         print(f"程序启动失败: {str(e)}")
