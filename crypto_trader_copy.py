@@ -509,7 +509,7 @@ class CryptoTrader:
         except Exception as e:
             self.logger.error(f"安排每日记录任务失败: {e}")
         
-        # 自动找币时间选择
+        # 设置 UP1 和 DOWN1 价格为 54 时的时间选择
         auto_find_frame = ttk.Frame(main_controls)
         auto_find_frame.pack(fill="x", pady=2)
         

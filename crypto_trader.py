@@ -4055,6 +4055,46 @@ class CryptoTrader:
                         location.reload();
                     }
                     
+                    function updateCoin() {
+                        const coin = document.getElementById('coinSelect').value;
+                        fetch('/api/update_coin', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({coin: coin})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                console.log('币种更新成功:', coin);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error updating coin:', error);
+                        });
+                    }
+                    
+                    function updateTime() {
+                        const time = document.getElementById('timeSelect').value;
+                        fetch('/api/update_time', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({time: time})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                console.log('时间更新成功:', time);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error updating time:', error);
+                        });
+                    }
+                    
                     // 每2秒更新数据（不刷新整个页面）
                     setInterval(updateData, 2000);
                     
@@ -4089,11 +4129,40 @@ class CryptoTrader:
                             </div>
                             <div class="info-item">
                                 <label>币种:</label>
-                                <div class="value">{{ data.coin or '未设置' }}</div>
+                                <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
+                                    <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
+                                    <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
+                                    <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
+                                    <option value="XRP" {{ 'selected' if data.coin == 'XRP' else '' }}>XRP</option>
+                                </select>
                             </div>
                             <div class="info-item">
                                 <label>F币种:</label>
-                                <div class="value">{{ data.f_coin or '未设置' }}</div>
+                                <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
+                                    <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
+                                    <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
+                                    <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
+                                    <option value="4:00" {{ 'selected' if data.auto_find_time == '4:00' else '' }}>4:00</option>
+                                    <option value="5:00" {{ 'selected' if data.auto_find_time == '5:00' else '' }}>5:00</option>
+                                    <option value="6:00" {{ 'selected' if data.auto_find_time == '6:00' else '' }}>6:00</option>
+                                    <option value="7:00" {{ 'selected' if data.auto_find_time == '7:00' else '' }}>7:00</option>
+                                    <option value="8:00" {{ 'selected' if data.auto_find_time == '8:00' else '' }}>8:00</option>
+                                    <option value="9:00" {{ 'selected' if data.auto_find_time == '9:00' else '' }}>9:00</option>
+                                    <option value="10:00" {{ 'selected' if data.auto_find_time == '10:00' else '' }}>10:00</option>
+                                    <option value="11:00" {{ 'selected' if data.auto_find_time == '11:00' else '' }}>11:00</option>
+                                    <option value="12:00" {{ 'selected' if data.auto_find_time == '12:00' else '' }}>12:00</option>
+                                    <option value="13:00" {{ 'selected' if data.auto_find_time == '13:00' else '' }}>13:00</option>
+                                    <option value="14:00" {{ 'selected' if data.auto_find_time == '14:00' else '' }}>14:00</option>
+                                    <option value="15:00" {{ 'selected' if data.auto_find_time == '15:00' else '' }}>15:00</option>
+                                    <option value="16:00" {{ 'selected' if data.auto_find_time == '16:00' else '' }}>16:00</option>
+                                    <option value="17:00" {{ 'selected' if data.auto_find_time == '17:00' else '' }}>17:00</option>
+                                    <option value="18:00" {{ 'selected' if data.auto_find_time == '18:00' else '' }}>18:00</option>
+                                    <option value="19:00" {{ 'selected' if data.auto_find_time == '19:00' else '' }}>19:00</option>
+                                    <option value="20:00" {{ 'selected' if data.auto_find_time == '20:00' else '' }}>20:00</option>
+                                    <option value="21:00" {{ 'selected' if data.auto_find_time == '21:00' else '' }}>21:00</option>
+                                    <option value="22:00" {{ 'selected' if data.auto_find_time == '22:00' else '' }}>22:00</option>
+                                    <option value="23:00" {{ 'selected' if data.auto_find_time == '23:00' else '' }}>23:00</option>
+                                </select>
                             </div>
                         </div>
                         
@@ -4362,7 +4431,9 @@ class CryptoTrader:
                         'down4_amount': self.get_web_value('no4_amount_entry') or '0',
                         'down5_price': self.get_web_value('no5_price_entry') or '0',
                         'down5_amount': self.get_web_value('no5_amount_entry') or '0'
-                    }
+                    },
+                    'coin': self.get_web_value('coin_combobox') or 'BTC',
+                    'auto_find_time': self.get_web_value('auto_find_time_combobox') or '1:00'
                 }
                 return jsonify(current_data)
             except Exception as e:
@@ -4512,6 +4583,66 @@ class CryptoTrader:
                                         prev_num=prev_num,
                                         next_num=next_num,
                                         total_pages=total_pages)
+        
+        @app.route("/api/update_coin", methods=["POST"])
+        def update_coin():
+            """更新币种API"""
+            try:
+                data = request.get_json()
+                coin = data.get('coin', '').strip()
+                
+                if not coin:
+                    return jsonify({'success': False, 'message': '请选择币种'})
+                
+                # 更新币种
+                self.set_web_value('coin_combobox', coin)
+                
+                # 保存到配置文件
+                if 'trading' not in self.config:
+                    self.config['trading'] = {}
+                self.config['trading']['coin'] = coin
+                self.save_config()
+                
+                # 调用币种变化处理函数
+                if hasattr(self, 'on_coin_changed'):
+                    self.on_coin_changed()
+                
+                self.logger.info(f"币种已更新为: {coin}")
+                return jsonify({'success': True, 'message': f'币种已更新为: {coin}'})
+                
+            except Exception as e:
+                self.logger.error(f"更新币种失败: {e}")
+                return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
+        
+        @app.route("/api/update_time", methods=["POST"])
+        def update_time():
+            """更新时间API"""
+            try:
+                data = request.get_json()
+                time = data.get('time', '').strip()
+                
+                if not time:
+                    return jsonify({'success': False, 'message': '请选择时间'})
+                
+                # 更新时间
+                self.set_web_value('auto_find_time_combobox', time)
+                
+                # 保存到配置文件
+                if 'trading' not in self.config:
+                    self.config['trading'] = {}
+                self.config['trading']['auto_find_time'] = time
+                self.save_config()
+                
+                # 调用时间变化处理函数
+                if hasattr(self, 'on_auto_find_time_changed'):
+                    self.on_auto_find_time_changed()
+                
+                self.logger.info(f"时间已更新为: {time}")
+                return jsonify({'success': True, 'message': f'时间已更新为: {time}'})
+                
+            except Exception as e:
+                self.logger.error(f"更新时间失败: {e}")
+                return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
 
         return app
 
