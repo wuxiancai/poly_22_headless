@@ -4333,35 +4333,35 @@ class CryptoTrader:
                         'last_update': datetime.now().strftime('%H:%M:%S')
                     },
                     'prices': {
-                        'up_price': self.get_web_value('up_price') or '0',
-                        'down_price': self.get_web_value('down_price') or '0',
-                        'binance_price': self.get_web_value('binance_price') or '获取中...'
+                        'up_price': self.get_web_value('yes_price_label') or 'Up: 0',
+                        'down_price': self.get_web_value('no_price_label') or 'Down: 0',
+                        'binance_price': self.get_web_value('binance_now_price_label') or '获取中...'
                     },
                     'account': {
-                        'portfolio': self.get_web_value('portfolio_value') or '$0',
-                        'cash': self.get_web_value('cash_value') or '$0'
+                        'portfolio': self.get_web_value('portfolio_label') or 'Portfolio: $0',
+                        'cash': self.get_web_value('cash_label') or 'Cash: $0'
                     },
                     'positions': {
-                        'up1_price': self.get_web_value('up1_price') or '0',
-                        'up1_amount': self.get_web_value('up1_amount') or '0',
-                        'up2_price': self.get_web_value('up2_price') or '0',
-                        'up2_amount': self.get_web_value('up2_amount') or '0',
-                        'up3_price': self.get_web_value('up3_price') or '0',
-                        'up3_amount': self.get_web_value('up3_amount') or '0',
-                        'up4_price': self.get_web_value('up4_price') or '0',
-                        'up4_amount': self.get_web_value('up4_amount') or '0',
-                        'up5_price': self.get_web_value('up5_price') or '0',
-                        'up5_amount': self.get_web_value('up5_amount') or '0',
-                        'down1_price': self.get_web_value('down1_price') or '0',
-                        'down1_amount': self.get_web_value('down1_amount') or '0',
-                        'down2_price': self.get_web_value('down2_price') or '0',
-                        'down2_amount': self.get_web_value('down2_amount') or '0',
-                        'down3_price': self.get_web_value('down3_price') or '0',
-                        'down3_amount': self.get_web_value('down3_amount') or '0',
-                        'down4_price': self.get_web_value('down4_price') or '0',
-                        'down4_amount': self.get_web_value('down4_amount') or '0',
-                        'down5_price': self.get_web_value('down5_price') or '0',
-                        'down5_amount': self.get_web_value('down5_amount') or '0'
+                        'up1_price': self.get_web_value('yes1_price_entry') or '0',
+                        'up1_amount': self.get_web_value('yes1_amount_entry') or '0',
+                        'up2_price': self.get_web_value('yes2_price_entry') or '0',
+                        'up2_amount': self.get_web_value('yes2_amount_entry') or '0',
+                        'up3_price': self.get_web_value('yes3_price_entry') or '0',
+                        'up3_amount': self.get_web_value('yes3_amount_entry') or '0',
+                        'up4_price': self.get_web_value('yes4_price_entry') or '0',
+                        'up4_amount': self.get_web_value('yes4_amount_entry') or '0',
+                        'up5_price': self.get_web_value('yes5_price_entry') or '0',
+                        'up5_amount': self.get_web_value('yes5_amount_entry') or '0',
+                        'down1_price': self.get_web_value('no1_price_entry') or '0',
+                        'down1_amount': self.get_web_value('no1_amount_entry') or '0',
+                        'down2_price': self.get_web_value('no2_price_entry') or '0',
+                        'down2_amount': self.get_web_value('no2_amount_entry') or '0',
+                        'down3_price': self.get_web_value('no3_price_entry') or '0',
+                        'down3_amount': self.get_web_value('no3_amount_entry') or '0',
+                        'down4_price': self.get_web_value('no4_price_entry') or '0',
+                        'down4_amount': self.get_web_value('no4_amount_entry') or '0',
+                        'down5_price': self.get_web_value('no5_price_entry') or '0',
+                        'down5_amount': self.get_web_value('no5_amount_entry') or '0'
                     }
                 }
                 return jsonify(current_data)
