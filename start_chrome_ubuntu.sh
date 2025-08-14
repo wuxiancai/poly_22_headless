@@ -543,19 +543,8 @@ else
     log_message "SUCCESS" "ChromeDriver版本检查通过"
 fi
 
-export DISPLAY=:1
-
-# 设置X11授权
-if [ -f "$HOME/.Xauthority" ]; then
-    export XAUTHORITY="$HOME/.Xauthority"
-else
-    # 尝试生成授权文件
-    touch "$HOME/.Xauthority"
-    export XAUTHORITY="$HOME/.Xauthority"
-fi
-
-echo -e "${YELLOW}使用 DISPLAY=1"
-echo -e "${YELLOW}使用 XAUTHORITY=$XAUTHORITY${NC}"
+# X11配置已移除 - 无头模式下不需要虚拟桌面
+# 原GUI模式下的VNC远程登录配置在Web模式下不再需要
 
 # 清理崩溃文件
 rm -f "$HOME/ChromeDebug/SingletonLock"
@@ -626,6 +615,13 @@ if command -v google-chrome-stable &> /dev/null; then
         --noerrdialogs \
         --disable-notifications \
         --test-type \
+        --disable-component-update \
+        --disable-background-mode \
+        --disable-client-side-phishing-detection \
+        --disable-hang-monitor \
+        --disable-prompt-on-repost \
+        --disable-domain-reliability \
+        --log-level=3 \
         --user-data-dir="$HOME/ChromeDebug" \
         https://polymarket.com/crypto &
     

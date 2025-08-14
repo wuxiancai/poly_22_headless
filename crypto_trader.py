@@ -476,6 +476,15 @@ class CryptoTrader:
                     chrome_options.add_argument('--disable-infobars')
                     chrome_options.add_argument('--disable-notifications')
                     chrome_options.add_argument('--test-type')
+                    # 禁用GCM相关功能以减少错误日志
+                    chrome_options.add_argument('--disable-component-update')
+                    chrome_options.add_argument('--disable-background-mode')
+                    chrome_options.add_argument('--disable-client-side-phishing-detection')
+                    chrome_options.add_argument('--disable-hang-monitor')
+                    chrome_options.add_argument('--disable-prompt-on-repost')
+                    chrome_options.add_argument('--disable-domain-reliability')
+                    chrome_options.add_argument('--disable-features=VizDisplayCompositor')
+                    chrome_options.add_argument('--log-level=3')  # 只显示致命错误
                     
                 self.driver = webdriver.Chrome(options=chrome_options)
             try:
@@ -684,6 +693,15 @@ class CryptoTrader:
                         chrome_options.add_argument('--disable-infobars')
                         chrome_options.add_argument('--disable-notifications')
                         chrome_options.add_argument('--test-type')
+                        # 禁用GCM相关功能以减少错误日志
+                        chrome_options.add_argument('--disable-component-update')
+                        chrome_options.add_argument('--disable-background-mode')
+                        chrome_options.add_argument('--disable-client-side-phishing-detection')
+                        chrome_options.add_argument('--disable-hang-monitor')
+                        chrome_options.add_argument('--disable-prompt-on-repost')
+                        chrome_options.add_argument('--disable-domain-reliability')
+                        chrome_options.add_argument('--disable-features=VizDisplayCompositor')
+                        chrome_options.add_argument('--log-level=3')  # 只显示致命错误
                         
                     self.driver = webdriver.Chrome(options=chrome_options)
                     
@@ -3977,11 +3995,71 @@ class CryptoTrader:
                     }
                 </style>
                 <script>
+                    function updateData() {
+                        fetch('/api/data')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    console.error('API Error:', data.error);
+                                    return;
+                                }
+                                
+                                // 更新价格显示
+                                const upPriceElement = document.querySelector('.price-card.up .price-value');
+                                const downPriceElement = document.querySelector('.price-card.down .price-value');
+                                const binancePriceElement = document.querySelector('.binance-price');
+                                
+                                if (upPriceElement) upPriceElement.textContent = data.prices.up_price;
+                                if (downPriceElement) downPriceElement.textContent = data.prices.down_price;
+                                if (binancePriceElement) binancePriceElement.textContent = data.prices.binance_price;
+                                
+                                // 更新账户信息
+                                const portfolioElement = document.querySelector('.account-info .portfolio-value');
+                                const cashElement = document.querySelector('.account-info .cash-value');
+                                
+                                if (portfolioElement) portfolioElement.textContent = data.account.portfolio;
+                                if (cashElement) cashElement.textContent = data.account.cash;
+                                
+                                // 更新状态信息
+                                const statusElement = document.querySelector('.status-value');
+                                const urlElement = document.querySelector('.url-value');
+                                const browserElement = document.querySelector('.browser-value');
+                                
+                                if (statusElement) statusElement.textContent = data.status.monitoring;
+                                if (urlElement) urlElement.textContent = data.status.url;
+                                if (browserElement) browserElement.textContent = data.status.browser_status;
+                                
+                                // 更新仓位信息
+                                for (let i = 1; i <= 5; i++) {
+                                    const upPriceEl = document.querySelector(`#up${i}_price`);
+                                    const upAmountEl = document.querySelector(`#up${i}_amount`);
+                                    const downPriceEl = document.querySelector(`#down${i}_price`);
+                                    const downAmountEl = document.querySelector(`#down${i}_amount`);
+                                    
+                                    if (upPriceEl) upPriceEl.textContent = data.positions[`up${i}_price`];
+                                    if (upAmountEl) upAmountEl.textContent = data.positions[`up${i}_amount`];
+                                    if (downPriceEl) downPriceEl.textContent = data.positions[`down${i}_price`];
+                                    if (downAmountEl) downAmountEl.textContent = data.positions[`down${i}_amount`];
+                                }
+                                
+                                // 更新最后更新时间
+                                const timeElement = document.querySelector('.last-update-time');
+                                if (timeElement) timeElement.textContent = data.status.last_update;
+                            })
+                            .catch(error => {
+                                console.error('更新数据失败:', error);
+                            });
+                    }
+                    
                     function refreshPage() {
                         location.reload();
                     }
-                    // 每30秒自动刷新
-                    setInterval(refreshPage, 30000);
+                    
+                    // 每2秒更新数据（不刷新整个页面）
+                    setInterval(updateData, 2000);
+                    
+                    // 页面加载完成后立即更新一次数据
+                    document.addEventListener('DOMContentLoaded', updateData);
                 </script>
             </head>
             <body>
@@ -4039,7 +4117,7 @@ class CryptoTrader:
                             </div>
                             <div class="info-item">
                                 <label>Binance当前价格:</label>
-                                <div class="value">{{ data.binance_price or '获取中...' }}</div>
+                                <div class="value binance-price">{{ data.binance_price or '获取中...' }}</div>
                             </div>
                             <div class="info-item">
                                 <label>涨跌幅度:</label>
@@ -4047,13 +4125,13 @@ class CryptoTrader:
                             </div>
                         </div>
                         <div class="price-display">
-                            <div class="price-box price-up">
+                            <div class="price-card up">
                                 <div>Up价格</div>
-                                <div>{{ data.live_prices.up or '0' }}</div>
+                                <div class="price-value">{{ data.live_prices.up or '0' }}</div>
                             </div>
-                            <div class="price-box price-down">
+                            <div class="price-card down">
                                 <div>Down价格</div>
-                                <div>{{ data.live_prices.down or '0' }}</div>
+                                <div class="price-value">{{ data.live_prices.down or '0' }}</div>
                             </div>
                         </div>
                     </div>
@@ -4061,14 +4139,14 @@ class CryptoTrader:
                     <!-- 账户信息 -->
                     <div class="card">
                         <h3>💳 账户余额</h3>
-                        <div class="info-grid">
+                        <div class="info-grid account-info">
                             <div class="info-item">
                                 <label>Portfolio:</label>
-                                <div class="value">${{ data.portfolio or '0' }}</div>
+                                <div class="value portfolio-value">${{ data.portfolio or '0' }}</div>
                             </div>
                             <div class="info-item">
                                 <label>Cash:</label>
-                                <div class="value">${{ data.cash or '0' }}</div>
+                                <div class="value cash-value">${{ data.cash or '0' }}</div>
                             </div>
                         </div>
                     </div>
@@ -4086,28 +4164,28 @@ class CryptoTrader:
                                 </div>
                                 <div class="position-row">
                                     <div>Up1</div>
-                                    <div>{{ data.positions.up1_price or '0' }}</div>
-                                    <div>{{ data.positions.up1_amount or '0' }}</div>
+                                    <div id="up1_price">{{ data.positions.up1_price or '0' }}</div>
+                                    <div id="up1_amount">{{ data.positions.up1_amount or '0' }}</div>
                                 </div>
                                 <div class="position-row">
                                     <div>Up2</div>
-                                    <div>{{ data.positions.up2_price or '0' }}</div>
-                                    <div>{{ data.positions.up2_amount or '0' }}</div>
+                                    <div id="up2_price">{{ data.positions.up2_price or '0' }}</div>
+                                    <div id="up2_amount">{{ data.positions.up2_amount or '0' }}</div>
                                 </div>
                                 <div class="position-row">
                                     <div>Up3</div>
-                                    <div>{{ data.positions.up3_price or '0' }}</div>
-                                    <div>{{ data.positions.up3_amount or '0' }}</div>
+                                    <div id="up3_price">{{ data.positions.up3_price or '0' }}</div>
+                                    <div id="up3_amount">{{ data.positions.up3_amount or '0' }}</div>
                                 </div>
                                 <div class="position-row">
                                     <div>Up4</div>
-                                    <div>{{ data.positions.up4_price or '0' }}</div>
-                                    <div>{{ data.positions.up4_amount or '0' }}</div>
+                                    <div id="up4_price">{{ data.positions.up4_price or '0' }}</div>
+                                    <div id="up4_amount">{{ data.positions.up4_amount or '0' }}</div>
                                 </div>
                                 <div class="position-row">
                                     <div>Up5</div>
-                                    <div>{{ data.positions.up5_price or '0' }}</div>
-                                    <div>{{ data.positions.up5_amount or '0' }}</div>
+                                    <div id="up5_price">{{ data.positions.up5_price or '0' }}</div>
+                                    <div id="up5_amount">{{ data.positions.up5_amount or '0' }}</div>
                                 </div>
                             </div>
                             
@@ -4120,35 +4198,35 @@ class CryptoTrader:
                                 </div>
                                 <div class="position-row">
                                     <div>Down1</div>
-                                    <div>{{ data.positions.down1_price or '0' }}</div>
-                                    <div>{{ data.positions.down1_amount or '0' }}</div>
+                                    <div id="down1_price">{{ data.positions.down1_price or '0' }}</div>
+                                    <div id="down1_amount">{{ data.positions.down1_amount or '0' }}</div>
                                 </div>
                                 <div class="position-row">
                                     <div>Down2</div>
-                                    <div>{{ data.positions.down2_price or '0' }}</div>
-                                    <div>{{ data.positions.down2_amount or '0' }}</div>
+                                    <div id="down2_price">{{ data.positions.down2_price or '0' }}</div>
+                                    <div id="down2_amount">{{ data.positions.down2_amount or '0' }}</div>
                                 </div>
                                 <div class="position-row">
                                     <div>Down3</div>
-                                    <div>{{ data.positions.down3_price or '0' }}</div>
-                                    <div>{{ data.positions.down3_amount or '0' }}</div>
+                                    <div id="down3_price">{{ data.positions.down3_price or '0' }}</div>
+                                    <div id="down3_amount">{{ data.positions.down3_amount or '0' }}</div>
                                 </div>
                                 <div class="position-row">
                                     <div>Down4</div>
-                                    <div>{{ data.positions.down4_price or '0' }}</div>
-                                    <div>{{ data.positions.down4_amount or '0' }}</div>
+                                    <div id="down4_price">{{ data.positions.down4_price or '0' }}</div>
+                                    <div id="down4_amount">{{ data.positions.down4_amount or '0' }}</div>
                                 </div>
                                 <div class="position-row">
                                     <div>Down5</div>
-                                    <div>{{ data.positions.down5_price or '0' }}</div>
-                                    <div>{{ data.positions.down5_amount or '0' }}</div>
+                                    <div id="down5_price">{{ data.positions.down5_price or '0' }}</div>
+                                    <div id="down5_amount">{{ data.positions.down5_amount or '0' }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="refresh-info">
-                        🔄 页面每30秒自动刷新 | 📊 数据实时更新 | 🕐 最后更新: {{ current_time }}
+                        🔄 数据每2秒自动更新 | 📊 价格实时刷新 | 🕐 最后更新: {{ current_time }}
                     </div>
                 </div>
                 
@@ -4242,6 +4320,53 @@ class CryptoTrader:
             except Exception as e:
                 self.logger.error(f"启动交易失败: {str(e)}")
                 return jsonify({'success': False, 'message': f'启动失败: {str(e)}'})
+        
+        @app.route("/api/data")
+        def get_data():
+            """获取实时数据API"""
+            try:
+                current_data = {
+                    'status': {
+                        'monitoring': self.get_web_value('monitoring_status') or '未启动',
+                        'url': self.get_web_value('url_entry') or '未设置',
+                        'browser_status': self.get_web_value('browser_status') or '未连接',
+                        'last_update': datetime.now().strftime('%H:%M:%S')
+                    },
+                    'prices': {
+                        'up_price': self.get_web_value('up_price') or '0',
+                        'down_price': self.get_web_value('down_price') or '0',
+                        'binance_price': self.get_web_value('binance_price') or '获取中...'
+                    },
+                    'account': {
+                        'portfolio': self.get_web_value('portfolio_value') or '$0',
+                        'cash': self.get_web_value('cash_value') or '$0'
+                    },
+                    'positions': {
+                        'up1_price': self.get_web_value('up1_price') or '0',
+                        'up1_amount': self.get_web_value('up1_amount') or '0',
+                        'up2_price': self.get_web_value('up2_price') or '0',
+                        'up2_amount': self.get_web_value('up2_amount') or '0',
+                        'up3_price': self.get_web_value('up3_price') or '0',
+                        'up3_amount': self.get_web_value('up3_amount') or '0',
+                        'up4_price': self.get_web_value('up4_price') or '0',
+                        'up4_amount': self.get_web_value('up4_amount') or '0',
+                        'up5_price': self.get_web_value('up5_price') or '0',
+                        'up5_amount': self.get_web_value('up5_amount') or '0',
+                        'down1_price': self.get_web_value('down1_price') or '0',
+                        'down1_amount': self.get_web_value('down1_amount') or '0',
+                        'down2_price': self.get_web_value('down2_price') or '0',
+                        'down2_amount': self.get_web_value('down2_amount') or '0',
+                        'down3_price': self.get_web_value('down3_price') or '0',
+                        'down3_amount': self.get_web_value('down3_amount') or '0',
+                        'down4_price': self.get_web_value('down4_price') or '0',
+                        'down4_amount': self.get_web_value('down4_amount') or '0',
+                        'down5_price': self.get_web_value('down5_price') or '0',
+                        'down5_amount': self.get_web_value('down5_amount') or '0'
+                    }
+                }
+                return jsonify(current_data)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
         
         @app.route("/history")
         def history():
