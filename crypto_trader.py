@@ -38,6 +38,10 @@ class Logger:
     def __init__(self, name):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
+        
+        # 内存日志记录，用于Web界面显示
+        self.log_records = []
+        self.max_records = 200  # 最多保存200条日志
 
         # 如果logger已经有处理器，则不再添加新的处理器
         if not self.logger.handlers:
@@ -65,20 +69,38 @@ class Logger:
             self.logger.addHandler(file_handler)
             self.logger.addHandler(console_handler)
     
+    def _add_to_memory(self, level, message):
+        """添加日志到内存记录"""
+        record = {
+            'time': datetime.now().strftime('%H:%M:%S'),
+            'level': level,
+            'message': message
+        }
+        self.log_records.append(record)
+        
+        # 保持最大记录数限制
+        if len(self.log_records) > self.max_records:
+            self.log_records = self.log_records[-self.max_records:]
+    
     def debug(self, message):
         self.logger.debug(message)
+        self._add_to_memory('DEBUG', message)
     
     def info(self, message):
         self.logger.info(message)
+        self._add_to_memory('INFO', message)
     
     def warning(self, message):
         self.logger.warning(message)
+        self._add_to_memory('WARNING', message)
     
     def error(self, message):
         self.logger.error(message)
+        self._add_to_memory('ERROR', message)
     
     def critical(self, message):
         self.logger.critical(message)
+        self._add_to_memory('CRITICAL', message)
 
 class CryptoTrader:
     def __init__(self):
@@ -3895,103 +3917,214 @@ class CryptoTrader:
                 <style>
                     body { 
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-                        padding: 20px; margin: 0; background: #f8f9fa; 
+                        padding: 15px; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
                     }
-                    .container { max-width: 1200px; margin: 0 auto; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .header h1 { color: #333; margin-bottom: 10px; }
-                    .nav { text-align: center; margin-bottom: 20px; }
+                    .container { 
+                        max-width: 1400px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); 
+                        padding: 25px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                        backdrop-filter: blur(10px);
+                    }
+                    .header { text-align: center; margin-bottom: 35px; }
+                    .header h1 { 
+                        color: #2c3e50; margin: 0; font-size: 36px; font-weight: 700;
+                        background: linear-gradient(45deg, #667eea, #764ba2);
+                        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+                    }
+                    .header p { color: #5a6c7d; margin: 15px 0 0 0; font-size: 18px; font-weight: 500; }
+                    .nav { 
+                        display: flex; justify-content: center; gap: 20px; 
+                        margin-bottom: 35px; padding: 20px; background: rgba(248, 249, 250, 0.8); 
+                        border-radius: 12px; backdrop-filter: blur(5px);
+                    }
                     .nav a { 
-                        display: inline-block; padding: 10px 20px; margin: 0 10px; 
-                        background: #007bff; color: white; text-decoration: none; 
-                        border-radius: 5px; transition: background 0.3s;
+                        padding: 12px 24px; background: linear-gradient(45deg, #007bff, #0056b3); 
+                        color: white; text-decoration: none; border-radius: 8px; font-weight: 600;
+                        font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,123,255,0.3);
                     }
-                    .nav a:hover { background: #0056b3; }
-                    .nav a.active { background: #28a745; }
+                    .nav a:hover { 
+                        background: linear-gradient(45deg, #0056b3, #004085); 
+                        transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+                    }
+                    .nav a.active { 
+                        background: linear-gradient(45deg, #28a745, #20c997); 
+                        box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+                    }
+                    .nav button {
+                        padding: 12px 24px; background: linear-gradient(45deg, #17a2b8, #138496);
+                        border: none; color: white; border-radius: 8px; cursor: pointer;
+                        font-size: 16px; font-weight: 600; transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(23,162,184,0.3);
+                    }
+                    .nav button:hover {
+                        background: linear-gradient(45deg, #138496, #117a8b);
+                        transform: translateY(-2px); box-shadow: 0 6px 20px rgba(23,162,184,0.4);
+                    }
                     .card { 
-                        background: white; padding: 20px; margin-bottom: 20px; 
-                        border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+                        background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(233, 236, 239, 0.5); 
+                        border-radius: 12px; padding: 25px; margin-bottom: 25px; 
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08); backdrop-filter: blur(5px);
+                        transition: all 0.3s ease;
                     }
-                    .card h3 { margin-top: 0; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-                    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-                    .info-item { padding: 10px; background: #f8f9fa; border-radius: 5px; }
-                    .info-item label { font-weight: bold; color: #666; display: block; margin-bottom: 5px; }
-                    .info-item .value { font-size: 16px; color: #333; }
-                    .price-display { display: flex; justify-content: space-around; text-align: center; }
+                    .card:hover {
+                        transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+                    }
+                    .card h3 { 
+                        margin: 0 0 20px 0; color: #2c3e50; font-size: 22px; font-weight: 700;
+                        border-bottom: 3px solid #007bff; padding-bottom: 10px; 
+                        background: linear-gradient(45deg, #007bff, #0056b3);
+                        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                    }
+                    .info-grid { 
+                        display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+                        gap: 20px; 
+                    }
+                    .info-item { 
+                        padding: 15px; background: rgba(248, 249, 250, 0.8); border-radius: 8px;
+                        transition: all 0.3s ease; border: 2px solid transparent;
+                    }
+                    .info-item:hover {
+                        background: rgba(255, 255, 255, 0.9); border-color: #007bff;
+                        transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,123,255,0.1);
+                    }
+                    .info-item label { 
+                        font-weight: 700; color: #495057; display: block; margin-bottom: 8px; 
+                        font-size: 16px; 
+                    }
+                    .info-item .value { 
+                        font-size: 18px; color: #2c3e50; font-weight: 600;
+                        font-family: 'Monaco', 'Menlo', monospace;
+                    }
+                    .info-item select {
+                        width: 100%; padding: 12px 16px; border: 2px solid #dee2e6; border-radius: 8px;
+                        font-size: 16px; font-weight: 500; background: white;
+                        transition: all 0.3s ease; cursor: pointer;
+                    }
+                    .info-item select:focus {
+                        border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+                        outline: none;
+                    }
+                    .price-display { 
+                        display: flex; justify-content: space-around; text-align: center; gap: 20px;
+                        margin-top: 20px;
+                    }
                     .price-box { 
-                        padding: 20px; border-radius: 10px; min-width: 120px;
-                        font-size: 18px; font-weight: bold;
+                        padding: 25px; border-radius: 12px; min-width: 150px;
+                        font-size: 20px; font-weight: 800; transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                     }
-                    .price-up { background: #d4edda; color: #155724; }
-                    .price-down { background: #f8d7da; color: #721c24; }
-                    .positions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                    .price-box:hover {
+                        transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    }
+                    .price-up { 
+                        background: linear-gradient(135deg, #d4edda, #c3e6cb); 
+                        color: #155724; border: 2px solid #28a745;
+                    }
+                    .price-down { 
+                        background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
+                        color: #721c24; border: 2px solid #dc3545;
+                    }
+                    .positions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
                     .position-section h4 { 
-                        margin-top: 0; padding: 10px; border-radius: 5px; text-align: center; color: white;
+                        margin: 0 0 20px 0; padding: 15px; border-radius: 8px; text-align: center; 
+                        color: white; font-size: 20px; font-weight: 700;
                     }
-                    .up-section h4 { background: #28a745; }
-                    .down-section h4 { background: #dc3545; }
+                    .up-section h4 { 
+                        background: linear-gradient(45deg, #28a745, #20c997); 
+                        box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+                    }
+                    .down-section h4 { 
+                        background: linear-gradient(45deg, #dc3545, #c82333); 
+                        box-shadow: 0 4px 15px rgba(220,53,69,0.3);
+                    }
                     .position-row { 
-                        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; 
-                        padding: 10px; border-bottom: 1px solid #eee; align-items: center;
+                        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; 
+                        padding: 12px; border-bottom: 1px solid rgba(238, 238, 238, 0.8); 
+                        align-items: center; font-size: 15px; font-weight: 500;
                     }
                     .position-row:last-child { border-bottom: none; }
-                    .position-label { font-weight: bold; }
+                    .position-label { font-weight: 700; color: #495057; }
                     .refresh-info { 
-                        text-align: center; padding: 10px; background: #e9ecef; 
-                        border-radius: 5px; margin-top: 20px; color: #666;
+                        text-align: center; padding: 20px; 
+                        background: linear-gradient(135deg, #e9ecef, #dee2e6); 
+                        border-radius: 12px; margin-top: 25px; color: #495057;
+                        font-size: 16px; font-weight: 500;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
                     }
                     .control-section {
-                        margin-top: 15px;
-                        padding-top: 15px;
-                        border-top: 1px solid #eee;
+                        margin-top: 20px; padding-top: 20px;
+                        border-top: 2px solid rgba(222, 226, 230, 0.5);
                     }
                     .url-input-group {
-                        display: flex;
-                        gap: 10px;
-                        margin-bottom: 10px;
+                        display: flex; gap: 15px; margin-bottom: 15px;
                     }
                     .url-input-group input {
-                        flex: 1;
-                        padding: 8px 12px;
-                        border: 1px solid #ddd;
-                        border-radius: 4px;
-                        font-size: 14px;
+                        flex: 1; padding: 14px 18px; border: 2px solid #ced4da;
+                        border-radius: 8px; font-size: 16px; transition: all 0.3s ease;
+                    }
+                    .url-input-group input:focus {
+                        border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+                        outline: none;
                     }
                     .url-input-group button {
-                        padding: 8px 16px;
-                        background: #007bff;
-                        color: white;
-                        border: none;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        white-space: nowrap;
+                        padding: 14px 28px; background: linear-gradient(45deg, #28a745, #20c997);
+                        color: white; border: none; border-radius: 8px; cursor: pointer;
+                        font-size: 16px; font-weight: 600; white-space: nowrap;
+                        transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(40,167,69,0.3);
                     }
                     .url-input-group button:hover {
-                        background: #0056b3;
+                        background: linear-gradient(45deg, #218838, #1e7e34);
+                        transform: translateY(-2px); box-shadow: 0 6px 20px rgba(40,167,69,0.4);
                     }
                     .url-input-group button:disabled {
-                        background: #6c757d;
-                        cursor: not-allowed;
+                        background: #6c757d; cursor: not-allowed; transform: none;
+                        box-shadow: none;
                     }
                     .status-message {
-                        padding: 8px;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        text-align: center;
-                        display: none;
+                        padding: 12px; border-radius: 8px; font-size: 16px;
+                        text-align: center; display: none; font-weight: 500;
                     }
                     .status-message.success {
-                        background: #d4edda;
-                        color: #155724;
-                        border: 1px solid #c3e6cb;
-                        display: block;
+                        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+                        color: #155724; border: 2px solid #c3e6cb; display: block;
                     }
                     .status-message.error {
-                        background: #f8d7da;
-                        color: #721c24;
-                        border: 1px solid #f5c6cb;
-                        display: block;
+                        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+                        color: #721c24; border: 2px solid #f5c6cb; display: block;
+                    }
+                    .log-section {
+                        margin-top: 30px; background: rgba(33, 37, 41, 0.95);
+                        border-radius: 12px; padding: 20px; color: #ffffff;
+                        font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                    }
+                    .log-section h3 {
+                        margin: 0 0 15px 0; color: #00ff88; font-size: 20px;
+                        border-bottom: 2px solid #00ff88; padding-bottom: 8px;
+                    }
+                    .log-container {
+                        height: 300px; overflow-y: auto; background: rgba(0,0,0,0.3);
+                        border-radius: 8px; padding: 15px; border: 1px solid #495057;
+                    }
+                    .log-entry {
+                        margin-bottom: 8px; font-size: 14px; line-height: 1.4;
+                        word-wrap: break-word;
+                    }
+                    .log-entry.info { color: #17a2b8; }
+                    .log-entry.warning { color: #ffc107; }
+                    .log-entry.error { color: #dc3545; }
+                    .log-entry.success { color: #28a745; }
+                    .log-controls {
+                        margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;
+                    }
+                    .log-controls button {
+                        padding: 8px 16px; background: #495057; color: white;
+                        border: none; border-radius: 6px; cursor: pointer;
+                        font-size: 14px; transition: all 0.3s ease;
+                    }
+                    .log-controls button:hover {
+                        background: #6c757d; transform: translateY(-1px);
                     }
                 </style>
                 <script>
@@ -4297,6 +4430,21 @@ class CryptoTrader:
                     <div class="refresh-info">
                         🔄 数据每2秒自动更新 | 📊 价格实时刷新 | 🕐 最后更新: {{ current_time }}
                     </div>
+                    
+                    <!-- 日志显示区域 -->
+                    <div class="log-section">
+                        <div class="log-header">
+                            <h3>📋 系统日志</h3>
+                            <div class="log-controls">
+                                <button onclick="clearLogs()" class="log-btn clear-btn">清空日志</button>
+                                <button onclick="toggleAutoScroll()" class="log-btn" id="autoScrollBtn">自动滚动: 开</button>
+                                <button onclick="refreshLogs()" class="log-btn refresh-btn">刷新日志</button>
+                            </div>
+                        </div>
+                        <div class="log-container" id="logContainer">
+                            <div class="log-loading">正在加载日志...</div>
+                        </div>
+                    </div>
                 </div>
                 
                 <script>
@@ -4355,6 +4503,72 @@ class CryptoTrader:
                         statusMessage.style.display = 'none';
                     }, 5000);
                 }
+                
+                // 日志相关变量
+                let autoScroll = true;
+                let logUpdateInterval;
+                
+                // 日志相关函数
+                function updateLogs() {
+                    fetch('/api/logs')
+                        .then(response => response.json())
+                        .then(data => {
+                            const logContainer = document.getElementById('logContainer');
+                            if (data.logs && data.logs.length > 0) {
+                                logContainer.innerHTML = data.logs.map(log => 
+                                    `<div class="log-entry ${log.level.toLowerCase()}">
+                                        <span class="log-time">${log.time}</span>
+                                        <span class="log-level">[${log.level}]</span>
+                                        <span class="log-message">${log.message}</span>
+                                    </div>`
+                                ).join('');
+                                
+                                if (autoScroll) {
+                                    logContainer.scrollTop = logContainer.scrollHeight;
+                                }
+                            } else {
+                                logContainer.innerHTML = '<div class="log-empty">暂无日志记录</div>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取日志失败:', error);
+                            document.getElementById('logContainer').innerHTML = '<div class="log-error">日志加载失败</div>';
+                        });
+                }
+                
+                function clearLogs() {
+                    fetch('/api/logs/clear', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                updateLogs();
+                                showMessage('日志已清空', 'success');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('清空日志失败:', error);
+                            showMessage('清空日志失败', 'error');
+                        });
+                }
+                
+                function toggleAutoScroll() {
+                    autoScroll = !autoScroll;
+                    const btn = document.getElementById('autoScrollBtn');
+                    btn.textContent = `自动滚动: ${autoScroll ? '开' : '关'}`;
+                    btn.className = `log-btn ${autoScroll ? '' : 'disabled'}`;
+                }
+                
+                function refreshLogs() {
+                    updateLogs();
+                    showMessage('日志已刷新', 'success');
+                }
+                
+                // 页面加载完成后启动日志更新
+                document.addEventListener('DOMContentLoaded', function() {
+                    updateLogs();
+                    // 每5秒更新一次日志
+                    logUpdateInterval = setInterval(updateLogs, 5000);
+                });
                 </script>
             </body>
             </html>
@@ -4643,6 +4857,61 @@ class CryptoTrader:
             except Exception as e:
                 self.logger.error(f"更新时间失败: {e}")
                 return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
+        
+        @app.route("/api/logs", methods=['GET'])
+        def get_logs():
+            """获取系统日志"""
+            try:
+                logs = []
+                # 从Logger类的日志记录中获取最近的日志
+                if hasattr(self.logger, 'log_records'):
+                    logs = self.logger.log_records[-100:]  # 最近100条日志
+                else:
+                    # 如果没有内存日志，尝试读取日志文件
+                    log_file = 'crypto_trader.log'
+                    if os.path.exists(log_file):
+                        with open(log_file, 'r', encoding='utf-8') as f:
+                            lines = f.readlines()[-100:]  # 最近100行
+                            for line in lines:
+                                line = line.strip()
+                                if line:
+                                    # 解析日志格式: 时间 - 级别 - 消息
+                                    parts = line.split(' - ', 2)
+                                    if len(parts) >= 3:
+                                        logs.append({
+                                            'time': parts[0],
+                                            'level': parts[1],
+                                            'message': parts[2]
+                                        })
+                                    else:
+                                        logs.append({
+                                            'time': datetime.now().strftime('%H:%M:%S'),
+                                            'level': 'INFO',
+                                            'message': line
+                                        })
+                
+                return jsonify({'success': True, 'logs': logs})
+            except Exception as e:
+                return jsonify({'success': False, 'logs': [], 'error': str(e)})
+        
+        @app.route("/api/logs/clear", methods=['POST'])
+        def clear_logs():
+            """清空日志"""
+            try:
+                # 清空内存中的日志记录
+                if hasattr(self.logger, 'log_records'):
+                    self.logger.log_records.clear()
+                
+                # 清空日志文件
+                log_file = 'crypto_trader.log'
+                if os.path.exists(log_file):
+                    with open(log_file, 'w', encoding='utf-8') as f:
+                        f.write('')
+                
+                self.logger.info("日志已清空")
+                return jsonify({'success': True, 'message': '日志已清空'})
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'清空日志失败: {str(e)}'})
 
         return app
 
