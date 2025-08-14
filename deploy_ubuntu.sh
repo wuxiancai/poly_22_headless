@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# 无头加密货币交易系统 - Ubuntu Server 22.04 一键部署脚本
+# Polymarket自动交易系统 - Ubuntu Server 22.04 一键部署脚本
 # 包含Python虚拟环境、Chrome/Chromium、系统依赖安装
+# 适配crypto_trader.py项目
 
 set -e  # 遇到错误立即退出
 
-echo "🚀 开始部署无头加密货币交易系统到 Ubuntu Server 22.04..."
+echo "🚀 开始部署Polymarket自动交易系统到 Ubuntu Server 22.04..."
 
 # 检查是否为root用户
 if [[ $EUID -eq 0 ]]; then
@@ -113,6 +114,7 @@ selenium>=4.12
 webdriver-manager>=3.8
 requests>=2.28
 psutil>=5.9
+websocket-client>=1.6
 EOF
 fi
 
@@ -125,8 +127,15 @@ echo "🚗 配置Chrome Driver和启动脚本..."
 
 # 确保start_chrome_ubuntu.sh脚本存在且可执行
 if [ ! -f "$PROJECT_DIR/start_chrome_ubuntu.sh" ]; then
-    echo "❌ start_chrome_ubuntu.sh 脚本不存在"
-    exit 1
+    echo "📝 创建start_chrome_ubuntu.sh脚本..."
+    cat > "$PROJECT_DIR/start_chrome_ubuntu.sh" << 'EOF'
+#!/bin/bash
+# Ubuntu Chrome启动脚本
+echo "启动Chrome浏览器（无头模式）..."
+google-chrome --headless --no-sandbox --disable-dev-shm-usage --remote-debugging-port=9222 &
+echo "Chrome已启动，调试端口：9222"
+EOF
+    chmod +x "$PROJECT_DIR/start_chrome_ubuntu.sh"
 fi
 
 chmod +x "$PROJECT_DIR/start_chrome_ubuntu.sh"
@@ -146,7 +155,7 @@ echo "✅ Chrome Driver和启动脚本配置完成"
 
 # 6. 设置项目权限
 echo "🔐 设置项目权限..."
-chmod +x "$PROJECT_DIR/headless_crypto_trader.py"
+chmod +x "$PROJECT_DIR/crypto_trader.py"
 chmod +x "$PROJECT_DIR"/*.sh 2>/dev/null || true
 
 # 7. 创建系统服务（可选）
@@ -217,7 +226,7 @@ sleep 5
 # 启动交易系统
 echo "🚀 启动交易系统..."
 cd "$PROJECT_DIR"
-python headless_crypto_trader.py
+python crypto_trader.py
 
 # 清理：停止Chrome进程
 echo "🧹 清理Chrome进程..."
@@ -237,14 +246,15 @@ echo "🚀 启动命令: ./start_trader.sh"
 echo "=================================================="
 echo ""
 echo "📋 下一步操作："
-echo "1. 编辑配置: 运行 './start_trader.sh' 后访问Web界面"
-echo "2. 设置URL: 在Web界面配置Polymarket交易页面"
-echo "3. 调整参数: 根据需要修改交易价格和金额"
+echo "1. 启动系统: 运行 './start_trader.sh' 启动交易系统"
+echo "2. 访问界面: 打开浏览器访问 http://服务器IP:5000"
+echo "3. 配置监控: 在Web界面设置Polymarket交易页面URL"
+echo "4. 调整参数: 根据需要修改交易价格和金额设置"
 echo ""
 echo "💡 提示："
-echo "- 系统将自动计算交易金额（基于现金百分比）"
-echo "- 如需修改，请访问Web配置页面"
-echo "- 建议先在测试环境验证功能"
+echo "- 系统提供Web界面进行实时监控和配置"
+echo "- 支持自动交易和手动干预功能"
+echo "- 建议先在测试环境验证所有功能"
 echo ""
 
 # 询问是否立即启动
