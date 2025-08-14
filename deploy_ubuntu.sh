@@ -179,7 +179,7 @@ WorkingDirectory=$PROJECT_DIR
 Environment=PATH=$VENV_DIR/bin:/usr/bin:/bin
 Environment=DISPLAY=:1
 ExecStartPre=/bin/bash $PROJECT_DIR/start_chrome_ubuntu.sh --check-only
-ExecStart=/bin/bash $PROJECT_DIR/start_trader.sh
+ExecStart=/bin/bash $PROJECT_DIR/run.sh
 Restart=always
 RestartSec=10
 KillMode=mixed
@@ -209,7 +209,7 @@ fi
 
 # 9. 创建启动脚本
 echo "📜 创建启动脚本..."
-cat > "$PROJECT_DIR/start_trader.sh" << EOF
+cat > "$PROJECT_DIR/run.sh" << EOF
 #!/bin/bash
 
 # 激活虚拟环境
@@ -233,7 +233,7 @@ echo "🧹 清理Chrome进程..."
 kill \$CHROME_PID 2>/dev/null || true
 EOF
 
-chmod +x "$PROJECT_DIR/start_trader.sh"
+chmod +x "$PROJECT_DIR/run.sh"
 
 # 10. 显示部署信息
 echo ""
@@ -242,11 +242,11 @@ echo "=================================================="
 echo "📁 项目目录: $PROJECT_DIR"
 echo "🐍 虚拟环境: $VENV_DIR"
 echo "🌐 Web界面: http://$(hostname -I | awk '{print $1}'):5000"
-echo "🚀 启动命令: ./start_trader.sh"
+echo "🚀 启动命令: ./run.sh"
 echo "=================================================="
 echo ""
 echo "📋 下一步操作："
-echo "1. 启动系统: 运行 './start_trader.sh' 启动交易系统"
+echo "1. 启动系统: 运行 './run.sh' 启动交易系统"
 echo "2. 访问界面: 打开浏览器访问 http://服务器IP:5000"
 echo "3. 配置监控: 在Web界面设置Polymarket交易页面URL"
 echo "4. 调整参数: 根据需要修改交易价格和金额设置"
@@ -262,5 +262,5 @@ read -p "🚀 是否现在启动交易系统？(y/n): " start_now
 
 if [[ $start_now == "y" || $start_now == "Y" ]]; then
     echo "🎯 启动交易系统..."
-    ./start_trader.sh
+    ./run.sh
 fi
