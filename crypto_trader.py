@@ -275,22 +275,23 @@ class CryptoTrader:
         """保存配置到文件,保持JSON格式化"""
         try:
             # Web模式下直接从web_data获取价格和金额数据
-            for position in ['Yes', 'No']:
+            for position, config_key in [('yes', 'Up1'), ('no', 'Down1')]:
                 # 添加类型转换保护
                 try:
-                    target_price = float(self.get_web_value(f'{position.lower()}1_price_entry').strip() or '0')
+                    target_price = float(self.get_web_value(f'{position}1_price_entry').strip() or '0')
                 except ValueError as e:
                     self.logger.error(f"价格转换失败: {e}, 使用默认值0")
                     target_price = 0
 
                 try:
-                    amount = float(self.get_web_value(f'{position.lower()}1_amount_entry').strip() or '0')
+                    amount = float(self.get_web_value(f'{position}1_amount_entry').strip() or '0')
                 except ValueError as e:
                     self.logger.error(f"金额转换失败: {e}, 使用默认值0")
                     amount = 0
 
-                # 使用正确的配置键格式
-                config_key = f"{position}1"  # 改为Yes1/No1
+                # 使用正确的配置键格式，匹配默认配置中的Up1/Down1
+                if config_key not in self.config['trading']:
+                    self.config['trading'][config_key] = {'target_price': 0, 'amount': 0}
                 self.config['trading'][config_key]['target_price'] = target_price
                 self.config['trading'][config_key]['amount'] = amount
 
