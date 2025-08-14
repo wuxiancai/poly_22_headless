@@ -3837,10 +3837,12 @@ class CryptoTrader:
                 'cash': self.get_web_value('cash_entry'),
                 'portfolio': self.get_web_value('portfolio_entry'),
                 'trading_pair': self.get_web_value('trading_pair_label'),
-                'binance_price': self.get_web_value('binance_price_label'),
+                'binance_price': self.get_web_value('binance_now_price_label'),
+                'binance_zero_price': self.get_web_value('binance_zero_price_label'),
+                'binance_rate': self.get_web_value('binance_rate_label'),
                 'live_prices': {
-                    'up': self.get_web_value('up_price_label'),
-                    'down': self.get_web_value('down_price_label')
+                    'up': self.get_web_value('yes_price_label').replace('Up: ', '') if self.get_web_value('yes_price_label') else '0',
+                    'down': self.get_web_value('no_price_label').replace('Down: ', '') if self.get_web_value('no_price_label') else '0'
                 },
                 'positions': {
                     'up1_price': self.get_web_value('yes1_price_entry'),
@@ -4032,8 +4034,16 @@ class CryptoTrader:
                         <h3>💰 实时价格</h3>
                         <div class="info-grid">
                             <div class="info-item">
-                                <label>Binance价格:</label>
+                                <label>Binance零点价格:</label>
+                                <div class="value">{{ data.binance_zero_price or '获取中...' }}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>Binance当前价格:</label>
                                 <div class="value">{{ data.binance_price or '获取中...' }}</div>
+                            </div>
+                            <div class="info-item">
+                                <label>涨跌幅度:</label>
+                                <div class="value">{{ data.binance_rate or '--' }}%</div>
                             </div>
                         </div>
                         <div class="price-display">
