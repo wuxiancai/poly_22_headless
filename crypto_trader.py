@@ -3878,9 +3878,13 @@ class CryptoTrader:
                 'coin': self.get_web_value('coin_combobox'),
                 'auto_find_time': self.get_web_value('auto_find_time_combobox'),
                 'account': {
-                    'cash': self.get_web_value('cash_label') or 'Cash: $0',
-                    'portfolio': self.get_web_value('portfolio_label') or 'Portfolio: $0',
+                    'cash': getattr(self, 'cash_value', '--') or '--',
+                    'portfolio': getattr(self, 'portfolio_value', '--') or '--',
                     'zero_time_cash': self.get_web_value('zero_time_cash_label') or '0'
+                },
+                'prices': {
+                    'up_price': self.get_web_value('yes_price_label').replace('Up: ', '') if self.get_web_value('yes_price_label') else 'N/A',
+                    'down_price': self.get_web_value('no_price_label').replace('Down: ', '') if self.get_web_value('no_price_label') else 'N/A'
                 },
                 'trading_pair': self.get_web_value('trading_pair_label'),
                 'binance_price': self.get_web_value('binance_now_price_label'),
@@ -3989,25 +3993,36 @@ class CryptoTrader:
                     .monitor-controls-section {
                         width: 100%;
                         display: flex;
-                        flex-wrap: nowrap;
+                        flex-wrap: wrap;
                         gap: 15px;
                         align-items: flex-start;
-                        overflow-x: auto;
+                        overflow: visible;
                     }
                     .info-item { 
                         padding: 15px; background: rgba(248, 249, 250, 0.8); border-radius: 8px;
                         transition: all 0.3s ease; border: 2px solid transparent;
-                        flex: 0 0 auto;
-                        min-width: 150px;
-                        max-width: 200px;
+                        flex: 1 1 auto;
+                        min-width: 60px;
+                        max-width: none;
                         white-space: nowrap;
                         display: flex;
                         align-items: center;
                         gap: 8px;
+                        overflow: hidden;
                     }
                     .info-item:hover {
                         background: rgba(255, 255, 255, 0.9); border-color: #007bff;
                         transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,123,255,0.1);
+                    }
+                    .coin-select-item {
+                        flex: 0 0 auto;
+                        min-width: 100px;
+                        max-width: 100px;
+                    }
+                    .time-select-item {
+                        flex: 0 0 auto;
+                        min-width: 120px;
+                        max-width: 120px;
                     }
                     .info-item label { 
                         font-weight: 700; color: #495057; 
@@ -4189,6 +4204,7 @@ class CryptoTrader:
                     .log-entry {
                         margin-bottom: 8px; font-size: 14px; line-height: 1.4;
                         word-wrap: break-word;
+                        color: #000000;
                     }
                     .log-entry.info { color: #17a2b8; }
                     .log-entry.warning { color: #ffc107; }
@@ -4219,8 +4235,8 @@ class CryptoTrader:
                                 }
                                 
                                 // 更新价格显示
-                                const upPriceElement = document.querySelector('.price-card.up .price-value');
-                                const downPriceElement = document.querySelector('.price-card.down .price-value');
+                                const upPriceElement = document.querySelector('.up-price .value');
+                                const downPriceElement = document.querySelector('.down-price .value');
                                 const binancePriceElement = document.querySelector('.binance-price');
                                 
                                 if (upPriceElement) upPriceElement.textContent = data.prices.up_price;
@@ -4228,8 +4244,8 @@ class CryptoTrader:
                                 if (binancePriceElement) binancePriceElement.textContent = data.prices.binance_price;
                                 
                                 // 更新账户信息
-                                const portfolioElement = document.querySelector('.account-info .portfolio-value');
-                                const cashElement = document.querySelector('.account-info .cash-value');
+                                const portfolioElement = document.querySelector('.portfolio .value');
+                                const cashElement = document.querySelector('.cash .value');
                                 
                                 if (portfolioElement) portfolioElement.textContent = data.account.portfolio;
                                 if (cashElement) cashElement.textContent = data.account.cash;
@@ -4344,17 +4360,25 @@ class CryptoTrader:
                         <h3>📊 网站监控</h3>
                         <div class="monitor-controls-section">
                                 <div class="info-item">
+                                    <label>UP:</label>
+                                    <div class="value" id="upPrice">{{ data.prices.up_price or 'N/A' }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>DOWN:</label>
+                                    <div class="value" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
+                                </div>
+                                <div class="info-item coin-select-item">
                                     <label>币种:</label>
-                                    <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: auto; min-width: 80px;">
+                                    <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 5px; min-width: 5px;">
                                         <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
                                         <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
                                         <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
                                         <option value="XRP" {{ 'selected' if data.coin == 'XRP' else '' }}>XRP</option>
                                     </select>
                                 </div>
-                                <div class="info-item">
-                                    <label>开始交易时间:</label>
-                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: auto; min-width: 80px;">
+                                <div class="info-item time-select-item">
+                                    <label>交易时间:</label>
+                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 5px; min-width: 5px;">
                                         <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
                                         <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
                                         <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
