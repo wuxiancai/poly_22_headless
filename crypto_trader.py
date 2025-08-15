@@ -1103,7 +1103,7 @@ class CryptoTrader:
                 # 尝试刷新页面
                 try:
                     self.driver.refresh()
-                    time.sleep(2)
+                    time.sleep(0.5)
                 except:
                     pass
 
@@ -1120,7 +1120,7 @@ class CryptoTrader:
             # 尝试刷新页面
             try:
                 self.driver.refresh()
-                time.sleep(2)
+                time.sleep(0.5)
             except:
                 pass
             
@@ -1169,14 +1169,14 @@ class CryptoTrader:
             # 处理获取结果
             if portfolio_element:
                 self.portfolio_value = portfolio_element.text.strip()
-                self.logger.info(f"✅ 获取到Portfolio值: {self.portfolio_value}")
+                # 成功获取时不显示日志
             else:
                 self.portfolio_value = "--"
                 self.logger.warning("❌ 无法获取Portfolio值，可能需要登录")
                 
             if cash_element:
                 self.cash_value = cash_element.text.strip()
-                self.logger.info(f"✅ 获取到Cash值: {self.cash_value}")
+                # 成功获取时不显示日志
             else:
                 self.cash_value = "--"
                 self.logger.warning("❌ 无法获取Cash值，可能需要登录")
@@ -1587,7 +1587,7 @@ class CryptoTrader:
                         # Web模式下传递金额值
                         self.send_amount_and_buy_confirm(self.get_web_value('yes1_amount_entry'))
 
-                        time.sleep(2)
+                        time.sleep(1)
                         if self.Verify_buy_up():
                             self.buy_yes1_amount = float(self.get_web_value('yes1_amount_entry'))
                             
@@ -1731,7 +1731,7 @@ class CryptoTrader:
                         # 传 Tkinter 的 AmountEntry 对象，比如 self.yes2_amount_entry
                         self.send_amount_and_buy_confirm(self.yes2_amount_entry)
                         
-                        time.sleep(2)
+                        time.sleep(1)
                         if self.Verify_buy_up():
                             self.buy_yes2_amount = float(self.get_web_value('yes2_amount_entry'))
                             
@@ -4014,7 +4014,7 @@ class CryptoTrader:
                         padding: 15px; background: rgba(248, 249, 250, 0.8); border-radius: 8px;
                         transition: all 0.3s ease; border: 2px solid transparent;
                         flex: 1 1 auto;
-                        min-width: 60px;
+                        min-width: 100px;
                         max-width: none;
                         white-space: nowrap;
                         display: flex;
@@ -4028,13 +4028,13 @@ class CryptoTrader:
                     }
                     .coin-select-item {
                         flex: 0 0 auto;
-                        min-width: 100px;
-                        max-width: 100px;
+                        min-width: 110px;
+                        max-width: 110px;
                     }
                     .time-select-item {
                         flex: 0 0 auto;
-                        min-width: 120px;
-                        max-width: 120px;
+                        min-width: 140px;
+                        max-width: 140px;
                     }
                     .info-item label { 
                         font-weight: 700; color: #495057; 
@@ -4400,7 +4400,7 @@ class CryptoTrader:
                         <div class="monitor-controls-section">
                                 <div class="info-item coin-select-item">
                                     <label>币种:</label>
-                                    <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 5px; min-width: 5px;">
+                                    <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 80px; min-width: 80px;">
                                         <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
                                         <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
                                         <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
@@ -4409,7 +4409,7 @@ class CryptoTrader:
                                 </div>
                                 <div class="info-item time-select-item">
                                     <label>交易时间:</label>
-                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 5px; min-width: 5px;">
+                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 80px; min-width: 80px;">
                                         <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
                                         <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
                                         <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
