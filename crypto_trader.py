@@ -831,13 +831,13 @@ class CryptoTrader:
             
             self.save_config()
             
-            self.logger.info(f"✅ \033[34mURL已更新为: {updated_url}\033[0m")
+            self.logger.info(f"✅ URL已更新为: {updated_url}")
             
             # 如果浏览器已经打开，导航到新URL
             if self.driver:
                 try:
                     self.driver.get(updated_url)
-                    self.logger.info(f"✅ \033[34m浏览器已导航到新URL\033[0m")
+                    self.logger.info(f"✅ 浏览器已导航到新URL")
                 except Exception as e:
                     self.logger.error(f"导航到新URL失败: {e}")
             
