@@ -354,7 +354,7 @@ class CryptoTrader:
         
         # 加载配置到web_data
         if hasattr(self, 'config') and self.config:
-            self.web_data['url_entry'] = self.config.get('url', '')
+            self.web_data['url_entry'] = self.config.get('website', {}).get('url', '')
             self.web_data['coin_combobox'] = self.config.get('coin', 'BTC')
             self.web_data['auto_find_time_combobox'] = self.config.get('auto_find_time', '2:00')
     
@@ -1065,11 +1065,17 @@ class CryptoTrader:
                 except Exception as xpath_e:
                     self.logger.warning(f"XPath方法也失败: {str(xpath_e)}")
 
+            # 添加调试日志 - 打印获取到的价格
+            self.logger.info(f"🔍 价格检查结果: UP={prices['up']}, DOWN={prices['down']}")
+            
             # 验证获取到的数据
             if prices['up'] is not None and prices['down'] is not None:
                 # 获取价格
                 up_price_val = float(prices['up'])
                 down_price_val = float(prices['down'])
+                
+                # 添加详细的价格日志
+                self.logger.info(f"✅ 成功获取价格: UP={up_price_val}, DOWN={down_price_val}")
                 
                 # 数据合理性检查
                 if 0 <= up_price_val <= 100 and 0 <= down_price_val <= 100:
@@ -3927,7 +3933,8 @@ class CryptoTrader:
                     'down4_amount': self.get_web_value('no4_amount_entry'),
                     'down5_price': self.get_web_value('no5_price_entry'),
                     'down5_amount': self.get_web_value('no5_amount_entry')
-                }
+                },
+                'cash_history': sorted(self.cash_history, key=lambda x: x[0], reverse=True) if hasattr(self, 'cash_history') else []
             }
             
             dashboard_template = """
@@ -4233,7 +4240,7 @@ class CryptoTrader:
                         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                     }
                     .log-container {
-                        height: 300px; overflow-y: auto; background: rgba(248, 249, 250, 0.8);
+                        height: 450px; overflow-y: auto; background: rgba(248, 249, 250, 0.8);
                         border-radius: 8px; padding: 15px; border: 2px solid rgba(233, 236, 239, 0.5);
                     }
                     .log-entry {
@@ -4257,6 +4264,34 @@ class CryptoTrader:
                     .log-controls button:hover {
                         background: linear-gradient(45deg, #0056b3, #004085);
                         transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,123,255,0.4);
+                    }
+                    .side-by-side-container {
+                        display: flex;
+                        gap: 20px;
+                        margin-top: 30px;
+                    }
+                    .half-width {
+                        flex: 1;
+                        width: 50%;
+                        min-height: 500px;
+                    }
+                    .log-section.half-width {
+                        margin-top: 0;
+                        display: flex;
+                        flex-direction: column;
+                        height: 100%;
+                    }
+                    .card.half-width {
+                        margin-top: 0;
+                        display: flex;
+                        flex-direction: column;
+                        height: 100%;
+                    }
+                    .card.half-width .positions-grid {
+                        flex: 1;
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 25px;
                     }
                 </style>
                 <script>
@@ -4377,20 +4412,148 @@ class CryptoTrader:
                         <h1>🚀 Polymarket自动交易仪表板</h1>
                     </div>
                     
+                    <!-- 价格监控 -->
+                    <div class="card">
+                        <h3>💰 价格监控</h3>
+                        <div class="monitor-controls-section">
+                                <div class="info-item">
+                                    <label>UP:</label>
+                                    <div class="value" id="upPrice">{{ data.prices.up_price or 'N/A' }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>DOWN:</label>
+                                    <div class="value" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>币安价格:</label>
+                                    <div class="binance-price-container">
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">零点:</span>
+                                            <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                                        </div>
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">实时:</span>
+                                            <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                        </div>
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">涨幅:</span>
+                                            <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
 
-
-                    <!-- 日志显示区域 -->
-                    <div class="log-section">
-                        <div class="log-header">
-                            <h3>📋 系统日志</h3>
-                            <div class="log-controls">
-                                <button onclick="clearLogs()" class="log-btn clear-btn">清空日志</button>
-                                <button onclick="toggleAutoScroll()" class="log-btn" id="autoScrollBtn">自动滚动: 开</button>
-                                <button onclick="refreshLogs()" class="log-btn refresh-btn">刷新日志</button>
+                    <!-- 日志和仓位并列容器 -->
+                    <div class="side-by-side-container">
+                        <!-- 日志显示区域 -->
+                        <div class="log-section half-width">
+                            <div class="log-header">
+                                <h3>📋 系统日志</h3>
+                                <div class="log-controls">
+                                    <button onclick="clearLogs()" class="log-btn clear-btn">清空日志</button>
+                                    <button onclick="toggleAutoScroll()" class="log-btn" id="autoScrollBtn">自动滚动: 开</button>
+                                    <button onclick="refreshLogs()" class="log-btn refresh-btn">刷新日志</button>
+                                </div>
+                            </div>
+                            <div class="log-container" id="logContainer">
+                                <div class="log-loading">正在加载日志...</div>
                             </div>
                         </div>
-                        <div class="log-container" id="logContainer">
-                            <div class="log-loading">正在加载日志...</div>
+
+                        <!-- 交易仓位 -->
+                        <div class="card half-width">
+                            <h3>📈 交易仓位</h3>
+                            <form id="positionsForm">
+                                <div class="positions-grid">
+                                    <div class="position-section up-section">
+                                        <h4>Up Positions</h4>
+                                        <div class="position-row header">
+                                            <div class="position-label">方向</div>
+                                            <div class="position-label">价格</div>
+                                            <div class="position-label">金额</div>
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Up1</div>
+                                            <input type="number" class="position-input" id="up1_price" name="up1_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up1_amount" name="up1_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Up2</div>
+                                            <input type="number" class="position-input" id="up2_price" name="up2_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up2_amount" name="up2_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Up3</div>
+                                            <input type="number" class="position-input" id="up3_price" name="up3_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up3_amount" name="up3_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Up4</div>
+                                            <input type="number" class="position-input" id="up4_price" name="up4_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up4_amount" name="up4_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Up5</div>
+                                            <input type="number" class="position-input" id="up5_price" name="up5_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up5_amount" name="up5_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="position-section down-section">
+                                        <h4>Down Positions</h4>
+                                        <div class="position-row header">
+                                            <div class="position-label">方向</div>
+                                            <div class="position-label">价格</div>
+                                            <div class="position-label">金额</div>
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Down1</div>
+                                            <input type="number" class="position-input" id="down1_price" name="down1_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down1_amount" name="down1_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Down2</div>
+                                            <input type="number" class="position-input" id="down2_price" name="down2_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down2_amount" name="down2_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Down3</div>
+                                            <input type="number" class="position-input" id="down3_price" name="down3_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down3_amount" name="down3_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Down4</div>
+                                            <input type="number" class="position-input" id="down4_price" name="down4_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down4_amount" name="down4_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                        <div class="position-row">
+                                            <div class="position-name">Down5</div>
+                                            <input type="number" class="position-input" id="down5_price" name="down5_price" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down5_amount" name="down5_amount" value="0" step="0.01" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="position-controls">
+                                    <button type="button" onclick="savePositions()" class="save-btn">保存设置</button>
+                                    <button type="button" onclick="resetPositions()" class="reset-btn">重置</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 实时价格显示 -->
+                    <div class="card">
+                        <h3>💰 实时价格</h3>
+                        <div class="price-display">
+                            <div class="price-box price-up">
+                                <div style="font-size: 16px; margin-bottom: 8px;">UP 价格</div>
+                                <div id="upPrice" style="font-size: 24px; font-weight: bold;">{{ data.prices.up_price or '--' }}</div>
+                            </div>
+                            <div class="price-box price-down">
+                                <div style="font-size: 16px; margin-bottom: 8px;">DOWN 价格</div>
+                                <div id="downPrice" style="font-size: 24px; font-weight: bold;">{{ data.prices.down_price or '--' }}</div>
+                            </div>
                         </div>
                     </div>
 
@@ -4461,119 +4624,11 @@ class CryptoTrader:
                         </div>
                     </div>
 
-                    <!-- 价格监控 -->
-                    <div class="card">
-                        <h3>💰 价格监控</h3>
-                        <div class="monitor-controls-section">
-                                <div class="info-item">
-                                    <label>UP:</label>
-                                    <div class="value" id="upPrice">{{ data.prices.up_price or 'N/A' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>DOWN:</label>
-                                    <div class="value" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>币安价格:</label>
-                                    <div class="binance-price-container">
-                                        <div class="binance-price-item">
-                                            <span class="binance-label">零点:</span>
-                                            <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
-                                        </div>
-                                        <div class="binance-price-item">
-                                            <span class="binance-label">实时:</span>
-                                            <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
-                                        </div>
-                                        <div class="binance-price-item">
-                                            <span class="binance-label">涨幅:</span>
-                                            <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                        </div>
-                    </div>
 
 
 
-                    <!-- 交易仓位 -->
-                    <div class="card">
-                        <h3>📈 交易仓位</h3>
-                        <form id="positionsForm">
-                            <div class="positions-grid">
-                                <div class="position-section up-section">
-                                    <h4>Up Positions</h4>
-                                    <div class="position-row header">
-                                        <div class="position-label">方向</div>
-                                        <div class="position-label">价格</div>
-                                        <div class="position-label">金额</div>
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Up1</div>
-                                        <input type="number" class="position-input" id="up1_price" name="up1_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="up1_amount" name="up1_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Up2</div>
-                                        <input type="number" class="position-input" id="up2_price" name="up2_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="up2_amount" name="up2_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Up3</div>
-                                        <input type="number" class="position-input" id="up3_price" name="up3_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="up3_amount" name="up3_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Up4</div>
-                                        <input type="number" class="position-input" id="up4_price" name="up4_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="up4_amount" name="up4_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Up5</div>
-                                        <input type="number" class="position-input" id="up5_price" name="up5_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="up5_amount" name="up5_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                </div>
-                                
-                                <div class="position-section down-section">
-                                    <h4>Down Positions</h4>
-                                    <div class="position-row header">
-                                        <div class="position-label">方向</div>
-                                        <div class="position-label">价格</div>
-                                        <div class="position-label">金额</div>
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Down1</div>
-                                        <input type="number" class="position-input" id="down1_price" name="down1_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="down1_amount" name="down1_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Down2</div>
-                                        <input type="number" class="position-input" id="down2_price" name="down2_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="down2_amount" name="down2_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Down3</div>
-                                        <input type="number" class="position-input" id="down3_price" name="down3_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="down3_amount" name="down3_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Down4</div>
-                                        <input type="number" class="position-input" id="down4_price" name="down4_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="down4_amount" name="down4_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                    <div class="position-row">
-                                        <div class="position-name">Down5</div>
-                                        <input type="number" class="position-input" id="down5_price" name="down5_price" value="0" step="0.01" min="0">
-                                        <input type="number" class="position-input" id="down5_amount" name="down5_amount" value="0" step="0.01" min="0">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="position-controls">
-                                <button type="button" onclick="savePositions()" class="save-btn">保存设置</button>
-                                <button type="button" onclick="resetPositions()" class="reset-btn">重置</button>
-                            </div>
-                        </form>
-                    </div>
+
+
                     
                     <div class="refresh-info">
                         🔄 数据每2秒自动更新 | 📊 价格实时刷新 | 🕐 最后更新: {{ current_time }}
@@ -4769,6 +4824,53 @@ class CryptoTrader:
                     logUpdateInterval = setInterval(updateLogs, 5000);
                 });
                 </script>
+                
+                <!-- 交易记录表格 -->
+                <div style="margin-top: 30px; padding: 20px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
+                    <h2 style="text-align: center; color: #007bff; margin-bottom: 20px;">📊 交易记录</h2>
+                    {% if data.cash_history and data.cash_history|length > 0 %}
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <thead>
+                                <tr style="background: linear-gradient(135deg, #007bff, #0056b3); color: white;">
+                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">日期</th>
+                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Cash</th>
+                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">利润</th>
+                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">利润率</th>
+                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">总利润</th>
+                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">总利润率</th>
+                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">交易次数</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in data.cash_history[:15] %}
+                                <tr style="{% if loop.index % 2 == 0 %}background-color: #f8f9fa;{% endif %}">
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ record[0] }}</td>
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; font-weight: bold;">{{ record[1] }}</td>
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[2]|float > 0 %}#28a745{% elif record[2]|float < 0 %}#dc3545{% else %}#6c757d{% endif %}; font-weight: bold;">{{ record[2] }}</td>
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[3]|replace('%','')|float > 0 %}#28a745{% elif record[3]|replace('%','')|float < 0 %}#dc3545{% else %}#6c757d{% endif %};">{{ record[3] }}</td>
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[4]|float > 0 %}#28a745{% elif record[4]|float < 0 %}#dc3545{% else %}#6c757d{% endif %}; font-weight: bold;">{{ record[4] }}</td>
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[5]|replace('%','')|float > 0 %}#28a745{% elif record[5]|replace('%','')|float < 0 %}#dc3545{% else %}#6c757d{% endif %};">{{ record[5] }}</td>
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ record[6] if record|length > 6 else '' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px; color: #6c757d; font-size: 14px;">
+                        显示最近 15 条记录 | 总记录数: {{ data.cash_history|length }} 条 | 
+                        <a href="http://localhost:5000/history" target="_blank" style="color: #007bff; text-decoration: none;">查看完整记录</a>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        <p style="font-size: 18px; margin: 0;">📈 暂无交易记录</p>
+                        <p style="font-size: 14px; margin: 10px 0 0 0;">数据将在每日 0:30 自动记录</p>
+                    </div>
+                    {% endif %}
+                    <div style="text-align: center; margin-top: 15px; padding: 10px; background-color: #e9ecef; border-radius: 5px; font-size: 12px; color: #6c757d;">
+                        📅 数据来源：每日 0:30 自动记录 | 💾 数据持久化：追加模式，程序重启不丢失 | 🔄 页面实时：24小时在线，随时可访问
+                    </div>
+                </div>
             </body>
             </html>
             """
@@ -4815,8 +4917,8 @@ class CryptoTrader:
                         'last_update': datetime.now().strftime('%H:%M:%S')
                     },
                     'prices': {
-                        'up_price': self.get_web_value('yes_price_label') or 'Up: 0',
-                        'down_price': self.get_web_value('no_price_label') or 'Down: 0',
+                        'up_price': self.get_web_value('yes_price_label') or '0',
+                        'down_price': self.get_web_value('no_price_label') or '0',
                         'binance_price': self.get_web_value('binance_now_price_label') or '获取中...'
                     },
                     'account': {
