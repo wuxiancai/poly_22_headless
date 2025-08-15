@@ -173,6 +173,9 @@ class CryptoTrader:
         for i in range(1, 4):  # 1到4
             setattr(self, f'yes{i}_amount', 0)
             setattr(self, f'no{i}_amount', 0)
+            
+        # 初始化零点CASH值
+        self.zero_time_cash_value = 0
 
         # 初始化web数据存储 (替代tkinter组件)
         self.web_data = {
@@ -3872,10 +3875,13 @@ class CryptoTrader:
             # 获取实时数据
             current_data = {
                 'url': self.get_web_value('url_entry'),
-                'coin': self.get_web_value('coin_entry'),
-                'f_coin': self.get_web_value('f_coin_entry'),
-                'cash': self.get_web_value('cash_entry'),
-                'portfolio': self.get_web_value('portfolio_entry'),
+                'coin': self.get_web_value('coin_combobox'),
+                'auto_find_time': self.get_web_value('auto_find_time_combobox'),
+                'account': {
+                    'cash': self.get_web_value('cash_label') or 'Cash: $0',
+                    'portfolio': self.get_web_value('portfolio_label') or 'Portfolio: $0',
+                    'zero_time_cash': self.get_web_value('zero_time_cash_label') or '0'
+                },
                 'trading_pair': self.get_web_value('trading_pair_label'),
                 'binance_price': self.get_web_value('binance_now_price_label'),
                 'binance_zero_price': self.get_web_value('binance_zero_price_label'),
@@ -3925,7 +3931,7 @@ class CryptoTrader:
                         padding: 25px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
                         backdrop-filter: blur(10px);
                     }
-                    .header { text-align: center; margin-bottom: 35px; }
+                    .header { text-align: center; margin-bottom: 15px; }
                     .header h1 { 
                         color: #2c3e50; margin: 0; font-size: 36px; font-weight: 700;
                         background: linear-gradient(45deg, #667eea, #764ba2);
@@ -3980,26 +3986,44 @@ class CryptoTrader:
                         display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
                         gap: 20px; 
                     }
+                    .monitor-controls-section {
+                        width: 100%;
+                        display: flex;
+                        flex-wrap: nowrap;
+                        gap: 15px;
+                        align-items: flex-start;
+                        overflow-x: auto;
+                    }
                     .info-item { 
                         padding: 15px; background: rgba(248, 249, 250, 0.8); border-radius: 8px;
                         transition: all 0.3s ease; border: 2px solid transparent;
+                        flex: 0 0 auto;
+                        min-width: 150px;
+                        max-width: 200px;
+                        white-space: nowrap;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
                     }
                     .info-item:hover {
                         background: rgba(255, 255, 255, 0.9); border-color: #007bff;
                         transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,123,255,0.1);
                     }
                     .info-item label { 
-                        font-weight: 700; color: #495057; display: block; margin-bottom: 8px; 
+                        font-weight: 700; color: #495057; 
                         font-size: 16px; 
+                        flex-shrink: 0;
                     }
                     .info-item .value { 
-                        font-size: 18px; color: #2c3e50; font-weight: 600;
+                        font-size: 16px; color: #2c3e50; font-weight: 600;
                         font-family: 'Monaco', 'Menlo', monospace;
+                        flex: 1;
                     }
                     .info-item select {
-                        width: 100%; padding: 12px 16px; border: 2px solid #dee2e6; border-radius: 8px;
-                        font-size: 16px; font-weight: 500; background: white;
+                        padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 8px;
+                        font-size: 14px; font-weight: 500; background: white;
                         transition: all 0.3s ease; cursor: pointer;
+                        flex: 1;
                     }
                     .info-item select:focus {
                         border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
@@ -4044,7 +4068,59 @@ class CryptoTrader:
                         align-items: center; font-size: 15px; font-weight: 500;
                     }
                     .position-row:last-child { border-bottom: none; }
+                    .position-row.header {
+                        background-color: #f8f9fa;
+                        font-weight: bold;
+                    }
                     .position-label { font-weight: 700; color: #495057; }
+                    .position-name {
+                        font-weight: 500;
+                        color: #333;
+                        display: flex;
+                        align-items: center;
+                    }
+                    .position-input {
+                        width: 100%;
+                        padding: 6px 8px;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        text-align: center;
+                        background-color: #fff;
+                    }
+                    .position-input:focus {
+                        outline: none;
+                        border-color: #007bff;
+                        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                    }
+                    .position-controls {
+                        margin-top: 15px;
+                        display: flex;
+                        gap: 10px;
+                        justify-content: center;
+                    }
+                    .save-btn, .reset-btn {
+                        padding: 8px 16px;
+                        border: none;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        cursor: pointer;
+                        transition: background-color 0.2s;
+                    }
+                    .save-btn {
+                        background-color: #28a745;
+                        color: white;
+                    }
+                    .save-btn:hover {
+                        background-color: #218838;
+                    }
+                    .reset-btn {
+                        background-color: #6c757d;
+                        color: white;
+                    }
+                    .reset-btn:hover {
+                        background-color: #5a6268;
+                    }
                     .refresh-info { 
                         text-align: center; padding: 20px; 
                         background: linear-gradient(135deg, #e9ecef, #dee2e6); 
@@ -4094,18 +4170,21 @@ class CryptoTrader:
                         color: #721c24; border: 2px solid #f5c6cb; display: block;
                     }
                     .log-section {
-                        margin-top: 30px; background: rgba(33, 37, 41, 0.95);
-                        border-radius: 12px; padding: 20px; color: #ffffff;
+                        margin-top: 30px; background: rgba(255, 255, 255, 0.9);
+                        border-radius: 12px; padding: 20px; color: #2c3e50;
                         font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08); backdrop-filter: blur(5px);
+                        border: 1px solid rgba(233, 236, 239, 0.5);
                     }
                     .log-section h3 {
-                        margin: 0 0 15px 0; color: #00ff88; font-size: 20px;
-                        border-bottom: 2px solid #00ff88; padding-bottom: 8px;
+                        margin: 0 0 15px 0; color: #2c3e50; font-size: 20px;
+                        border-bottom: 3px solid #007bff; padding-bottom: 8px;
+                        background: linear-gradient(45deg, #007bff, #0056b3);
+                        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                     }
                     .log-container {
-                        height: 300px; overflow-y: auto; background: rgba(0,0,0,0.3);
-                        border-radius: 8px; padding: 15px; border: 1px solid #495057;
+                        height: 300px; overflow-y: auto; background: rgba(248, 249, 250, 0.8);
+                        border-radius: 8px; padding: 15px; border: 2px solid rgba(233, 236, 239, 0.5);
                     }
                     .log-entry {
                         margin-bottom: 8px; font-size: 14px; line-height: 1.4;
@@ -4119,12 +4198,14 @@ class CryptoTrader:
                         margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;
                     }
                     .log-controls button {
-                        padding: 8px 16px; background: #495057; color: white;
-                        border: none; border-radius: 6px; cursor: pointer;
+                        padding: 8px 16px; background: linear-gradient(45deg, #007bff, #0056b3);
+                        color: white; border: none; border-radius: 6px; cursor: pointer;
                         font-size: 14px; transition: all 0.3s ease;
+                        box-shadow: 0 2px 8px rgba(0,123,255,0.3);
                     }
                     .log-controls button:hover {
-                        background: #6c757d; transform: translateY(-1px);
+                        background: linear-gradient(45deg, #0056b3, #004085);
+                        transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,123,255,0.4);
                     }
                 </style>
                 <script>
@@ -4239,198 +4320,10 @@ class CryptoTrader:
                 <div class="container">
                     <div class="header">
                         <h1>🚀 Polymarket自动交易仪表板</h1>
-                        <p>实时监控 · 自动交易 · 数据分析</p>
                     </div>
                     
-                    <div class="nav">
-                        <a href="/" class="active">仪表板</a>
-                        <a href="/history">交易记录</a>
-                        <button onclick="refreshPage()" style="background: #17a2b8; border: none; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer;">🔄 刷新数据</button>
-                    </div>
 
-                    <!-- 网站监控信息 -->
-                    <div class="card">
-                        <h3>📊 网站监控</h3>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <label>监控网址:</label>
-                                <div class="value">{{ data.url or '未设置' }}</div>
-                            </div>
-                            <div class="info-item">
-                                <label>交易对:</label>
-                                <div class="value">{{ data.trading_pair or '未设置' }}</div>
-                            </div>
-                            <div class="info-item">
-                                <label>币种:</label>
-                                <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
-                                    <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
-                                    <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
-                                    <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
-                                    <option value="XRP" {{ 'selected' if data.coin == 'XRP' else '' }}>XRP</option>
-                                </select>
-                            </div>
-                            <div class="info-item">
-                                <label>F币种:</label>
-                                <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
-                                    <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
-                                    <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
-                                    <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
-                                    <option value="4:00" {{ 'selected' if data.auto_find_time == '4:00' else '' }}>4:00</option>
-                                    <option value="5:00" {{ 'selected' if data.auto_find_time == '5:00' else '' }}>5:00</option>
-                                    <option value="6:00" {{ 'selected' if data.auto_find_time == '6:00' else '' }}>6:00</option>
-                                    <option value="7:00" {{ 'selected' if data.auto_find_time == '7:00' else '' }}>7:00</option>
-                                    <option value="8:00" {{ 'selected' if data.auto_find_time == '8:00' else '' }}>8:00</option>
-                                    <option value="9:00" {{ 'selected' if data.auto_find_time == '9:00' else '' }}>9:00</option>
-                                    <option value="10:00" {{ 'selected' if data.auto_find_time == '10:00' else '' }}>10:00</option>
-                                    <option value="11:00" {{ 'selected' if data.auto_find_time == '11:00' else '' }}>11:00</option>
-                                    <option value="12:00" {{ 'selected' if data.auto_find_time == '12:00' else '' }}>12:00</option>
-                                    <option value="13:00" {{ 'selected' if data.auto_find_time == '13:00' else '' }}>13:00</option>
-                                    <option value="14:00" {{ 'selected' if data.auto_find_time == '14:00' else '' }}>14:00</option>
-                                    <option value="15:00" {{ 'selected' if data.auto_find_time == '15:00' else '' }}>15:00</option>
-                                    <option value="16:00" {{ 'selected' if data.auto_find_time == '16:00' else '' }}>16:00</option>
-                                    <option value="17:00" {{ 'selected' if data.auto_find_time == '17:00' else '' }}>17:00</option>
-                                    <option value="18:00" {{ 'selected' if data.auto_find_time == '18:00' else '' }}>18:00</option>
-                                    <option value="19:00" {{ 'selected' if data.auto_find_time == '19:00' else '' }}>19:00</option>
-                                    <option value="20:00" {{ 'selected' if data.auto_find_time == '20:00' else '' }}>20:00</option>
-                                    <option value="21:00" {{ 'selected' if data.auto_find_time == '21:00' else '' }}>21:00</option>
-                                    <option value="22:00" {{ 'selected' if data.auto_find_time == '22:00' else '' }}>22:00</option>
-                                    <option value="23:00" {{ 'selected' if data.auto_find_time == '23:00' else '' }}>23:00</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <!-- URL输入和启动控制 -->
-                        <div class="control-section">
-                            <div class="url-input-group">
-                                <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
-                                <button id="startBtn" onclick="startTrading()">启动监控</button>
-                            </div>
-                            <div id="statusMessage" class="status-message"></div>
-                        </div>
-                    </div>
 
-                    <!-- 价格信息 -->
-                    <div class="card">
-                        <h3>💰 实时价格</h3>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <label>Binance零点价格:</label>
-                                <div class="value">{{ data.binance_zero_price or '获取中...' }}</div>
-                            </div>
-                            <div class="info-item">
-                                <label>Binance当前价格:</label>
-                                <div class="value binance-price">{{ data.binance_price or '获取中...' }}</div>
-                            </div>
-                            <div class="info-item">
-                                <label>涨跌幅度:</label>
-                                <div class="value">{{ data.binance_rate or '--' }}%</div>
-                            </div>
-                        </div>
-                        <div class="price-display">
-                            <div class="price-card up">
-                                <div>Up价格</div>
-                                <div class="price-value">{{ data.live_prices.up or '0' }}</div>
-                            </div>
-                            <div class="price-card down">
-                                <div>Down价格</div>
-                                <div class="price-value">{{ data.live_prices.down or '0' }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 账户信息 -->
-                    <div class="card">
-                        <h3>💳 账户余额</h3>
-                        <div class="info-grid account-info">
-                            <div class="info-item">
-                                <label>Portfolio:</label>
-                                <div class="value portfolio-value">${{ data.portfolio or '0' }}</div>
-                            </div>
-                            <div class="info-item">
-                                <label>Cash:</label>
-                                <div class="value cash-value">${{ data.cash or '0' }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 交易仓位 -->
-                    <div class="card">
-                        <h3>📈 交易仓位</h3>
-                        <div class="positions-grid">
-                            <div class="position-section up-section">
-                                <h4>Up Positions</h4>
-                                <div class="position-row">
-                                    <div class="position-label">仓位</div>
-                                    <div class="position-label">价格</div>
-                                    <div class="position-label">数量</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Up1</div>
-                                    <div id="up1_price">{{ data.positions.up1_price or '0' }}</div>
-                                    <div id="up1_amount">{{ data.positions.up1_amount or '0' }}</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Up2</div>
-                                    <div id="up2_price">{{ data.positions.up2_price or '0' }}</div>
-                                    <div id="up2_amount">{{ data.positions.up2_amount or '0' }}</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Up3</div>
-                                    <div id="up3_price">{{ data.positions.up3_price or '0' }}</div>
-                                    <div id="up3_amount">{{ data.positions.up3_amount or '0' }}</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Up4</div>
-                                    <div id="up4_price">{{ data.positions.up4_price or '0' }}</div>
-                                    <div id="up4_amount">{{ data.positions.up4_amount or '0' }}</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Up5</div>
-                                    <div id="up5_price">{{ data.positions.up5_price or '0' }}</div>
-                                    <div id="up5_amount">{{ data.positions.up5_amount or '0' }}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="position-section down-section">
-                                <h4>Down Positions</h4>
-                                <div class="position-row">
-                                    <div class="position-label">仓位</div>
-                                    <div class="position-label">价格</div>
-                                    <div class="position-label">数量</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Down1</div>
-                                    <div id="down1_price">{{ data.positions.down1_price or '0' }}</div>
-                                    <div id="down1_amount">{{ data.positions.down1_amount or '0' }}</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Down2</div>
-                                    <div id="down2_price">{{ data.positions.down2_price or '0' }}</div>
-                                    <div id="down2_amount">{{ data.positions.down2_amount or '0' }}</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Down3</div>
-                                    <div id="down3_price">{{ data.positions.down3_price or '0' }}</div>
-                                    <div id="down3_amount">{{ data.positions.down3_amount or '0' }}</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Down4</div>
-                                    <div id="down4_price">{{ data.positions.down4_price or '0' }}</div>
-                                    <div id="down4_amount">{{ data.positions.down4_amount or '0' }}</div>
-                                </div>
-                                <div class="position-row">
-                                    <div>Down5</div>
-                                    <div id="down5_price">{{ data.positions.down5_price or '0' }}</div>
-                                    <div id="down5_amount">{{ data.positions.down5_amount or '0' }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="refresh-info">
-                        🔄 数据每2秒自动更新 | 📊 价格实时刷新 | 🕐 最后更新: {{ current_time }}
-                    </div>
-                    
                     <!-- 日志显示区域 -->
                     <div class="log-section">
                         <div class="log-header">
@@ -4444,6 +4337,161 @@ class CryptoTrader:
                         <div class="log-container" id="logContainer">
                             <div class="log-loading">正在加载日志...</div>
                         </div>
+                    </div>
+
+                    <!-- 网站监控信息 -->
+                    <div class="card">
+                        <h3>📊 网站监控</h3>
+                        <div class="monitor-controls-section">
+                                <div class="info-item">
+                                    <label>币种:</label>
+                                    <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: auto; min-width: 80px;">
+                                        <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
+                                        <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
+                                        <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
+                                        <option value="XRP" {{ 'selected' if data.coin == 'XRP' else '' }}>XRP</option>
+                                    </select>
+                                </div>
+                                <div class="info-item">
+                                    <label>开始交易时间:</label>
+                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: auto; min-width: 80px;">
+                                        <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
+                                        <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
+                                        <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
+                                        <option value="4:00" {{ 'selected' if data.auto_find_time == '4:00' else '' }}>4:00</option>
+                                        <option value="5:00" {{ 'selected' if data.auto_find_time == '5:00' else '' }}>5:00</option>
+                                        <option value="6:00" {{ 'selected' if data.auto_find_time == '6:00' else '' }}>6:00</option>
+                                        <option value="7:00" {{ 'selected' if data.auto_find_time == '7:00' else '' }}>7:00</option>
+                                        <option value="8:00" {{ 'selected' if data.auto_find_time == '8:00' else '' }}>8:00</option>
+                                        <option value="9:00" {{ 'selected' if data.auto_find_time == '9:00' else '' }}>9:00</option>
+                                        <option value="10:00" {{ 'selected' if data.auto_find_time == '10:00' else '' }}>10:00</option>
+                                        <option value="11:00" {{ 'selected' if data.auto_find_time == '11:00' else '' }}>11:00</option>
+                                        <option value="12:00" {{ 'selected' if data.auto_find_time == '12:00' else '' }}>12:00</option>
+                                        <option value="13:00" {{ 'selected' if data.auto_find_time == '13:00' else '' }}>13:00</option>
+                                        <option value="14:00" {{ 'selected' if data.auto_find_time == '14:00' else '' }}>14:00</option>
+                                        <option value="15:00" {{ 'selected' if data.auto_find_time == '15:00' else '' }}>15:00</option>
+                                        <option value="16:00" {{ 'selected' if data.auto_find_time == '16:00' else '' }}>16:00</option>
+                                        <option value="17:00" {{ 'selected' if data.auto_find_time == '17:00' else '' }}>17:00</option>
+                                        <option value="18:00" {{ 'selected' if data.auto_find_time == '18:00' else '' }}>18:00</option>
+                                        <option value="19:00" {{ 'selected' if data.auto_find_time == '19:00' else '' }}>19:00</option>
+                                        <option value="20:00" {{ 'selected' if data.auto_find_time == '20:00' else '' }}>20:00</option>
+                                        <option value="21:00" {{ 'selected' if data.auto_find_time == '21:00' else '' }}>21:00</option>
+                                        <option value="22:00" {{ 'selected' if data.auto_find_time == '22:00' else '' }}>22:00</option>
+                                        <option value="23:00" {{ 'selected' if data.auto_find_time == '23:00' else '' }}>23:00</option>
+                                    </select>
+                                </div>
+                                <div class="info-item">
+                                    <label>Portfolio:</label>
+                                    <div class="value" id="portfolio">{{ data.account.portfolio or '0' }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>Cash:</label>
+                                    <div class="value" id="cash">{{ data.account.cash or '0' }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>零点 CASH:</label>
+                                    <div class="value" id="zero_time_cash">{{ data.account.zero_time_cash or '0' }}</div>
+                                </div>
+                            </div>
+                        
+                        <!-- URL输入和启动控制 -->
+                        <div class="control-section">
+                            <div class="url-input-group">
+                                <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
+                                <button id="startBtn" onclick="startTrading()">启动监控</button>
+                                <a href="/history" style="padding: 14px 28px; background: linear-gradient(45deg, #007bff, #0056b3); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,123,255,0.3); display: inline-block;">交易记录</a>
+                                <button onclick="refreshPage()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🔄 刷新数据</button>
+                            </div>
+                            <div id="statusMessage" class="status-message"></div>
+                        </div>
+                    </div>
+
+                    <!-- 价格信息已删除 -->
+
+
+
+                    <!-- 交易仓位 -->
+                    <div class="card">
+                        <h3>📈 交易仓位</h3>
+                        <form id="positionsForm">
+                            <div class="positions-grid">
+                                <div class="position-section up-section">
+                                    <h4>Up Positions</h4>
+                                    <div class="position-row header">
+                                        <div class="position-label">方向</div>
+                                        <div class="position-label">价格</div>
+                                        <div class="position-label">金额</div>
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Up1</div>
+                                        <input type="number" class="position-input" id="up1_price" name="up1_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="up1_amount" name="up1_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Up2</div>
+                                        <input type="number" class="position-input" id="up2_price" name="up2_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="up2_amount" name="up2_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Up3</div>
+                                        <input type="number" class="position-input" id="up3_price" name="up3_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="up3_amount" name="up3_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Up4</div>
+                                        <input type="number" class="position-input" id="up4_price" name="up4_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="up4_amount" name="up4_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Up5</div>
+                                        <input type="number" class="position-input" id="up5_price" name="up5_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="up5_amount" name="up5_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                
+                                <div class="position-section down-section">
+                                    <h4>Down Positions</h4>
+                                    <div class="position-row header">
+                                        <div class="position-label">方向</div>
+                                        <div class="position-label">价格</div>
+                                        <div class="position-label">金额</div>
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Down1</div>
+                                        <input type="number" class="position-input" id="down1_price" name="down1_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="down1_amount" name="down1_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Down2</div>
+                                        <input type="number" class="position-input" id="down2_price" name="down2_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="down2_amount" name="down2_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Down3</div>
+                                        <input type="number" class="position-input" id="down3_price" name="down3_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="down3_amount" name="down3_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Down4</div>
+                                        <input type="number" class="position-input" id="down4_price" name="down4_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="down4_amount" name="down4_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                    <div class="position-row">
+                                        <div class="position-name">Down5</div>
+                                        <input type="number" class="position-input" id="down5_price" name="down5_price" value="0" step="0.01" min="0">
+                                        <input type="number" class="position-input" id="down5_amount" name="down5_amount" value="0" step="0.01" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="position-controls">
+                                <button type="button" onclick="savePositions()" class="save-btn">保存设置</button>
+                                <button type="button" onclick="resetPositions()" class="reset-btn">重置</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="refresh-info">
+                        🔄 数据每2秒自动更新 | 📊 价格实时刷新 | 🕐 最后更新: {{ current_time }}
                     </div>
                 </div>
                 
@@ -4563,6 +4611,50 @@ class CryptoTrader:
                     showMessage('日志已刷新', 'success');
                 }
                 
+                // 保存交易仓位设置
+                function savePositions() {
+                    const form = document.getElementById('positionsForm');
+                    const formData = new FormData(form);
+                    const positions = {};
+                    
+                    // 收集所有输入框的值
+                    for (let [key, value] of formData.entries()) {
+                        positions[key] = parseFloat(value) || 0;
+                    }
+                    
+                    // 发送到后端保存
+                    fetch('/api/positions/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(positions)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showMessage('交易仓位设置已保存', 'success');
+                        } else {
+                            showMessage('保存失败: ' + (data.message || '未知错误'), 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('保存失败:', error);
+                        showMessage('保存失败: 网络错误', 'error');
+                    });
+                }
+                
+                // 重置交易仓位设置
+                function resetPositions() {
+                    if (confirm('确定要重置所有交易仓位设置为0吗？')) {
+                        const inputs = document.querySelectorAll('.position-input');
+                        inputs.forEach(input => {
+                            input.value = '0';
+                        });
+                        showMessage('交易仓位已重置为0', 'success');
+                    }
+                }
+                
                 // 页面加载完成后启动日志更新
                 document.addEventListener('DOMContentLoaded', function() {
                     updateLogs();
@@ -4622,7 +4714,8 @@ class CryptoTrader:
                     },
                     'account': {
                         'portfolio': self.get_web_value('portfolio_label') or 'Portfolio: $0',
-                        'cash': self.get_web_value('cash_label') or 'Cash: $0'
+                        'cash': self.get_web_value('cash_label') or 'Cash: $0',
+                        'zero_time_cash': self.get_web_value('zero_time_cash_label') or '0'
                     },
                     'positions': {
                         'up1_price': self.get_web_value('yes1_price_entry') or '0',
@@ -4912,6 +5005,50 @@ class CryptoTrader:
                 return jsonify({'success': True, 'message': '日志已清空'})
             except Exception as e:
                 return jsonify({'success': False, 'message': f'清空日志失败: {str(e)}'})
+        
+        @app.route("/api/positions/save", methods=['POST'])
+        def save_positions():
+            """保存交易仓位设置"""
+            try:
+                data = request.get_json()
+                if not data:
+                    return jsonify({'success': False, 'message': '无效的数据'})
+                
+                # 保存到配置文件
+                positions_config = {
+                    'up1_price': data.get('up1_price', 0),
+                    'up1_amount': data.get('up1_amount', 0),
+                    'up2_price': data.get('up2_price', 0),
+                    'up2_amount': data.get('up2_amount', 0),
+                    'up3_price': data.get('up3_price', 0),
+                    'up3_amount': data.get('up3_amount', 0),
+                    'up4_price': data.get('up4_price', 0),
+                    'up4_amount': data.get('up4_amount', 0),
+                    'up5_price': data.get('up5_price', 0),
+                    'up5_amount': data.get('up5_amount', 0),
+                    'down1_price': data.get('down1_price', 0),
+                    'down1_amount': data.get('down1_amount', 0),
+                    'down2_price': data.get('down2_price', 0),
+                    'down2_amount': data.get('down2_amount', 0),
+                    'down3_price': data.get('down3_price', 0),
+                    'down3_amount': data.get('down3_amount', 0),
+                    'down4_price': data.get('down4_price', 0),
+                    'down4_amount': data.get('down4_amount', 0),
+                    'down5_price': data.get('down5_price', 0),
+                    'down5_amount': data.get('down5_amount', 0)
+                }
+                
+                # 更新内存中的配置
+                self.config['positions'] = positions_config
+                
+                # 保存到文件
+                self.save_config()
+                
+                self.logger.info(f"交易仓位设置已保存: {positions_config}")
+                return jsonify({'success': True, 'message': '交易仓位设置已保存'})
+            except Exception as e:
+                self.logger.error(f"保存交易仓位失败: {str(e)}")
+                return jsonify({'success': False, 'message': f'保存失败: {str(e)}'})
 
         return app
 
