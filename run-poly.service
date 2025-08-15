@@ -1,0 +1,15 @@
+[Unit]
+Description=Crypto Trading Bot
+After=network.target
+
+[Service]
+User=admin
+WorkingDirectory=/home/admin/poly_22_headless
+ExecStart=/bin/bash /home/admin/poly_22_headless/run.sh
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/admin/poly_22_headless/run.log
+StandardError=append:/home/admin/poly_22_headless/run.log
+
+[Install]
+WantedBy=multi-user.target
