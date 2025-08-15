@@ -4469,28 +4469,28 @@ class CryptoTrader:
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Up1</div>
-                                            <input type="number" class="position-input" id="up1_price" name="up1_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="up1_amount" name="up1_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up1_price" name="up1_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="up1_amount" name="up1_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Up2</div>
-                                            <input type="number" class="position-input" id="up2_price" name="up2_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="up2_amount" name="up2_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up2_price" name="up2_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="up2_amount" name="up2_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Up3</div>
-                                            <input type="number" class="position-input" id="up3_price" name="up3_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="up3_amount" name="up3_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up3_price" name="up3_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="up3_amount" name="up3_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Up4</div>
-                                            <input type="number" class="position-input" id="up4_price" name="up4_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="up4_amount" name="up4_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up4_price" name="up4_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="up4_amount" name="up4_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Up5</div>
-                                            <input type="number" class="position-input" id="up5_price" name="up5_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="up5_amount" name="up5_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="up5_price" name="up5_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="up5_amount" name="up5_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                     </div>
                                     
@@ -4503,28 +4503,28 @@ class CryptoTrader:
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Down1</div>
-                                            <input type="number" class="position-input" id="down1_price" name="down1_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="down1_amount" name="down1_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down1_price" name="down1_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="down1_amount" name="down1_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Down2</div>
-                                            <input type="number" class="position-input" id="down2_price" name="down2_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="down2_amount" name="down2_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down2_price" name="down2_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="down2_amount" name="down2_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Down3</div>
-                                            <input type="number" class="position-input" id="down3_price" name="down3_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="down3_amount" name="down3_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down3_price" name="down3_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="down3_amount" name="down3_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Down4</div>
-                                            <input type="number" class="position-input" id="down4_price" name="down4_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="down4_amount" name="down4_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down4_price" name="down4_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="down4_amount" name="down4_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                         <div class="position-row">
                                             <div class="position-name">Down5</div>
-                                            <input type="number" class="position-input" id="down5_price" name="down5_price" value="0" step="0.01" min="0">
-                                            <input type="number" class="position-input" id="down5_amount" name="down5_amount" value="0" step="0.01" min="0">
+                                            <input type="number" class="position-input" id="down5_price" name="down5_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            <input type="number" class="position-input" id="down5_amount" name="down5_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
                                     </div>
                                 </div>
@@ -4811,6 +4811,34 @@ class CryptoTrader:
                     .catch(error => {
                         console.error('保存失败:', error);
                         showMessage('保存失败: 网络错误', 'error');
+                    });
+                }
+                
+                // 自动保存单个输入框的值
+                function autoSavePosition(inputElement) {
+                    const fieldName = inputElement.name;
+                    const fieldValue = parseFloat(inputElement.value) || 0;
+                    
+                    // 创建只包含当前字段的数据对象
+                    const positions = {};
+                    positions[fieldName] = fieldValue;
+                    
+                    // 静默保存，不显示成功消息
+                    fetch('/api/positions/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(positions)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('自动保存失败:', data.message || '未知错误');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('自动保存错误:', error);
                     });
                 }
                 
@@ -5272,6 +5300,28 @@ class CryptoTrader:
                 
                 # 更新内存中的配置
                 self.config['positions'] = positions_config
+                
+                # 同时更新web_data，确保交易逻辑能获取到最新的价格和金额
+                self.set_web_value('yes1_price_entry', str(data.get('up1_price', 0)))
+                self.set_web_value('yes1_amount_entry', str(data.get('up1_amount', 0)))
+                self.set_web_value('yes2_price_entry', str(data.get('up2_price', 0)))
+                self.set_web_value('yes2_amount_entry', str(data.get('up2_amount', 0)))
+                self.set_web_value('yes3_price_entry', str(data.get('up3_price', 0)))
+                self.set_web_value('yes3_amount_entry', str(data.get('up3_amount', 0)))
+                self.set_web_value('yes4_price_entry', str(data.get('up4_price', 0)))
+                self.set_web_value('yes4_amount_entry', str(data.get('up4_amount', 0)))
+                self.set_web_value('yes5_price_entry', str(data.get('up5_price', 0)))
+                self.set_web_value('yes5_amount_entry', str(data.get('up5_amount', 0)))
+                self.set_web_value('no1_price_entry', str(data.get('down1_price', 0)))
+                self.set_web_value('no1_amount_entry', str(data.get('down1_amount', 0)))
+                self.set_web_value('no2_price_entry', str(data.get('down2_price', 0)))
+                self.set_web_value('no2_amount_entry', str(data.get('down2_amount', 0)))
+                self.set_web_value('no3_price_entry', str(data.get('down3_price', 0)))
+                self.set_web_value('no3_amount_entry', str(data.get('down3_amount', 0)))
+                self.set_web_value('no4_price_entry', str(data.get('down4_price', 0)))
+                self.set_web_value('no4_amount_entry', str(data.get('down4_amount', 0)))
+                self.set_web_value('no5_price_entry', str(data.get('down5_price', 0)))
+                self.set_web_value('no5_amount_entry', str(data.get('down5_amount', 0)))
                 
                 # 保存到文件
                 self.save_config()
