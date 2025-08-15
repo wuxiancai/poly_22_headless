@@ -4542,20 +4542,7 @@ class CryptoTrader:
                         </div>
                     </div>
 
-                    <!-- 实时价格显示 -->
-                    <div class="card">
-                        <h3>💰 实时价格</h3>
-                        <div class="price-display">
-                            <div class="price-box price-up">
-                                <div style="font-size: 16px; margin-bottom: 8px;">UP 价格</div>
-                                <div id="upPrice" style="font-size: 24px; font-weight: bold;">{{ data.prices.up_price or '--' }}</div>
-                            </div>
-                            <div class="price-box price-down">
-                                <div style="font-size: 16px; margin-bottom: 8px;">DOWN 价格</div>
-                                <div id="downPrice" style="font-size: 24px; font-weight: bold;">{{ data.prices.down_price or '--' }}</div>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- 网站监控信息 -->
                     <div class="card">
