@@ -177,7 +177,7 @@ class CryptoTrader:
         # 初始化零点CASH值
         self.zero_time_cash_value = 0
 
-        # 初始化web数据存储 (替代tkinter组件)
+        # 初始化web数据存储 (替代GUI组件)
         self.web_data = {
             # 金额设置
             'initial_amount_entry': str(self.initial_amount),
@@ -213,8 +213,8 @@ class CryptoTrader:
             'binance_rate_symbol_label': '%',
             'yes_price_label': 'Up: --',
             'no_price_label': 'Down: --',
-            'portfolio_label': 'Portfolio: --',
-            'cash_label': 'Cash: --',
+            'portfolio': '--',
+            'cash': '--',
             
             # 按钮状态
             'start_button_state': 'normal',
@@ -348,7 +348,7 @@ class CryptoTrader:
             raise
 
     def setup_web_mode(self):
-        """初始化Web模式，替代Tkinter GUI"""
+        """初始化Web模式，替代GUI界面"""
         self.logger.info("Web模式初始化完成")
         print("Web模式已启动，请在浏览器中访问 http://localhost:5000")
         
@@ -359,15 +359,15 @@ class CryptoTrader:
             self.web_data['auto_find_time_combobox'] = self.config.get('auto_find_time', '2:00')
     
     def get_web_value(self, key):
-        """获取web数据值，替代tkinter的get()方法"""
+        """获取web数据值，替代GUI的get()方法"""
         return self.web_data.get(key, '')
     
     def set_web_value(self, key, value):
-        """设置web数据值，替代tkinter的config()方法"""
+        """设置web数据值，替代GUI的config()方法"""
         self.web_data[key] = str(value)
     
     def set_web_state(self, key, state):
-        """设置web组件状态，替代tkinter的config(state=)方法"""
+        """设置web组件状态，替代GUI的config(state=)方法"""
         state_key = f"{key}_state"
         if state_key in self.web_data:
             self.web_data[state_key] = state
@@ -769,7 +769,7 @@ class CryptoTrader:
     def restart_browser_after_auto_find_coin(self):
         """重连浏览器后自动检查并更新URL中的日期"""
         try:
-            # 从GUI获取当前监控的URL
+            # 从Web界面获取当前监控的URL
             new_url = self.get_web_value('url_entry').strip()
             current_url = new_url.split('?', 1)[0].split('#', 1)[0]
             if not current_url:
@@ -812,7 +812,7 @@ class CryptoTrader:
             new_date_pattern = f"{current_month}-{current_day}"
             updated_url = current_url.replace(old_date_pattern, new_date_pattern)
             
-            # 更新GUI中的URL
+            # 更新Web界面中的URL
             self.set_web_value('url_entry', updated_url)
             
             # 保存到配置文件
@@ -1073,7 +1073,7 @@ class CryptoTrader:
                 
                 # 数据合理性检查
                 if 0 <= up_price_val <= 100 and 0 <= down_price_val <= 100:
-                    # 更新GUI价格显示
+                    # 更新Web界面价格显示
                     self.set_web_value('yes_price_label', f'{up_price_val:.1f}')
                     self.set_web_value('no_price_label', f'{down_price_val:.1f}')
                     
@@ -1182,12 +1182,12 @@ class CryptoTrader:
                 self.logger.warning("❌ 无法获取Cash值，可能需要登录")
         
             # 更新Portfolio和Cash显示
-            self.set_web_value('portfolio_label', f'Portfolio: {self.portfolio_value}')
-            self.set_web_value('cash_label', f'Cash: {self.cash_value}')
+            self.set_web_value('portfolio', self.portfolio_value)
+            self.set_web_value('cash', self.cash_value)
 
         except Exception as e:
-            self.set_web_value('portfolio_label', 'Portfolio: Fail')
-            self.set_web_value('cash_label', 'Cash: Fail')
+            self.set_web_value('portfolio', 'Fail')
+            self.set_web_value('cash', 'Fail')
     
     def schedule_update_amount(self, retry_count=0):
         """设置金额,带重试机制"""
@@ -1521,7 +1521,7 @@ class CryptoTrader:
             if isinstance(amount_value, str):
                 amount = amount_value
             else:
-                # 兼容旧的Tkinter对象（如果还有的话）
+                # 兼容旧的GUI对象（如果还有的话）
                 amount = amount_value.get()
 
             # 2. 定位输入框（短等待，避免卡死）
@@ -1728,7 +1728,7 @@ class CryptoTrader:
                         if self.buy_count > 14:
                             self.only_sell_down()
 
-                        # 传 Tkinter 的 AmountEntry 对象，比如 self.yes2_amount_entry
+                        # 传 GUI 的 AmountEntry 对象，比如 self.yes2_amount_entry
                         self.send_amount_and_buy_confirm(self.yes2_amount_entry)
                         
                         time.sleep(1)
@@ -2705,8 +2705,8 @@ class CryptoTrader:
             
             # 获取当前状态信息
             try:
-                cash_value = self.get_web_value('cash_label')
-                portfolio_value = self.get_web_value('portfolio_label')
+                cash_value = self.get_web_value('cash')
+                portfolio_value = self.get_web_value('portfolio')
             except:
                 cash_value = "无法获取"
                 portfolio_value = "无法获取"
@@ -2877,7 +2877,7 @@ class CryptoTrader:
         """安排每天指定时间执行价格设置"""
         now = datetime.now()
         
-        # 从GUI获取选择的时间
+        # 从Web界面获取选择的时间
         selected_time = self.get_web_value('auto_find_time_combobox')
         hour = int(selected_time.split(':')[0])
         
@@ -2928,7 +2928,7 @@ class CryptoTrader:
         self.close_windows()
         
         # 价格设置完成后，重新安排下一次的价格设置定时任务
-        # 使用schedule_price_setting确保与GUI时间选择保持一致
+        # 使用schedule_price_setting确保与Web界面时间选择保持一致
         self.logger.info("🔄 价格设置完成，重新安排下一次定时任务")
         self.schedule_price_setting()
         
@@ -3007,7 +3007,7 @@ class CryptoTrader:
             if self.click_today_card():
                 self.logger.info(f"✅ 成功点击目标URL按钮")
             
-                # 第四步:获取当前 URL并保存到 GUI 和配置文件中
+                # 第四步:获取当前 URL并保存到 Web界面 和配置文件中
                 new_url = self.driver.current_url.split('?', 1)[0].split('#', 1)[0]
                 self.logger.info(f"✅ 成功获取到当前URL: {new_url}")
                 time.sleep(8)
@@ -3223,7 +3223,7 @@ class CryptoTrader:
             self.set_web_value('no1_price_entry', '0')
             self.logger.info("✅ \033[34m零点 5 分设置 YES/NO 价格为 0 成功!\033[0m")
 
-            # 读取 GUI 上的交易次数
+            # 读取 Web界面 上的交易次数
             trade_count = self.get_web_value('trade_count_label')
             self.logger.info(f"最后一次交易次数: {trade_count}")
 
@@ -3327,18 +3327,18 @@ class CryptoTrader:
                 else: # 最后一次尝试仍然失败
                     self.logger.error(f"❌ 获取币安 \033[34m{coin_form_websocket}\033[0m 价格失败，已达到最大重试次数 ({max_retries})。")
         
-        # 3. 如果成功获取数据 (即try块没有异常且api_data不为None)，则安排GUI更新到主线程
+        # 3. 如果成功获取数据 (即try块没有异常且api_data不为None)，则更新Web界面数据
         if api_data:
-            def update_gui():
+            def update_web_data():
                 try:
-                    # 获取到币安价格,并更新到GUI
+                    # 获取到币安价格,并更新到Web界面
                     self.zero_time_price = api_data["price"]
                     self.set_web_value('binance_zero_price_label', str(self.zero_time_price))
-                except Exception as e_gui:
-                    self.logger.debug(f"❌ 更新零点价格GUI时出错: {e_gui}")
+                except Exception as e_web:
+                    self.logger.debug(f"❌ 更新零点价格Web数据时出错: {e_web}")
             
-            # 在无头模式下直接执行 GUI 更新
-            update_gui()
+            # 在Web模式下直接执行数据更新
+            update_web_data()
 
         # 设置定时器,每天00:00获取一次币安价格
         now = datetime.now()
@@ -3396,16 +3396,16 @@ class CryptoTrader:
                     binance_rate_text = f"{binance_rate:.3f}"
                     rate_color = "#1AAD19" if binance_rate >= 0 else "red"
 
-                def update_gui():
+                def update_web_data():
                     try:
                         self.set_web_value('binance_now_price_label', str(now_price))
                         self.set_web_value('binance_rate_label', binance_rate_text)
                         # Web模式下不需要设置字体和颜色
                     except Exception as e:
-                        self.logger.debug("❌ 更新GUI时发生错误:", e)
+                        self.logger.debug("❌ 更新Web数据时发生错误:", e)
 
-                # 在无头模式下直接执行 GUI 更新
-                update_gui()
+                # 在Web模式下直接执行数据更新
+                update_web_data()
             except Exception as e:
                 self.logger.warning(f"WebSocket 消息处理异常: {e}")
 
@@ -4888,8 +4888,8 @@ class CryptoTrader:
                         'binance_price': self.get_web_value('binance_now_price_label') or '获取中...'
                     },
                     'account': {
-                        'portfolio': self.get_web_value('portfolio_label') or 'Portfolio: $0',
-                        'cash': self.get_web_value('cash_label') or 'Cash: $0',
+                        'portfolio': self.get_web_value('portfolio') or '$0',
+                        'cash': self.get_web_value('cash') or '$0',
                         'zero_time_cash': self.get_web_value('zero_time_cash_label') or '0'
                     },
                     'positions': {
@@ -5278,9 +5278,9 @@ class CryptoTrader:
         self.record_and_show_cash_timer.start()
 
     def record_cash_daily(self):
-        """实际记录逻辑：读取GUI Cash，计算并追加到CSV"""
+        """实际记录逻辑：读取Web界面 Cash，计算并追加到CSV"""
         try:
-            # 从GUI读取cash值
+            # 从Web界面读取cash值
             cash_text = self.get_web_value('zero_time_cash_label')  # 例如 "Cash: 123.45"
             if ":" in cash_text:
                 cash_value = cash_text.split(":", 1)[1].strip()
