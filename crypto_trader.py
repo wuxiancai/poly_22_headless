@@ -1074,8 +1074,8 @@ class CryptoTrader:
                 # 数据合理性检查
                 if 0 <= up_price_val <= 100 and 0 <= down_price_val <= 100:
                     # 更新GUI价格显示
-                    self.yes_price_label.config(text=f"Up: {up_price_val:.1f}")
-                    self.no_price_label.config(text=f"Down: {down_price_val:.1f}")
+                    self.set_web_value('yes_price_label', f'{up_price_val:.1f}')
+                    self.set_web_value('no_price_label', f'{down_price_val:.1f}')
                     
                     # 执行所有交易检查函数（仅在没有交易进行时）
                     if not self.trading:
@@ -1086,8 +1086,8 @@ class CryptoTrader:
                         
                 else:
                     self.logger.warning(f"价格数据异常: Up={up_price_val}, Down={down_price_val}")
-                    self.yes_price_label.config(text="Up: Invalid")
-                    self.no_price_label.config(text="Down: Invalid")
+                    self.set_web_value('yes_price_label', 'Invalid')
+                    self.set_web_value('no_price_label', 'Invalid')
                     
             else:
                 # 显示具体的缺失信息
@@ -1098,8 +1098,8 @@ class CryptoTrader:
                     missing_info.append("Down价格")
                     
                 self.logger.warning(f"数据获取不完整，缺失: {', '.join(missing_info)}")
-                self.yes_price_label.config(text="Up: N/A")
-                self.no_price_label.config(text="Down: N/A")
+                self.set_web_value('yes_price_label', 'N/A')
+                self.set_web_value('no_price_label', 'N/A')
                 # 尝试刷新页面
                 try:
                     self.driver.refresh()
@@ -1114,8 +1114,8 @@ class CryptoTrader:
                 if not self.is_restarting:
                     self.restart_browser()
                 return
-            self.yes_price_label.config(text="Up: Fail")
-            self.no_price_label.config(text="Down: Fail")
+            self.set_web_value('yes_price_label', 'Fail')
+            self.set_web_value('no_price_label', 'Fail')
             
             # 尝试刷新页面
             try:
