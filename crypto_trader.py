@@ -975,16 +975,16 @@ class CryptoTrader:
                 lambda driver: driver.execute_script('return document.readyState') == 'complete'
             )
 
-            # 方法1: 使用改进的JavaScript获取价格（更精确的匹配逻辑）
+            # 方法1: 使用改进的JavaScript获取价格（恢复原始逻辑但增加调试）
             prices = self.driver.execute_script("""
                 function getPricesEnhanced() {
                     const prices = {up: null, down: null};
-                    const foundPrices = {up: [], down: []};
+                    const foundElements = {up: [], down: []};
                     
                     // 等待一小段时间确保DOM完全渲染
                     const startTime = Date.now();
                     while (Date.now() - startTime < 1000) {
-                        // 方法1: 查找所有span元素，收集所有可能的价格
+                        // 方法1: 查找所有span元素
                         const spans = document.getElementsByTagName('span');
                         for (let el of spans) {
                             const text = el.textContent.trim();
@@ -994,8 +994,9 @@ class CryptoTrader:
                                 const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
                                 if (match) {
                                     const price = parseFloat(match[1]);
-                                    if (price > 0 && price <= 100) {
-                                        foundPrices.up.push({price: price, element: el, text: text});
+                                    foundElements.up.push({price: price, element: 'span', text: text});
+                                    if (!prices.up) {
+                                        prices.up = price;
                                     }
                                 }
                             }
@@ -1005,57 +1006,37 @@ class CryptoTrader:
                                 const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
                                 if (match) {
                                     const price = parseFloat(match[1]);
-                                    if (price > 0 && price <= 100) {
-                                        foundPrices.down.push({price: price, element: el, text: text});
+                                    foundElements.down.push({price: price, element: 'span', text: text});
+                                    if (!prices.down) {
+                                        prices.down = price;
                                     }
                                 }
                             }
                         }
                         
                         // 方法2: 查找按钮元素
-                        const buttons = document.getElementsByTagName('button');
-                        for (let btn of buttons) {
-                            const text = btn.textContent.trim();
-                            
-                            if ((text.includes('Up') || text.includes('Yes')) && text.includes('¢')) {
-                                const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
-                                if (match) {
-                                    const price = parseFloat(match[1]);
-                                    if (price > 0 && price <= 100) {
-                                        foundPrices.up.push({price: price, element: btn, text: text});
+                        if (!prices.up || !prices.down) {
+                            const buttons = document.getElementsByTagName('button');
+                            for (let btn of buttons) {
+                                const text = btn.textContent.trim();
+                                
+                                if ((text.includes('Up') || text.includes('Yes')) && text.includes('¢')) {
+                                    const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
+                                    if (match && !prices.up) {
+                                        const price = parseFloat(match[1]);
+                                        foundElements.up.push({price: price, element: 'button', text: text});
+                                        prices.up = price;
                                     }
                                 }
-                            }
-                            
-                            if ((text.includes('Down') || text.includes('No')) && text.includes('¢')) {
-                                const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
-                                if (match) {
-                                    const price = parseFloat(match[1]);
-                                    if (price > 0 && price <= 100) {
-                                        foundPrices.down.push({price: price, element: btn, text: text});
+                                
+                                if ((text.includes('Down') || text.includes('No')) && text.includes('¢')) {
+                                    const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
+                                    if (match && !prices.down) {
+                                        const price = parseFloat(match[1]);
+                                        foundElements.down.push({price: price, element: 'button', text: text});
+                                        prices.down = price;
                                     }
                                 }
-                            }
-                        }
-                        
-                        // 选择最合适的价格（优先选择按钮中的价格，然后是最大的价格）
-                        if (foundPrices.up.length > 0) {
-                            // 优先选择按钮元素中的价格
-                            const buttonPrices = foundPrices.up.filter(p => p.element.tagName === 'BUTTON');
-                            if (buttonPrices.length > 0) {
-                                prices.up = Math.max(...buttonPrices.map(p => p.price));
-                            } else {
-                                prices.up = Math.max(...foundPrices.up.map(p => p.price));
-                            }
-                        }
-                        
-                        if (foundPrices.down.length > 0) {
-                            // 优先选择按钮元素中的价格
-                            const buttonPrices = foundPrices.down.filter(p => p.element.tagName === 'BUTTON');
-                            if (buttonPrices.length > 0) {
-                                prices.down = Math.max(...buttonPrices.map(p => p.price));
-                            } else {
-                                prices.down = Math.max(...foundPrices.down.map(p => p.price));
                             }
                         }
                         
@@ -1070,8 +1051,8 @@ class CryptoTrader:
                     }
                     
                     // 添加调试信息
-                    console.log('找到的UP价格:', foundPrices.up.map(p => p.price + '¢ (' + p.text + ')'));
-                    console.log('找到的DOWN价格:', foundPrices.down.map(p => p.price + '¢ (' + p.text + ')'));
+                    console.log('找到的所有UP价格元素:', foundElements.up);
+                    console.log('找到的所有DOWN价格元素:', foundElements.down);
                     console.log('最终选择的价格:', {up: prices.up, down: prices.down});
                     
                     return prices;
