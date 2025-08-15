@@ -831,13 +831,13 @@ class CryptoTrader:
             
             self.save_config()
             
-            self.logger.info(f"✅ URL已更新为: {updated_url}")
+            self.logger.info(f"✅ \033[34mURL已更新为: {updated_url}\033[0m")
             
             # 如果浏览器已经打开，导航到新URL
             if self.driver:
                 try:
                     self.driver.get(updated_url)
-                    self.logger.info(f"✅ 浏览器已导航到新URL")
+                    self.logger.info(f"✅ \033[34m浏览器已导航到新URL\033[0m")
                 except Exception as e:
                     self.logger.error(f"导航到新URL失败: {e}")
             
@@ -4641,6 +4641,27 @@ class CryptoTrader:
                 let autoScroll = true;
                 let logUpdateInterval;
                 
+                // ANSI颜色代码转换函数
+                function convertAnsiToHtml(text) {
+                    // 直接使用字符串替换，避免正则表达式转义问题
+                    let result = text;
+                    
+                    // ANSI颜色代码替换
+                    result = result.replace(/\\033\\[30m/g, '<span style="color: #000000">'); // 黑色
+                    result = result.replace(/\\033\\[31m/g, '<span style="color: #dc3545">'); // 红色
+                    result = result.replace(/\\033\\[32m/g, '<span style="color: #28a745">'); // 绿色
+                    result = result.replace(/\\033\\[33m/g, '<span style="color: #ffc107">'); // 黄色
+                    result = result.replace(/\\033\\[34m/g, '<span style="color: #007bff">'); // 蓝色
+                    result = result.replace(/\\033\\[35m/g, '<span style="color: #6f42c1">'); // 紫色
+                    result = result.replace(/\\033\\[36m/g, '<span style="color: #17a2b8">'); // 青色
+                    result = result.replace(/\\033\\[37m/g, '<span style="color: #ffffff">'); // 白色
+                    result = result.replace(/\\033\\[0m/g, '</span>'); // 重置
+                    result = result.replace(/\\033\\[1m/g, '<span style="font-weight: bold">'); // 粗体
+                    result = result.replace(/\\033\\[4m/g, '<span style="text-decoration: underline">'); // 下划线
+                    
+                    return result;
+                }
+                
                 // 日志相关函数
                 function updateLogs() {
                     fetch('/api/logs')
@@ -4648,13 +4669,14 @@ class CryptoTrader:
                         .then(data => {
                             const logContainer = document.getElementById('logContainer');
                             if (data.logs && data.logs.length > 0) {
-                                logContainer.innerHTML = data.logs.map(log => 
-                                    `<div class="log-entry ${log.level.toLowerCase()}">
+                                logContainer.innerHTML = data.logs.map(log => {
+                                    const convertedMessage = convertAnsiToHtml(log.message);
+                                    return `<div class="log-entry ${log.level.toLowerCase()}">
                                         <span class="log-time">${log.time}</span>
                                         <span class="log-level">[${log.level}]</span>
-                                        <span class="log-message">${log.message}</span>
-                                    </div>`
-                                ).join('');
+                                        <span class="log-message">${convertedMessage}</span>
+                                    </div>`;
+                                }).join('');
                                 
                                 if (autoScroll) {
                                     logContainer.scrollTop = logContainer.scrollHeight;
