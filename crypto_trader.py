@@ -4528,10 +4528,7 @@ class CryptoTrader:
                                         </div>
                                     </div>
                                 </div>
-                                <div class="position-controls">
-                                    <button type="button" onclick="savePositions()" class="save-btn">保存设置</button>
-                                    <button type="button" onclick="resetPositions()" class="reset-btn">重置</button>
-                                </div>
+
                             </form>
                         </div>
                     </div>
@@ -4781,38 +4778,7 @@ class CryptoTrader:
                     showMessage('日志已刷新', 'success');
                 }
                 
-                // 保存交易仓位设置
-                function savePositions() {
-                    const form = document.getElementById('positionsForm');
-                    const formData = new FormData(form);
-                    const positions = {};
-                    
-                    // 收集所有输入框的值
-                    for (let [key, value] of formData.entries()) {
-                        positions[key] = parseFloat(value) || 0;
-                    }
-                    
-                    // 发送到后端保存
-                    fetch('/api/positions/save', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(positions)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showMessage('交易仓位设置已保存', 'success');
-                        } else {
-                            showMessage('保存失败: ' + (data.message || '未知错误'), 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('保存失败:', error);
-                        showMessage('保存失败: 网络错误', 'error');
-                    });
-                }
+
                 
                 // 自动保存单个输入框的值
                 function autoSavePosition(inputElement) {
@@ -4842,16 +4808,7 @@ class CryptoTrader:
                     });
                 }
                 
-                // 重置交易仓位设置
-                function resetPositions() {
-                    if (confirm('确定要重置所有交易仓位设置为0吗？')) {
-                        const inputs = document.querySelectorAll('.position-input');
-                        inputs.forEach(input => {
-                            input.value = '0';
-                        });
-                        showMessage('交易仓位已重置为0', 'success');
-                    }
-                }
+
                 
                 // 页面加载完成后启动日志更新
                 document.addEventListener('DOMContentLoaded', function() {
