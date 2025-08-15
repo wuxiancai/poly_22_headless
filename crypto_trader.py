@@ -481,15 +481,17 @@ class CryptoTrader:
 
                 system = platform.system()
                 if system == 'Linux':
-                    # 添加与启动脚本一致的所有参数
+                    # 添加与启动脚本一致的所有参数，提高连接稳定性
                     chrome_options.add_argument('--no-sandbox')
                     chrome_options.add_argument('--disable-gpu')
                     chrome_options.add_argument('--disable-software-rasterizer')
+                    chrome_options.add_argument('--disable-dev-shm-usage')
+                    chrome_options.add_argument('--disable-extensions')
                     chrome_options.add_argument('--disable-background-networking')
                     chrome_options.add_argument('--disable-default-apps')
-                    chrome_options.add_argument('--disable-extensions')
                     chrome_options.add_argument('--disable-sync')
                     chrome_options.add_argument('--metrics-recording-only')
+                    chrome_options.add_argument('--disable-infobars')
                     chrome_options.add_argument('--no-first-run')
                     chrome_options.add_argument('--disable-session-crashed-bubble')
                     chrome_options.add_argument('--disable-translate')
@@ -498,26 +500,36 @@ class CryptoTrader:
                     chrome_options.add_argument('--disable-renderer-backgrounding')
                     chrome_options.add_argument('--disable-features=TranslateUI,BlinkGenPropertyTrees,SitePerProcess,IsolateOrigins')
                     chrome_options.add_argument('--noerrdialogs')
-                    chrome_options.add_argument('--disable-infobars')
                     chrome_options.add_argument('--disable-notifications')
                     chrome_options.add_argument('--test-type')
-                    # 禁用GCM相关功能以减少错误日志
                     chrome_options.add_argument('--disable-component-update')
                     chrome_options.add_argument('--disable-background-mode')
                     chrome_options.add_argument('--disable-client-side-phishing-detection')
                     chrome_options.add_argument('--disable-hang-monitor')
                     chrome_options.add_argument('--disable-prompt-on-repost')
                     chrome_options.add_argument('--disable-domain-reliability')
-                    chrome_options.add_argument('--disable-features=VizDisplayCompositor')
                     chrome_options.add_argument('--log-level=3')  # 只显示致命错误
+                    # 添加用户数据目录，与启动脚本保持一致
+                    chrome_options.add_argument(f'--user-data-dir={os.path.expanduser("~/ChromeDebug")}')
+                    
+                # 添加连接超时设置，提高Ubuntu系统稳定性
+                if platform.system() == 'Linux':
+                    # 设置页面加载超时
+                    chrome_options.add_argument('--timeout=30000')
+                    chrome_options.add_argument('--page-load-strategy=eager')
                     
                 self.driver = webdriver.Chrome(options=chrome_options)
+                
+                # 设置超时时间
+                self.driver.set_page_load_timeout(30)
+                self.driver.implicitly_wait(10)
+                
             try:
                 # 在当前标签页打开URL
                 self.driver.get(new_url)
                 
-                # 等待页面加载
-                WebDriverWait(self.driver, 60).until(
+                # 等待页面加载，减少超时时间避免长时间等待
+                WebDriverWait(self.driver, 30).until(
                     lambda driver: driver.execute_script('return document.readyState') == 'complete'
                 )
                 self.logger.info("\033[34m✅ 浏览器启动成功!\033[0m")
@@ -557,9 +569,49 @@ class CryptoTrader:
             self._show_error_and_reset(error_msg)
 
     def _show_error_and_reset(self, error_msg):
-        """显示错误并重置按钮状态"""
+        """显示错误并重置按钮状态，Ubuntu系统下增加重试机制"""
         # Web模式下直接记录错误到日志
         self.logger.error(error_msg)
+        
+        # Ubuntu系统下的特殊处理
+        if platform.system() == 'Linux' and ('Connection aborted' in error_msg or 'Remote end closed' in error_msg):
+            self.logger.info("检测到Ubuntu系统连接问题，尝试自动重试...")
+            
+            # 尝试重启浏览器，最多重试2次
+            max_retries = 2
+            for retry_count in range(max_retries):
+                self.logger.info(f"尝试自动重启浏览器 ({retry_count + 1}/{max_retries})...")
+                
+                try:
+                    # 等待Chrome完全启动
+                    time.sleep(5)
+                    
+                    if self.restart_browser(force_restart=True):
+                        # Ubuntu系统下等待更长时间
+                        time.sleep(10)
+                        
+                        # 尝试重新加载页面
+                        current_url = self.get_web_value('url_entry')
+                        if current_url:
+                            self.driver.get(current_url)
+                            WebDriverWait(self.driver, 30).until(
+                                lambda d: d.execute_script('return document.readyState') == 'complete'
+                            )
+                            self.logger.info("✅ Ubuntu系统自动重试成功")
+                            self.running = True
+                            # 重新启动监控线程
+                            self.monitoring_thread = threading.Thread(target=self.monitor_prices, daemon=True)
+                            self.monitoring_thread.start()
+                            return  # 成功后直接返回，不重置按钮
+                        
+                except Exception as retry_e:
+                    self.logger.error(f"自动重试 {retry_count + 1} 失败: {str(retry_e)}")
+                    if retry_count < max_retries - 1:
+                        time.sleep(3)  # 重试前等待
+                        
+            self.logger.error("Ubuntu系统自动重试全部失败，请手动重启")
+        
+        # 重置按钮状态
         self.set_web_state('start_button', 'normal')
         self.running = False
 
@@ -696,17 +748,17 @@ class CryptoTrader:
 
                     # Linux特定配置
                     if platform.system() == 'Linux':
-                        
-                        # 添加与启动脚本一致的所有参数
+                        # 添加与启动脚本一致的所有参数，提高连接稳定性
                         chrome_options.add_argument('--no-sandbox')
                         chrome_options.add_argument('--disable-gpu')
                         chrome_options.add_argument('--disable-software-rasterizer')
                         chrome_options.add_argument('--disable-dev-shm-usage')
+                        chrome_options.add_argument('--disable-extensions')
                         chrome_options.add_argument('--disable-background-networking')
                         chrome_options.add_argument('--disable-default-apps')
-                        chrome_options.add_argument('--disable-extensions')
                         chrome_options.add_argument('--disable-sync')
                         chrome_options.add_argument('--metrics-recording-only')
+                        chrome_options.add_argument('--disable-infobars')
                         chrome_options.add_argument('--no-first-run')
                         chrome_options.add_argument('--disable-session-crashed-bubble')
                         chrome_options.add_argument('--disable-translate')
@@ -715,20 +767,26 @@ class CryptoTrader:
                         chrome_options.add_argument('--disable-renderer-backgrounding')
                         chrome_options.add_argument('--disable-features=TranslateUI,BlinkGenPropertyTrees,SitePerProcess,IsolateOrigins')
                         chrome_options.add_argument('--noerrdialogs')
-                        chrome_options.add_argument('--disable-infobars')
                         chrome_options.add_argument('--disable-notifications')
                         chrome_options.add_argument('--test-type')
-                        # 禁用GCM相关功能以减少错误日志
                         chrome_options.add_argument('--disable-component-update')
                         chrome_options.add_argument('--disable-background-mode')
                         chrome_options.add_argument('--disable-client-side-phishing-detection')
                         chrome_options.add_argument('--disable-hang-monitor')
                         chrome_options.add_argument('--disable-prompt-on-repost')
                         chrome_options.add_argument('--disable-domain-reliability')
-                        chrome_options.add_argument('--disable-features=VizDisplayCompositor')
                         chrome_options.add_argument('--log-level=3')  # 只显示致命错误
+                        # 添加用户数据目录，与启动脚本保持一致
+                        chrome_options.add_argument(f'--user-data-dir={os.path.expanduser("~/ChromeDebug")}')
+                        # 添加连接超时设置，提高Ubuntu系统稳定性
+                        chrome_options.add_argument('--timeout=30000')
+                        chrome_options.add_argument('--page-load-strategy=eager')
                         
                     self.driver = webdriver.Chrome(options=chrome_options)
+                    
+                    # 设置超时时间
+                    self.driver.set_page_load_timeout(30)
+                    self.driver.implicitly_wait(10)
                     
                     # 验证连接
                     self.driver.execute_script("return navigator.userAgent")
