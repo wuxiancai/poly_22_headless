@@ -1073,9 +1073,9 @@ class CryptoTrader:
                 
                 # 数据合理性检查
                 if 0 <= up_price_val <= 100 and 0 <= down_price_val <= 100:
-                    # 更新GUI价格显示
-                    self.set_web_value('yes_price_label', f'Up: {up_price_val:.1f}')
-                    self.set_web_value('no_price_label', f'Down: {down_price_val:.1f}')
+                    # 更新GUI价格显示 - 只显示数字，不显示"Up:"和"Down:"前缀
+                    self.set_web_value('yes_price_label', f'{up_price_val:.1f}')
+                    self.set_web_value('no_price_label', f'{down_price_val:.1f}')
                     
                     # 执行所有交易检查函数（仅在没有交易进行时）
                     if not self.trading:
@@ -1086,8 +1086,8 @@ class CryptoTrader:
                         
                 else:
                     self.logger.warning(f"价格数据异常: Up={up_price_val}, Down={down_price_val}")
-                    self.set_web_value('yes_price_label', 'Up: Invalid')
-                    self.set_web_value('no_price_label', 'Down: Invalid')
+                    self.set_web_value('yes_price_label', 'Invalid')
+                    self.set_web_value('no_price_label', 'Invalid')
                     
             else:
                 # 显示具体的缺失信息
@@ -1098,8 +1098,8 @@ class CryptoTrader:
                     missing_info.append("Down价格")
                     
                 self.logger.warning(f"数据获取不完整，缺失: {', '.join(missing_info)}")
-                self.set_web_value('yes_price_label', 'Up: N/A')
-                self.set_web_value('no_price_label', 'Down: N/A')
+                self.set_web_value('yes_price_label', 'N/A')
+                self.set_web_value('no_price_label', 'N/A')
                 # 尝试刷新页面
                 try:
                     self.driver.refresh()
@@ -1114,8 +1114,8 @@ class CryptoTrader:
                 if not self.is_restarting:
                     self.restart_browser()
                 return
-            self.set_web_value('yes_price_label', 'Up: Fail')
-            self.set_web_value('no_price_label', 'Down: Fail')
+            self.set_web_value('yes_price_label', 'Fail')
+            self.set_web_value('no_price_label', 'Fail')
             
             # 尝试刷新页面
             try:
@@ -1150,24 +1150,36 @@ class CryptoTrader:
             self.cash_value = None
             self.portfolio_value = None
 
-            # 获取Portfolio和Cash值
+            # 获取Portfolio和Cash值 - 增强重试机制
+            portfolio_element = None
+            cash_element = None
+            
+            # 尝试多个XPath获取Portfolio
             try:
                 portfolio_element = self.driver.find_element(By.XPATH, XPathConfig.PORTFOLIO_VALUE[0])
             except (NoSuchElementException, StaleElementReferenceException):
-                portfolio_element = self._find_element_with_retry(XPathConfig.PORTFOLIO_VALUE, timeout=2, silent=True)
+                portfolio_element = self._find_element_with_retry(XPathConfig.PORTFOLIO_VALUE, timeout=5, silent=True)
                 
-            
+            # 尝试多个XPath获取Cash
             try:
                 cash_element = self.driver.find_element(By.XPATH, XPathConfig.CASH_VALUE[0])
             except (NoSuchElementException, StaleElementReferenceException):
-                cash_element = self._find_element_with_retry(XPathConfig.CASH_VALUE, timeout=2, silent=True)
+                cash_element = self._find_element_with_retry(XPathConfig.CASH_VALUE, timeout=5, silent=True)
             
-            if portfolio_element and cash_element:
-                self.cash_value = cash_element.text
-                self.portfolio_value = portfolio_element.text
+            # 处理获取结果
+            if portfolio_element:
+                self.portfolio_value = portfolio_element.text.strip()
+                self.logger.info(f"✅ 获取到Portfolio值: {self.portfolio_value}")
             else:
-                self.cash_value = "获取失败"
-                self.portfolio_value = "获取失败"
+                self.portfolio_value = "--"
+                self.logger.warning("❌ 无法获取Portfolio值，可能需要登录")
+                
+            if cash_element:
+                self.cash_value = cash_element.text.strip()
+                self.logger.info(f"✅ 获取到Cash值: {self.cash_value}")
+            else:
+                self.cash_value = "--"
+                self.logger.warning("❌ 无法获取Cash值，可能需要登录")
         
             # 更新Portfolio和Cash显示
             self.set_web_value('portfolio_label', f'Portfolio: {self.portfolio_value}')
@@ -3883,19 +3895,16 @@ class CryptoTrader:
                     'zero_time_cash': self.get_web_value('zero_time_cash_label') or '0'
                 },
                 'prices': {
-                    'up_price': self.get_web_value('yes_price_label').replace('Up: ', '') if self.get_web_value('yes_price_label') else 'N/A',
-                    'down_price': self.get_web_value('no_price_label').replace('Down: ', '') if self.get_web_value('no_price_label') else 'N/A',
+                    'up_price': self.get_web_value('yes_price_label') or 'N/A',
+                    'down_price': self.get_web_value('no_price_label') or 'N/A',
                     'binance_price': self.get_web_value('binance_now_price_label') or 'N/A',
                     'binance_zero_price': self.get_web_value('binance_zero_price_label') or 'N/A',
                     'binance_rate': self.get_web_value('binance_rate_label') or 'N/A'
                 },
                 'trading_pair': self.get_web_value('trading_pair_label'),
-                'binance_price': self.get_web_value('binance_now_price_label'),
-                'binance_zero_price': self.get_web_value('binance_zero_price_label'),
-                'binance_rate': self.get_web_value('binance_rate_label'),
                 'live_prices': {
-                    'up': self.get_web_value('yes_price_label').replace('Up: ', '') if self.get_web_value('yes_price_label') else '0',
-                    'down': self.get_web_value('no_price_label').replace('Down: ', '') if self.get_web_value('no_price_label') else '0'
+                    'up': self.get_web_value('yes_price_label') or '0',
+                    'down': self.get_web_value('no_price_label') or '0'
                 },
                 'positions': {
                     'up1_price': self.get_web_value('yes1_price_entry'),
