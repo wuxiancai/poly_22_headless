@@ -975,60 +975,54 @@ class CryptoTrader:
                 lambda driver: driver.execute_script('return document.readyState') == 'complete'
             )
 
-            # 方法1: 使用更精确的JavaScript获取价格（针对Polymarket优化）
+            # 方法1: 使用改进的JavaScript获取价格（增加等待和多种匹配模式）
             prices = self.driver.execute_script("""
                 function getPricesEnhanced() {
                     const prices = {up: null, down: null};
-                    const foundElements = {up: [], down: []};
                     
                     // 等待一小段时间确保DOM完全渲染
                     const startTime = Date.now();
                     while (Date.now() - startTime < 1000) {
-                        // 方法1: 查找所有包含价格的元素（更精确的匹配）
-                        const allElements = document.querySelectorAll('*');
-                        for (let el of allElements) {
+                        // 方法1: 查找所有span元素
+                        const spans = document.getElementsByTagName('span');
+                        for (let el of spans) {
                             const text = el.textContent.trim();
                             
-                            // 更精确的Up价格匹配 - 匹配"Up XX¢"格式
-                            if (text.match(/^Up\\s+\\d+¢$/)) {
-                                const match = text.match(/Up\\s+(\\d+)¢/);
+                            // 匹配Up价格的多种模式
+                            if ((text.includes('Up') || text.includes('Yes')) && text.includes('¢')) {
+                                const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
                                 if (match && !prices.up) {
-                                    const price = parseFloat(match[1]);
-                                    foundElements.up.push({price: price, element: el.tagName, text: text});
-                                    prices.up = price;
-                                    console.log('找到UP价格:', text, '价格:', price);
+                                    prices.up = parseFloat(match[1]);
                                 }
                             }
                             
-                            // 更精确的Down价格匹配 - 匹配"Down XX¢"格式
-                            if (text.match(/^Down\\s+\\d+¢$/)) {
-                                const match = text.match(/Down\\s+(\\d+)¢/);
+                            // 匹配Down价格的多种模式
+                            if ((text.includes('Down') || text.includes('No')) && text.includes('¢')) {
+                                const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
                                 if (match && !prices.down) {
-                                    const price = parseFloat(match[1]);
-                                    foundElements.down.push({price: price, element: el.tagName, text: text});
-                                    prices.down = price;
-                                    console.log('找到DOWN价格:', text, '价格:', price);
+                                    prices.down = parseFloat(match[1]);
                                 }
                             }
-                            
-                            // 备用匹配：Yes/No格式
-                            if (!prices.up && text.match(/^Yes\\s+\\d+¢$/)) {
-                                const match = text.match(/Yes\\s+(\\d+)¢/);
-                                if (match) {
-                                    const price = parseFloat(match[1]);
-                                    foundElements.up.push({price: price, element: el.tagName, text: text});
-                                    prices.up = price;
-                                    console.log('找到YES价格:', text, '价格:', price);
+                        }
+                        
+                        // 方法2: 查找按钮元素
+                        if (!prices.up || !prices.down) {
+                            const buttons = document.getElementsByTagName('button');
+                            for (let btn of buttons) {
+                                const text = btn.textContent.trim();
+                                
+                                if ((text.includes('Up') || text.includes('Yes')) && text.includes('¢')) {
+                                    const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
+                                    if (match && !prices.up) {
+                                        prices.up = parseFloat(match[1]);
+                                    }
                                 }
-                            }
-                            
-                            if (!prices.down && text.match(/^No\\s+\\d+¢$/)) {
-                                const match = text.match(/No\\s+(\\d+)¢/);
-                                if (match) {
-                                    const price = parseFloat(match[1]);
-                                    foundElements.down.push({price: price, element: el.tagName, text: text});
-                                    prices.down = price;
-                                    console.log('找到NO价格:', text, '价格:', price);
+                                
+                                if ((text.includes('Down') || text.includes('No')) && text.includes('¢')) {
+                                    const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
+                                    if (match && !prices.down) {
+                                        prices.down = parseFloat(match[1]);
+                                    }
                                 }
                             }
                         }
@@ -1043,64 +1037,45 @@ class CryptoTrader:
                         while (Date.now() - now < 50) {}
                     }
                     
-                    // 添加调试信息
-                    console.log('找到的所有UP价格元素:', foundElements.up);
-                    console.log('找到的所有DOWN价格元素:', foundElements.down);
-                    console.log('最终选择的价格:', {up: prices.up, down: prices.down});
-                    
-                    return {prices: prices, debug: foundElements};
+                    return prices;
                 }
                 return getPricesEnhanced();
             """)
             
-            # 处理新的返回格式
-            if isinstance(prices, dict) and 'prices' in prices:
-                actual_prices = prices['prices']
-                debug_info = prices['debug']
-                self.logger.info(f"🔍 调试信息: UP元素={len(debug_info['up'])}, DOWN元素={len(debug_info['down'])}")
-            else:
-                actual_prices = prices
-                
             # 方法2: 如果JavaScript方法失败，尝试使用XPath直接获取
-            if (actual_prices['up'] is None or actual_prices['down'] is None) and not self.is_restarting:
+            if (prices['up'] is None or prices['down'] is None) and not self.is_restarting:
                 self.logger.warning("JavaScript方法获取价格失败，尝试XPath方法...")
                 try:
                     # 尝试使用XPath获取价格按钮
                     up_buttons = self.driver.find_elements(By.XPATH, '//button[.//span[contains(text(), "Up") or contains(text(), "Yes")] and .//span[contains(text(), "¢")]]')
                     down_buttons = self.driver.find_elements(By.XPATH, '//button[.//span[contains(text(), "Down") or contains(text(), "No")] and .//span[contains(text(), "¢")]]')
                     
-                    if up_buttons and actual_prices['up'] is None:
+                    if up_buttons and prices['up'] is None:
                         up_text = up_buttons[0].text
                         up_match = re.search(r'(\d+(?:\.\d+)?)¢', up_text)
                         if up_match:
-                            actual_prices['up'] = float(up_match.group(1))
+                            prices['up'] = float(up_match.group(1))
                             
-                    if down_buttons and actual_prices['down'] is None:
+                    if down_buttons and prices['down'] is None:
                         down_text = down_buttons[0].text
                         down_match = re.search(r'(\d+(?:\.\d+)?)¢', down_text)
                         if down_match:
-                            actual_prices['down'] = float(down_match.group(1))
+                            prices['down'] = float(down_match.group(1))
                             
                 except Exception as xpath_e:
                     self.logger.warning(f"XPath方法也失败: {str(xpath_e)}")
 
-            # 添加调试日志 - 打印获取到的价格
-            self.logger.info(f"🔍 价格检查结果: UP={actual_prices['up']}, DOWN={actual_prices['down']}")
-            
             # 验证获取到的数据
-            if actual_prices['up'] is not None and actual_prices['down'] is not None:
+            if prices['up'] is not None and prices['down'] is not None:
                 # 获取价格
-                up_price_val = float(actual_prices['up'])
-                down_price_val = float(actual_prices['down'])
-                
-                # 添加详细的价格日志
-                self.logger.info(f"✅ 成功获取价格: UP={up_price_val}, DOWN={down_price_val}")
+                up_price_val = float(prices['up'])
+                down_price_val = float(prices['down'])
                 
                 # 数据合理性检查
                 if 0 <= up_price_val <= 100 and 0 <= down_price_val <= 100:
-                    # 更新GUI价格显示 - 只显示数字，不显示"Up:"和"Down:"前缀
-                    self.set_web_value('yes_price_label', f'{up_price_val:.1f}')
-                    self.set_web_value('no_price_label', f'{down_price_val:.1f}')
+                    # 更新GUI价格显示
+                    self.yes_price_label.config(text=f"Up: {up_price_val:.1f}")
+                    self.no_price_label.config(text=f"Down: {down_price_val:.1f}")
                     
                     # 执行所有交易检查函数（仅在没有交易进行时）
                     if not self.trading:
@@ -1111,24 +1086,24 @@ class CryptoTrader:
                         
                 else:
                     self.logger.warning(f"价格数据异常: Up={up_price_val}, Down={down_price_val}")
-                    self.set_web_value('yes_price_label', 'Invalid')
-                    self.set_web_value('no_price_label', 'Invalid')
+                    self.yes_price_label.config(text="Up: Invalid")
+                    self.no_price_label.config(text="Down: Invalid")
                     
             else:
                 # 显示具体的缺失信息
                 missing_info = []
-                if actual_prices['up'] is None:
+                if prices['up'] is None:
                     missing_info.append("Up价格")
-                if actual_prices['down'] is None:
+                if prices['down'] is None:
                     missing_info.append("Down价格")
                     
                 self.logger.warning(f"数据获取不完整，缺失: {', '.join(missing_info)}")
-                self.set_web_value('yes_price_label', 'N/A')
-                self.set_web_value('no_price_label', 'N/A')
+                self.yes_price_label.config(text="Up: N/A")
+                self.no_price_label.config(text="Down: N/A")
                 # 尝试刷新页面
                 try:
                     self.driver.refresh()
-                    time.sleep(0.5)
+                    time.sleep(2)
                 except:
                     pass
 
@@ -1139,13 +1114,13 @@ class CryptoTrader:
                 if not self.is_restarting:
                     self.restart_browser()
                 return
-            self.set_web_value('yes_price_label', 'Fail')
-            self.set_web_value('no_price_label', 'Fail')
+            self.yes_price_label.config(text="Up: Fail")
+            self.no_price_label.config(text="Down: Fail")
             
             # 尝试刷新页面
             try:
                 self.driver.refresh()
-                time.sleep(0.5)
+                time.sleep(2)
             except:
                 pass
             
