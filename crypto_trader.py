@@ -4283,8 +4283,8 @@ class CryptoTrader:
                                 if (binanceRateElement) binanceRateElement.textContent = data.prices.binance_rate;
                                 
                                 // 更新账户信息
-                                const portfolioElement = document.querySelector('.portfolio .value');
-                                const cashElement = document.querySelector('.cash .value');
+                                const portfolioElement = document.querySelector('#portfolio');
+                                const cashElement = document.querySelector('#cash');
                                 
                                 if (portfolioElement) portfolioElement.textContent = data.account.portfolio;
                                 if (cashElement) cashElement.textContent = data.account.cash;
