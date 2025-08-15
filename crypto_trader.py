@@ -3936,7 +3936,7 @@ class CryptoTrader:
             <head>
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Polymarket自动交易仪表板</title>
+                <title>Polymarket自动交易系统</title>
                 <style>
                     body { 
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
@@ -4403,7 +4403,7 @@ class CryptoTrader:
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>🚀 Polymarket自动交易仪表板</h1>
+                        <h1>🚀 Polymarket自动交易系统</h1>
                     </div>
                     
                     <!-- 价格监控 -->
@@ -4603,16 +4603,6 @@ class CryptoTrader:
                             </div>
                             <div id="statusMessage" class="status-message"></div>
                         </div>
-                    </div>
-
-
-
-
-
-
-                    
-                    <div class="refresh-info">
-                        🔄 数据每2秒自动更新 | 📊 价格实时刷新 | 🕐 最后更新: {{ current_time }}
                     </div>
                 </div>
                 
@@ -4845,7 +4835,7 @@ class CryptoTrader:
                 
                 <!-- 交易记录表格 -->
                 <div style="margin-top: 30px; padding: 20px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
-                    <h2 style="text-align: center; color: #007bff; margin-bottom: 20px;">📊 交易记录</h2>
+                    
                     {% if data.cash_history and data.cash_history|length > 0 %}
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
