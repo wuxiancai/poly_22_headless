@@ -4246,19 +4246,7 @@ class CryptoTrader:
                     .log-entry.warning { color: #ffc107; }
                     .log-entry.error { color: #dc3545; }
                     .log-entry.success { color: #28a745; }
-                    .log-controls {
-                        margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;
-                    }
-                    .log-controls button {
-                        padding: 8px 16px; background: linear-gradient(45deg, #007bff, #0056b3);
-                        color: white; border: none; border-radius: 6px; cursor: pointer;
-                        font-size: 14px; transition: all 0.3s ease;
-                        box-shadow: 0 2px 8px rgba(0,123,255,0.3);
-                    }
-                    .log-controls button:hover {
-                        background: linear-gradient(45deg, #0056b3, #004085);
-                        transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,123,255,0.4);
-                    }
+
                     .side-by-side-container {
                         display: flex;
                         gap: 20px;
@@ -4444,11 +4432,6 @@ class CryptoTrader:
                         <div class="log-section half-width">
                             <div class="log-header">
                                 <h3>📋 系统日志</h3>
-                                <div class="log-controls">
-                                    <button onclick="clearLogs()" class="log-btn clear-btn">清空日志</button>
-                                    <button onclick="toggleAutoScroll()" class="log-btn" id="autoScrollBtn">自动滚动: 开</button>
-                                    <button onclick="refreshLogs()" class="log-btn refresh-btn">刷新日志</button>
-                                </div>
                             </div>
                             <div class="log-container" id="logContainer">
                                 <div class="log-loading">正在加载日志...</div>
@@ -4751,32 +4734,7 @@ class CryptoTrader:
                         });
                 }
                 
-                function clearLogs() {
-                    fetch('/api/logs/clear', { method: 'POST' })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                updateLogs();
-                                showMessage('日志已清空', 'success');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('清空日志失败:', error);
-                            showMessage('清空日志失败', 'error');
-                        });
-                }
-                
-                function toggleAutoScroll() {
-                    autoScroll = !autoScroll;
-                    const btn = document.getElementById('autoScrollBtn');
-                    btn.textContent = `自动滚动: ${autoScroll ? '开' : '关'}`;
-                    btn.className = `log-btn ${autoScroll ? '' : 'disabled'}`;
-                }
-                
-                function refreshLogs() {
-                    updateLogs();
-                    showMessage('日志已刷新', 'success');
-                }
+
                 
 
                 
