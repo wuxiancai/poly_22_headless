@@ -4235,9 +4235,9 @@ class CryptoTrader:
                                 }
                                 
                                 // 更新价格显示
-                                const upPriceElement = document.querySelector('.up-price .value');
-                                const downPriceElement = document.querySelector('.down-price .value');
-                                const binancePriceElement = document.querySelector('.binance-price');
+                                const upPriceElement = document.querySelector('#upPrice');
+                                const downPriceElement = document.querySelector('#downPrice');
+                                const binancePriceElement = document.querySelector('#binancePrice');
                                 
                                 if (upPriceElement) upPriceElement.textContent = data.prices.up_price;
                                 if (downPriceElement) downPriceElement.textContent = data.prices.down_price;
@@ -4366,6 +4366,10 @@ class CryptoTrader:
                                 <div class="info-item">
                                     <label>DOWN:</label>
                                     <div class="value" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>币安价格:</label>
+                                    <div class="value" id="binancePrice">{{ data.prices.binance_price or 'N/A' }}</div>
                                 </div>
                                 <div class="info-item coin-select-item">
                                     <label>币种:</label>
