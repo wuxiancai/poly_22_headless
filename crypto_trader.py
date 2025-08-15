@@ -975,7 +975,7 @@ class CryptoTrader:
                 lambda driver: driver.execute_script('return document.readyState') == 'complete'
             )
 
-            # 方法1: 使用改进的JavaScript获取价格（恢复原始逻辑但增加调试）
+            # 方法1: 使用更精确的JavaScript获取价格（针对Polymarket优化）
             prices = self.driver.execute_script("""
                 function getPricesEnhanced() {
                     const prices = {up: null, down: null};
@@ -984,58 +984,51 @@ class CryptoTrader:
                     // 等待一小段时间确保DOM完全渲染
                     const startTime = Date.now();
                     while (Date.now() - startTime < 1000) {
-                        // 方法1: 查找所有span元素
-                        const spans = document.getElementsByTagName('span');
-                        for (let el of spans) {
+                        // 方法1: 查找所有包含价格的元素（更精确的匹配）
+                        const allElements = document.querySelectorAll('*');
+                        for (let el of allElements) {
                             const text = el.textContent.trim();
                             
-                            // 匹配Up价格的多种模式
-                            if ((text.includes('Up') || text.includes('Yes')) && text.includes('¢')) {
-                                const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
-                                if (match) {
+                            // 更精确的Up价格匹配 - 匹配"Up XX¢"格式
+                            if (text.match(/^Up\\s+\\d+¢$/)) {
+                                const match = text.match(/Up\\s+(\\d+)¢/);
+                                if (match && !prices.up) {
                                     const price = parseFloat(match[1]);
-                                    foundElements.up.push({price: price, element: 'span', text: text});
-                                    if (!prices.up) {
-                                        prices.up = price;
-                                    }
+                                    foundElements.up.push({price: price, element: el.tagName, text: text});
+                                    prices.up = price;
+                                    console.log('找到UP价格:', text, '价格:', price);
                                 }
                             }
                             
-                            // 匹配Down价格的多种模式
-                            if ((text.includes('Down') || text.includes('No')) && text.includes('¢')) {
-                                const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
-                                if (match) {
+                            // 更精确的Down价格匹配 - 匹配"Down XX¢"格式
+                            if (text.match(/^Down\\s+\\d+¢$/)) {
+                                const match = text.match(/Down\\s+(\\d+)¢/);
+                                if (match && !prices.down) {
                                     const price = parseFloat(match[1]);
-                                    foundElements.down.push({price: price, element: 'span', text: text});
-                                    if (!prices.down) {
-                                        prices.down = price;
-                                    }
+                                    foundElements.down.push({price: price, element: el.tagName, text: text});
+                                    prices.down = price;
+                                    console.log('找到DOWN价格:', text, '价格:', price);
                                 }
                             }
-                        }
-                        
-                        // 方法2: 查找按钮元素
-                        if (!prices.up || !prices.down) {
-                            const buttons = document.getElementsByTagName('button');
-                            for (let btn of buttons) {
-                                const text = btn.textContent.trim();
-                                
-                                if ((text.includes('Up') || text.includes('Yes')) && text.includes('¢')) {
-                                    const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
-                                    if (match && !prices.up) {
-                                        const price = parseFloat(match[1]);
-                                        foundElements.up.push({price: price, element: 'button', text: text});
-                                        prices.up = price;
-                                    }
+                            
+                            // 备用匹配：Yes/No格式
+                            if (!prices.up && text.match(/^Yes\\s+\\d+¢$/)) {
+                                const match = text.match(/Yes\\s+(\\d+)¢/);
+                                if (match) {
+                                    const price = parseFloat(match[1]);
+                                    foundElements.up.push({price: price, element: el.tagName, text: text});
+                                    prices.up = price;
+                                    console.log('找到YES价格:', text, '价格:', price);
                                 }
-                                
-                                if ((text.includes('Down') || text.includes('No')) && text.includes('¢')) {
-                                    const match = text.match(/(\\d+(?:\\.\\d+)?)¢/);
-                                    if (match && !prices.down) {
-                                        const price = parseFloat(match[1]);
-                                        foundElements.down.push({price: price, element: 'button', text: text});
-                                        prices.down = price;
-                                    }
+                            }
+                            
+                            if (!prices.down && text.match(/^No\\s+\\d+¢$/)) {
+                                const match = text.match(/No\\s+(\\d+)¢/);
+                                if (match) {
+                                    const price = parseFloat(match[1]);
+                                    foundElements.down.push({price: price, element: el.tagName, text: text});
+                                    prices.down = price;
+                                    console.log('找到NO价格:', text, '价格:', price);
                                 }
                             }
                         }
@@ -1055,42 +1048,50 @@ class CryptoTrader:
                     console.log('找到的所有DOWN价格元素:', foundElements.down);
                     console.log('最终选择的价格:', {up: prices.up, down: prices.down});
                     
-                    return prices;
+                    return {prices: prices, debug: foundElements};
                 }
                 return getPricesEnhanced();
             """)
             
+            # 处理新的返回格式
+            if isinstance(prices, dict) and 'prices' in prices:
+                actual_prices = prices['prices']
+                debug_info = prices['debug']
+                self.logger.info(f"🔍 调试信息: UP元素={len(debug_info['up'])}, DOWN元素={len(debug_info['down'])}")
+            else:
+                actual_prices = prices
+                
             # 方法2: 如果JavaScript方法失败，尝试使用XPath直接获取
-            if (prices['up'] is None or prices['down'] is None) and not self.is_restarting:
+            if (actual_prices['up'] is None or actual_prices['down'] is None) and not self.is_restarting:
                 self.logger.warning("JavaScript方法获取价格失败，尝试XPath方法...")
                 try:
                     # 尝试使用XPath获取价格按钮
                     up_buttons = self.driver.find_elements(By.XPATH, '//button[.//span[contains(text(), "Up") or contains(text(), "Yes")] and .//span[contains(text(), "¢")]]')
                     down_buttons = self.driver.find_elements(By.XPATH, '//button[.//span[contains(text(), "Down") or contains(text(), "No")] and .//span[contains(text(), "¢")]]')
                     
-                    if up_buttons and prices['up'] is None:
+                    if up_buttons and actual_prices['up'] is None:
                         up_text = up_buttons[0].text
                         up_match = re.search(r'(\d+(?:\.\d+)?)¢', up_text)
                         if up_match:
-                            prices['up'] = float(up_match.group(1))
+                            actual_prices['up'] = float(up_match.group(1))
                             
-                    if down_buttons and prices['down'] is None:
+                    if down_buttons and actual_prices['down'] is None:
                         down_text = down_buttons[0].text
                         down_match = re.search(r'(\d+(?:\.\d+)?)¢', down_text)
                         if down_match:
-                            prices['down'] = float(down_match.group(1))
+                            actual_prices['down'] = float(down_match.group(1))
                             
                 except Exception as xpath_e:
                     self.logger.warning(f"XPath方法也失败: {str(xpath_e)}")
 
             # 添加调试日志 - 打印获取到的价格
-            self.logger.info(f"🔍 价格检查结果: UP={prices['up']}, DOWN={prices['down']}")
+            self.logger.info(f"🔍 价格检查结果: UP={actual_prices['up']}, DOWN={actual_prices['down']}")
             
             # 验证获取到的数据
-            if prices['up'] is not None and prices['down'] is not None:
+            if actual_prices['up'] is not None and actual_prices['down'] is not None:
                 # 获取价格
-                up_price_val = float(prices['up'])
-                down_price_val = float(prices['down'])
+                up_price_val = float(actual_prices['up'])
+                down_price_val = float(actual_prices['down'])
                 
                 # 添加详细的价格日志
                 self.logger.info(f"✅ 成功获取价格: UP={up_price_val}, DOWN={down_price_val}")
@@ -1116,9 +1117,9 @@ class CryptoTrader:
             else:
                 # 显示具体的缺失信息
                 missing_info = []
-                if prices['up'] is None:
+                if actual_prices['up'] is None:
                     missing_info.append("Up价格")
-                if prices['down'] is None:
+                if actual_prices['down'] is None:
                     missing_info.append("Down价格")
                     
                 self.logger.warning(f"数据获取不完整，缺失: {', '.join(missing_info)}")
@@ -4622,7 +4623,7 @@ class CryptoTrader:
                             <div class="url-input-group">
                                 <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
                                 <button id="startBtn" onclick="startTrading()">启动监控</button>
-                                <a href="/history" style="padding: 14px 28px; background: linear-gradient(45deg, #007bff, #0056b3); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,123,255,0.3); display: inline-block;">交易记录</a>
+                                <button id="stopBtn" onclick="stopMonitoring()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">🛑 停止监控</button>
                                 <button onclick="refreshPage()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🔄 刷新数据</button>
                             </div>
                             <div id="statusMessage" class="status-message"></div>
@@ -4695,6 +4696,43 @@ class CryptoTrader:
                     setTimeout(() => {
                         statusMessage.style.display = 'none';
                     }, 5000);
+                }
+                
+                function stopMonitoring() {
+                    const stopBtn = document.getElementById('stopBtn');
+                    const statusMessage = document.getElementById('statusMessage');
+                    
+                    // 禁用按钮，显示加载状态
+                    stopBtn.disabled = true;
+                    stopBtn.textContent = '停止中...';
+                    
+                    // 发送停止请求
+                    fetch('/stop', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showMessage(data.message, 'success');
+                            // 3秒后刷新页面以显示最新状态
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 3000);
+                        } else {
+                            showMessage(data.message, 'error');
+                            stopBtn.disabled = false;
+                            stopBtn.textContent = '🛑 停止监控';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showMessage('停止失败，请检查网络连接', 'error');
+                        stopBtn.disabled = false;
+                        stopBtn.textContent = '🛑 停止监控';
+                    });
                 }
                 
                 // 日志相关变量
@@ -4909,6 +4947,21 @@ class CryptoTrader:
             except Exception as e:
                 self.logger.error(f"启动交易失败: {str(e)}")
                 return jsonify({'success': False, 'message': f'启动失败: {str(e)}'})
+        
+        @app.route("/stop", methods=['POST'])
+        def stop_trading():
+            """处理停止监控按钮点击事件"""
+            try:
+                # 停止监控
+                if hasattr(self, 'stop_event'):
+                    self.stop_event.set()
+                    self.logger.info("监控已停止")
+                    return jsonify({'success': True, 'message': '监控已停止'})
+                else:
+                    return jsonify({'success': False, 'message': '监控未运行'})
+            except Exception as e:
+                self.logger.error(f"停止监控失败: {str(e)}")
+                return jsonify({'success': False, 'message': f'停止失败: {str(e)}'})
         
         @app.route("/api/data")
         def get_data():
