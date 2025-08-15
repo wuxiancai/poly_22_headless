@@ -3884,7 +3884,10 @@ class CryptoTrader:
                 },
                 'prices': {
                     'up_price': self.get_web_value('yes_price_label').replace('Up: ', '') if self.get_web_value('yes_price_label') else 'N/A',
-                    'down_price': self.get_web_value('no_price_label').replace('Down: ', '') if self.get_web_value('no_price_label') else 'N/A'
+                    'down_price': self.get_web_value('no_price_label').replace('Down: ', '') if self.get_web_value('no_price_label') else 'N/A',
+                    'binance_price': self.get_web_value('binance_now_price_label') or 'N/A',
+                    'binance_zero_price': self.get_web_value('binance_zero_price_label') or 'N/A',
+                    'binance_rate': self.get_web_value('binance_rate_label') or 'N/A'
                 },
                 'trading_pair': self.get_web_value('trading_pair_label'),
                 'binance_price': self.get_web_value('binance_now_price_label'),
@@ -4043,6 +4046,29 @@ class CryptoTrader:
                     .info-item select:focus {
                         border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
                         outline: none;
+                    }
+                    .binance-price-container {
+                        display: flex;
+                        flex-direction: row;
+                        gap: 15px;
+                        flex: 1;
+                        align-items: center;
+                    }
+                    .binance-price-item {
+                        display: flex;
+                        align-items: center;
+                        font-size: 14px;
+                        gap: 4px;
+                    }
+                    .binance-label {
+                        font-weight: 600;
+                        color: #6c757d;
+                    }
+                    .binance-price-item .value {
+                        font-size: 14px;
+                        font-weight: 600;
+                        font-family: 'Monaco', 'Menlo', monospace;
+                        color: #2c3e50;
                     }
                     .price-display { 
                         display: flex; justify-content: space-around; text-align: center; gap: 20px;
@@ -4238,10 +4264,14 @@ class CryptoTrader:
                                 const upPriceElement = document.querySelector('#upPrice');
                                 const downPriceElement = document.querySelector('#downPrice');
                                 const binancePriceElement = document.querySelector('#binancePrice');
+                                const binanceZeroPriceElement = document.querySelector('#binanceZeroPrice');
+                                const binanceRateElement = document.querySelector('#binanceRate');
                                 
                                 if (upPriceElement) upPriceElement.textContent = data.prices.up_price;
                                 if (downPriceElement) downPriceElement.textContent = data.prices.down_price;
                                 if (binancePriceElement) binancePriceElement.textContent = data.prices.binance_price;
+                                if (binanceZeroPriceElement) binanceZeroPriceElement.textContent = data.prices.binance_zero_price;
+                                if (binanceRateElement) binanceRateElement.textContent = data.prices.binance_rate;
                                 
                                 // 更新账户信息
                                 const portfolioElement = document.querySelector('.portfolio .value');
@@ -4359,18 +4389,6 @@ class CryptoTrader:
                     <div class="card">
                         <h3>📊 网站监控</h3>
                         <div class="monitor-controls-section">
-                                <div class="info-item">
-                                    <label>UP:</label>
-                                    <div class="value" id="upPrice">{{ data.prices.up_price or 'N/A' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>DOWN:</label>
-                                    <div class="value" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>币安价格:</label>
-                                    <div class="value" id="binancePrice">{{ data.prices.binance_price or 'N/A' }}</div>
-                                </div>
                                 <div class="info-item coin-select-item">
                                     <label>币种:</label>
                                     <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 5px; min-width: 5px;">
@@ -4434,7 +4452,37 @@ class CryptoTrader:
                         </div>
                     </div>
 
-                    <!-- 价格信息已删除 -->
+                    <!-- 价格监控 -->
+                    <div class="card">
+                        <h3>💰 价格监控</h3>
+                        <div class="monitor-controls-section">
+                                <div class="info-item">
+                                    <label>UP:</label>
+                                    <div class="value" id="upPrice">{{ data.prices.up_price or 'N/A' }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>DOWN:</label>
+                                    <div class="value" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>币安价格:</label>
+                                    <div class="binance-price-container">
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">零点:</span>
+                                            <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                                        </div>
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">实时:</span>
+                                            <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                        </div>
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">涨幅:</span>
+                                            <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
 
 
 
