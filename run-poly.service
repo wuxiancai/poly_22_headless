@@ -22,7 +22,7 @@ Environment=FLASK_ENV=production
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ProtectHome=true
+ProtectHome=read-only
 ReadWritePaths=/home/admin/poly_22_headless
 
 # 资源限制
