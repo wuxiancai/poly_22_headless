@@ -504,10 +504,6 @@ class CryptoTrader:
                 # 不直接抛出异常，而是继续检查Chrome状态
                 self.logger.info("尝试检查Chrome是否已启动...")
                 
-        except subprocess.TimeoutExpired:
-            self.logger.warning("⚠️ Chrome启动脚本执行超时(10秒)，但Chrome可能已成功启动")
-            # 不直接抛出异常，而是继续检查Chrome状态
-            self.logger.info("尝试检查Chrome是否已启动...")
         except Exception as e:
             self.logger.warning(f"⚠️ 执行Chrome启动脚本时发生异常: {str(e)}")
             # 不直接抛出异常，而是继续检查Chrome状态
