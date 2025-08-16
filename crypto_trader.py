@@ -497,7 +497,7 @@ class CryptoTrader:
                 import urllib.error
                 
                 # 使用HTTP请求检查Chrome调试端口
-                response = urllib.request.urlopen('http://127.0.0.1:9222/json', timeout=5)
+                response = urllib.request.urlopen('http://localhost:9222/json', timeout=5)
                 if response.getcode() == 200:
                     self.logger.info("✅ Chrome无头模式启动成功")
                     return
