@@ -3878,7 +3878,12 @@ class CryptoTrader:
                                     continue
                                     
                                 try:
-                                    profit_rate = float(row[3].strip())
+                                    # 处理百分比格式的利润率
+                                    profit_rate_str = row[3].strip()
+                                    if profit_rate_str.endswith('%'):
+                                        profit_rate = float(profit_rate_str.rstrip('%')) / 100
+                                    else:
+                                        profit_rate = float(profit_rate_str)
                                 except ValueError as ve:
                                     self.logger.error(f"第{line_number}行利润率数值转换失败: '{row[3]}' - {ve}")
                                     continue
@@ -3890,7 +3895,12 @@ class CryptoTrader:
                                 if len(row) >= 6:
                                     try:
                                         total_profit = float(row[4].strip())
-                                        total_profit_rate = float(row[5].strip())
+                                        # 处理百分比格式的总利润率
+                                        total_profit_rate_str = row[5].strip()
+                                        if total_profit_rate_str.endswith('%'):
+                                            total_profit_rate = float(total_profit_rate_str.rstrip('%')) / 100
+                                        else:
+                                            total_profit_rate = float(total_profit_rate_str)
                                         cumulative_profit = total_profit
                                     except ValueError as ve:
                                         self.logger.error(f"第{line_number}行总利润数值转换失败: '{row[4]}' 或 '{row[5]}' - {ve}")
@@ -3910,14 +3920,14 @@ class CryptoTrader:
                                     trade_times = ""
                                     
                                 history.append([
-                                    date_str,
-                                    f"{cash:.2f}",
-                                    f"{profit:.2f}",
-                                    f"{profit_rate:.4f}",
-                                    f"{total_profit:.2f}",
-                                    f"{total_profit_rate:.2f}",
-                                    trade_times
-                                ])
+                                date_str,
+                                f"{cash:.2f}",
+                                f"{profit:.2f}",
+                                f"{profit_rate*100:.2f}%",
+                                f"{total_profit:.2f}",
+                                f"{total_profit_rate*100:.2f}%",
+                                trade_times
+                            ])
                             else:
                                 self.logger.warning(f"第{line_number}行数据列数不足: {len(row)}列, 需要至少4列")
                         except Exception as row_error:
@@ -4039,13 +4049,13 @@ class CryptoTrader:
         try:
             with open(self.csv_file, "a", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow([date_str, f"{cash_float:.2f}", f"{profit:.2f}", f"{profit_rate:.4f}", f"{total_profit:.2f}", f"{total_profit_rate:.2f}", str(self.last_trade_count)])
+                writer.writerow([date_str, f"{cash_float:.2f}", f"{profit:.2f}", f"{profit_rate*100:.2f}%", f"{total_profit:.2f}", f"{total_profit_rate*100:.2f}%", str(self.last_trade_count)])
             self.logger.info(f"✅ 已追加写入CSV: {date_str}, Cash:{cash_float:.2f}, 利润:{profit:.2f}, 总利润:{total_profit:.2f}, 交易次数:{self.last_trade_count}")
         except Exception as e:
             self.logger.error(f"写入CSV失败: {e}")
             
         # 更新内存中的历史记录
-        new_record = [date_str, f"{cash_float:.2f}", f"{profit:.2f}", f"{profit_rate:.4f}", f"{total_profit:.2f}", f"{total_profit_rate:.2f}", str(self.last_trade_count)]
+        new_record = [date_str, f"{cash_float:.2f}", f"{profit:.2f}", f"{profit_rate*100:.2f}%", f"{total_profit:.2f}", f"{total_profit_rate*100:.2f}%", str(self.last_trade_count)]
         self.cash_history.append(new_record)
 
     def create_flask_app(self):
