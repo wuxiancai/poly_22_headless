@@ -480,7 +480,7 @@ class CryptoTrader:
             raise FileNotFoundError(f"启动脚本不存在: {script_path}")
         
         # 启动Chrome进程（同步执行脚本，让脚本内部处理启动和检查）
-        self.logger.info(f"执行启动脚本: {script_path}")
+        self.logger.info(f"执行启动脚本")
         try:
             result = subprocess.run(['bash', script_path], 
                                   capture_output=True, text=True, timeout=60)
