@@ -477,10 +477,12 @@ install_driver() {
 # 主流程 - 增强版
 # 处理命令行参数
 CHECK_ONLY_MODE=false
-if handle_arguments "$1"; then
-    CHECK_ONLY_MODE=false
-else
+if [ "$1" = "--check-only" ]; then
     CHECK_ONLY_MODE=true
+    echo -e "${YELLOW}仅执行版本检查模式${NC}"
+else
+    handle_arguments "$1"
+    CHECK_ONLY_MODE=false
 fi
 
 echo -e "${YELLOW}开始执行浏览器启动流程...${NC}"
