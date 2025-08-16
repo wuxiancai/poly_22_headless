@@ -530,17 +530,25 @@ class CryptoTrader:
                 self.logger.info("🚀 启动Chrome浏览器进程...")
                 system = platform.system()
                 if system == 'Darwin':  # macOS
-                    script_path = './start_chrome_macos.sh'
+                    script_path = os.path.abspath('start_chrome_macos.sh')
                 elif system == 'Linux':
-                    script_path = './start_chrome_ubuntu.sh'
+                    script_path = os.path.abspath('start_chrome_ubuntu.sh')
                 else:
                     raise Exception(f"不支持的操作系统: {system}")
                 
+                # 检查脚本是否存在
+                if not os.path.exists(script_path):
+                    raise Exception(f"Chrome启动脚本不存在: {script_path}")
+                
                 # 执行启动脚本
-                result = subprocess.run(['bash', script_path], capture_output=True, text=True)
+                self.logger.info(f"🚀 执行Chrome启动脚本: {script_path}")
+                result = subprocess.run(['bash', script_path], capture_output=True, text=True, cwd=os.getcwd())
                 if result.returncode != 0:
-                    self.logger.error(f"Chrome启动脚本执行失败: {result.stderr}")
+                    self.logger.error(f"❌ Chrome启动脚本执行失败: {result.stderr}")
+                    self.logger.error(f"脚本输出: {result.stdout}")
                     raise Exception(f"Chrome启动脚本失败: {result.stderr}")
+                else:
+                    self.logger.info(f"✅ Chrome启动脚本执行成功")
                 
                 # 3. 等待Chrome调试端口可用
                 self.logger.info("⏳ 等待Chrome调试端口可用...")
@@ -558,7 +566,7 @@ class CryptoTrader:
                         continue
                 else:
                     raise Exception("Chrome调试端口在30秒内未能启动")
-                
+
                 # 4. 连接到Chrome浏览器（增加重试机制）
                 self.logger.info("🔗 连接到Chrome浏览器...")
                 max_retries = 3
