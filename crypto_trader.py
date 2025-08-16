@@ -483,22 +483,29 @@ class CryptoTrader:
         self.logger.info(f"执行启动脚本: {script_path}")
         try:
             result = subprocess.run(['bash', script_path], 
-                                  capture_output=True, text=True, timeout=30)
+                                  capture_output=True, text=True, timeout=60)
             
             if result.returncode == 0:
                 self.logger.info("✅ Chrome启动脚本执行成功")
                 self.logger.info(f"脚本输出: {result.stdout.strip()}")
+            elif result.returncode == -15:
+                # 脚本被SIGTERM终止，可能是正常的，继续检查Chrome状态
+                self.logger.warning(f"⚠️ Chrome启动脚本被终止(SIGTERM),退出码: {result.returncode}")
+                self.logger.info("继续检查Chrome是否已成功启动...")
             else:
                 self.logger.error(f"❌ Chrome启动脚本执行失败,退出码: {result.returncode}")
                 self.logger.error(f"错误输出: {result.stderr.strip()}")
-                raise RuntimeError(f"Chrome启动脚本执行失败: {result.stderr.strip()}")
+                # 不直接抛出异常，而是继续检查Chrome状态
+                self.logger.info("尝试检查Chrome是否已启动...")
                 
         except subprocess.TimeoutExpired:
             self.logger.error("❌ Chrome启动脚本执行超时")
-            raise RuntimeError("Chrome启动脚本执行超时")
+            # 不直接抛出异常，而是继续检查Chrome状态
+            self.logger.info("尝试检查Chrome是否已启动...")
         except Exception as e:
             self.logger.error(f"❌ 执行Chrome启动脚本时发生错误: {str(e)}")
-            raise
+            # 不直接抛出异常，而是继续检查Chrome状态
+            self.logger.info("尝试检查Chrome是否已启动...")
 
         # 额外检查Chrome无头模式是否成功启动
         self._check_chrome_headless_status()
@@ -547,6 +554,7 @@ class CryptoTrader:
                 time.sleep(1)
             else:
                 self.logger.error(f"❌ Chrome无头模式启动失败,经过{max_retries}次尝试仍无法确认调试端口9222可用")
+                raise RuntimeError(f"Chrome无头模式启动失败,经过{max_retries}次尝试仍无法确认调试端口9222可用")
 
     def _start_browser_monitoring(self, new_url):
         """在新线程中执行浏览器操作"""
