@@ -488,7 +488,7 @@ class CryptoTrader:
         self.logger.info(f"执行启动脚本")
         try:
             result = subprocess.run(['bash', script_path], 
-                                  capture_output=True, text=True, timeout=60)
+                                  capture_output=True, text=True, timeout=10)
             
             if result.returncode == 0:
                 self.logger.info("✅ Chrome启动脚本执行成功")
@@ -498,17 +498,18 @@ class CryptoTrader:
                 self.logger.warning(f"⚠️ Chrome启动脚本被终止(SIGTERM),退出码: {result.returncode}")
                 self.logger.info("继续检查Chrome是否已成功启动...")
             else:
-                self.logger.error(f"❌ Chrome启动脚本执行失败,退出码: {result.returncode}")
-                self.logger.error(f"错误输出: {result.stderr.strip()}")
+                self.logger.warning(f"⚠️ Chrome启动脚本退出码: {result.returncode}")
+                if result.stderr.strip():
+                    self.logger.warning(f"脚本错误输出: {result.stderr.strip()}")
                 # 不直接抛出异常，而是继续检查Chrome状态
                 self.logger.info("尝试检查Chrome是否已启动...")
                 
         except subprocess.TimeoutExpired:
-            self.logger.error("❌ Chrome启动脚本执行超时")
+            self.logger.warning("⚠️ Chrome启动脚本执行超时(10秒)，但Chrome可能已成功启动")
             # 不直接抛出异常，而是继续检查Chrome状态
             self.logger.info("尝试检查Chrome是否已启动...")
         except Exception as e:
-            self.logger.error(f"❌ 执行Chrome启动脚本时发生错误: {str(e)}")
+            self.logger.warning(f"⚠️ 执行Chrome启动脚本时发生异常: {str(e)}")
             # 不直接抛出异常，而是继续检查Chrome状态
             self.logger.info("尝试检查Chrome是否已启动...")
 
