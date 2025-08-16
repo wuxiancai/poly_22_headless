@@ -16,13 +16,6 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/chrome_update.log"
 
-# 检查是否还有Chrome进程在运行
-if pgrep -f "chrome" > /dev/null 2>&1; then
-    echo -e "${RED}警告: 仍有Chrome进程在运行，强制终止...${NC}"
-    pkill -9 -f "chrome" 2>/dev/null || true
-    sleep 1
-fi
-
 echo -e "${GREEN}✅ Chrome进程清理完成${NC}"
 
 # 删除锁文件
