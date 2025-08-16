@@ -227,6 +227,8 @@ class CryptoTrader:
         
         # 初始化Flask应用和历史记录
         self.csv_file = "cash_history.csv"
+        # 首先尝试修复CSV文件（如果需要）
+        self.repair_csv_file()
         self.cash_history = self.load_cash_history()
         self.flask_app = self.create_flask_app()
         self.start_flask_server()
@@ -3855,40 +3857,151 @@ class CryptoTrader:
                     reader = csv.reader(f)
                     cumulative_profit = 0.0
                     first_cash = None
+                    line_number = 0
                     for row in reader:
-                        if len(row) >= 4:
-                            date_str = row[0]
-                            cash = float(row[1])
-                            profit = float(row[2])
-                            profit_rate = float(row[3])
-                            if first_cash is None:
-                                first_cash = cash
-                            # 如果已有6列或7列，直接采用并更新累计上下文
-                            if len(row) >= 6:
-                                total_profit = float(row[4])
-                                total_profit_rate = float(row[5])
-                                cumulative_profit = total_profit
+                        line_number += 1
+                        try:
+                            if len(row) >= 4:
+                                date_str = row[0].strip()
+                                
+                                # 验证并转换数值，添加详细的错误信息
+                                try:
+                                    cash = float(row[1].strip())
+                                except ValueError as ve:
+                                    self.logger.error(f"第{line_number}行现金数值转换失败: '{row[1]}' - {ve}")
+                                    continue
+                                    
+                                try:
+                                    profit = float(row[2].strip())
+                                except ValueError as ve:
+                                    self.logger.error(f"第{line_number}行利润数值转换失败: '{row[2]}' - {ve}")
+                                    continue
+                                    
+                                try:
+                                    profit_rate = float(row[3].strip())
+                                except ValueError as ve:
+                                    self.logger.error(f"第{line_number}行利润率数值转换失败: '{row[3]}' - {ve}")
+                                    continue
+                                
+                                if first_cash is None:
+                                    first_cash = cash
+                                    
+                                # 如果已有6列或7列，直接采用并更新累计上下文
+                                if len(row) >= 6:
+                                    try:
+                                        total_profit = float(row[4].strip())
+                                        total_profit_rate = float(row[5].strip())
+                                        cumulative_profit = total_profit
+                                    except ValueError as ve:
+                                        self.logger.error(f"第{line_number}行总利润数值转换失败: '{row[4]}' 或 '{row[5]}' - {ve}")
+                                        # 使用计算值作为备用
+                                        cumulative_profit += profit
+                                        total_profit = cumulative_profit
+                                        total_profit_rate = (total_profit / first_cash) if first_cash else 0.0
+                                else:
+                                    cumulative_profit += profit
+                                    total_profit = cumulative_profit
+                                    total_profit_rate = (total_profit / first_cash) if first_cash else 0.0
+                                    
+                                # 第7列：交易次数
+                                if len(row) >= 7:
+                                    trade_times = row[6].strip()
+                                else:
+                                    trade_times = ""
+                                    
+                                history.append([
+                                    date_str,
+                                    f"{cash:.2f}",
+                                    f"{profit:.2f}",
+                                    f"{profit_rate:.4f}",
+                                    f"{total_profit:.2f}",
+                                    f"{total_profit_rate:.2f}",
+                                    trade_times
+                                ])
                             else:
-                                cumulative_profit += profit
-                                total_profit = cumulative_profit
-                                total_profit_rate = (total_profit / first_cash) if first_cash else 0.0
-                            # 第7列：交易次数
-                            if len(row) >= 7:
-                                trade_times = row[6]
-                            else:
-                                trade_times = ""
-                            history.append([
-                                date_str,
-                                f"{cash:.2f}",
-                                f"{profit:.2f}",
-                                f"{profit_rate:.4f}",
-                                f"{total_profit:.2f}",
-                                f"{total_profit_rate:.2f}",
-                                trade_times
-                            ])
+                                self.logger.warning(f"第{line_number}行数据列数不足: {len(row)}列, 需要至少4列")
+                        except Exception as row_error:
+                            self.logger.error(f"第{line_number}行数据处理失败: {row} - {row_error}")
+                            continue
         except Exception as e:
             self.logger.error(f"加载历史CSV失败: {e}")
+            # 如果CSV文件损坏，尝试修复
+            if os.path.exists(self.csv_file):
+                self.logger.info("尝试修复损坏的CSV文件...")
+                try:
+                    self.repair_csv_file()
+                    # 修复后重新尝试加载
+                    self.logger.info("CSV文件修复完成，重新尝试加载...")
+                    return self.load_cash_history()
+                except Exception as repair_error:
+                    self.logger.error(f"CSV文件修复失败: {repair_error}")
+                    # 创建备份并重新开始
+                    backup_file = f"{self.csv_file}.backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                    try:
+                        shutil.copy2(self.csv_file, backup_file)
+                        self.logger.info(f"已创建损坏CSV文件的备份: {backup_file}")
+                    except Exception as backup_error:
+                        self.logger.error(f"创建备份文件失败: {backup_error}")
         return history
+
+    def repair_csv_file(self):
+        """修复损坏的CSV文件，移除无效行并重建文件"""
+        if not os.path.exists(self.csv_file):
+            self.logger.info("CSV文件不存在，无需修复")
+            return
+            
+        valid_rows = []
+        invalid_rows = []
+        
+        try:
+            with open(self.csv_file, 'r', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                line_number = 0
+                for row in reader:
+                    line_number += 1
+                    try:
+                        if len(row) >= 4:
+                            # 验证每个数值字段
+                            date_str = row[0].strip()
+                            cash = float(row[1].strip())
+                            profit = float(row[2].strip())
+                            profit_rate = float(row[3].strip())
+                            
+                            # 验证日期格式
+                            datetime.strptime(date_str, '%Y-%m-%d')
+                            
+                            # 如果有更多列，也验证它们
+                            if len(row) >= 6:
+                                total_profit = float(row[4].strip())
+                                total_profit_rate = float(row[5].strip())
+                                
+                            valid_rows.append(row)
+                        else:
+                            invalid_rows.append((line_number, row, "列数不足"))
+                    except Exception as e:
+                        invalid_rows.append((line_number, row, str(e)))
+                        
+            if invalid_rows:
+                # 创建备份
+                backup_file = f"{self.csv_file}.backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                shutil.copy2(self.csv_file, backup_file)
+                self.logger.info(f"发现{len(invalid_rows)}行无效数据，已创建备份: {backup_file}")
+                
+                # 记录无效行
+                for line_num, row, error in invalid_rows:
+                    self.logger.warning(f"移除第{line_num}行无效数据: {row} - {error}")
+                
+                # 重写CSV文件，只保留有效行
+                with open(self.csv_file, 'w', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
+                    writer.writerows(valid_rows)
+                    
+                self.logger.info(f"CSV文件修复完成，保留{len(valid_rows)}行有效数据")
+            else:
+                self.logger.info("CSV文件检查完成，未发现无效数据")
+                
+        except Exception as e:
+            self.logger.error(f"CSV文件修复失败: {e}")
 
     def append_cash_record(self, date_str, cash_value):
         """追加一条记录到CSV并更新内存history"""
@@ -5320,7 +5433,7 @@ class CryptoTrader:
                 log = flask_logging.getLogger('werkzeug')
                 log.setLevel(flask_logging.ERROR)
                 
-                self.logger.info(f"Flask服务配置: {flask_host}:{flask_port}")
+                
                 self.flask_app.run(host=flask_host, port=flask_port, debug=False, use_reloader=False)
             except Exception as e:
                 self.logger.error(f"Flask启动失败: {e}")
