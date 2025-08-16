@@ -4398,7 +4398,7 @@ class CryptoTrader:
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        gap: 2px;
+                        gap: 0;
                         overflow: hidden;
                     }
                     .info-item:hover {
@@ -4419,6 +4419,7 @@ class CryptoTrader:
                         font-weight: 700; color: #495057; 
                         font-size: 16px; 
                         flex-shrink: 0;
+                        margin-right: 2px;
                     }
                     .info-item .value { 
                         font-size: 16px; color: #2c3e50; font-weight: 600;
@@ -4873,9 +4874,8 @@ class CryptoTrader:
                                 <div class="positions-grid">
                                     <div class="position-section up-section">
                                         <div class="info-item">
-                                            <label class="value up-down-price">UP:</label>
-                                            <div class="value up-down-price" id="upPrice">{{ data.prices.up_price or 'N/A' }}</div>
-                                        </div>
+                            <div class="value up-down-price" id="upPrice">UP: {{ data.prices.up_price or 'N/A' }}</div>
+                        </div>
                                         <div class="position-row header">
                                             <div class="position-label">方向</div>
                                             <div class="position-label">价格</div>
@@ -4910,9 +4910,8 @@ class CryptoTrader:
                                     
                                     <div class="position-section down-section">
                                         <div class="info-item">
-                                            <label class="value up-down-price">DOWN:</label>
-                                            <div class="value up-down-price" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
-                                        </div>
+                            <div class="value up-down-price" id="downPrice">DOWN: {{ data.prices.down_price or 'N/A' }}</div>
+                        </div>
                                         <div class="position-row header">
                                             <div class="position-label">方向</div>
                                             <div class="position-label">价格</div>
