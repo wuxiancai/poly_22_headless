@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Ubuntu Chrome启动脚本 - 自动匹配更新增强版
-# 功能：自动更新Chrome、智能匹配ChromeDriver版本、增强错误处理
+# Ubuntu Chrome启动脚本 - Admin用户专用版
+# 功能：检查Chrome、智能匹配ChromeDriver版本、无sudo权限操作
 # 作者：自动化脚本
-# 版本：2.0
+# 版本：3.0 (Admin优化版)
 # 更新日期：2024-12-19
 
 # 设置颜色输出
@@ -16,27 +16,50 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/chrome_update.log"
 
+# 设置ChromeDebug目录
+CHROME_DEBUG_DIR="$HOME/ChromeDebug"
+
+# 确保ChromeDebug目录存在且可写
+if [ ! -d "$CHROME_DEBUG_DIR" ]; then
+    mkdir -p "$CHROME_DEBUG_DIR" 2>/dev/null || {
+        echo -e "${YELLOW}无法创建ChromeDebug目录，使用临时目录${NC}"
+        CHROME_DEBUG_DIR="/tmp/ChromeDebug_$(whoami)"
+        mkdir -p "$CHROME_DEBUG_DIR"
+    }
+fi
+
+# 确保目录可写
+if [ ! -w "$CHROME_DEBUG_DIR" ]; then
+    echo -e "${YELLOW}ChromeDebug目录不可写，使用临时目录${NC}"
+    CHROME_DEBUG_DIR="/tmp/ChromeDebug_$(whoami)"
+    mkdir -p "$CHROME_DEBUG_DIR"
+fi
+
 echo -e "${GREEN}✅ Chrome进程清理完成${NC}"
+echo -e "${BLUE}使用ChromeDebug目录: $CHROME_DEBUG_DIR${NC}"
 
 # 删除锁文件
 for f in "SingletonLock" "SingletonCookie" "SingletonSocket"; do
-    path="$HOME/ChromeDebug/$f"
+    path="$CHROME_DEBUG_DIR/$f"
     if [ -f "$path" ]; then
-        rm -f "$path"
+        rm -f "$path" 2>/dev/null || true
     fi
 done
 
 # 显示使用说明
 show_usage() {
-    echo -e "${BLUE}=== Ubuntu Chrome自动匹配更新脚本 v2.0 ===${NC}"
+    echo -e "${BLUE}=== Ubuntu Chrome启动脚本 v3.0 (Admin专用版) ===${NC}"
     echo -e "${GREEN}功能特性：${NC}"
-    echo -e "  • 自动检查并更新Chrome浏览器"
+    echo -e "  • 检查Chrome浏览器安装状态"
     echo -e "  • 智能匹配兼容的ChromeDriver版本"
+    echo -e "  • 无sudo权限操作,适用于admin用户"
+    echo -e "  • 本地安装ChromeDriver到用户目录"
     echo -e "  • 增强的版本兼容性检查"
     echo -e "  • 详细的日志记录和错误处理"
     echo -e "  • 版本信息备份功能"
     echo -e "${GREEN}日志文件：${NC} $LOG_FILE"
     echo -e "${GREEN}备份文件：${NC} $SCRIPT_DIR/version_backup.txt"
+    echo -e "${GREEN}ChromeDriver安装目录：${NC} $HOME/.local/bin"
     echo ""
 }
 
@@ -214,83 +237,23 @@ get_chrome_version() {
     fi
 }
 
-# 添加自动更新Chrome功能 - 增强版
-update_chrome() {
-    echo -e "${YELLOW}检查并更新Chrome...${NC}"
-    
-    # 检查Chrome是否已安装
-    if ! command -v google-chrome-stable &> /dev/null; then
-        echo -e "${RED}Chrome未安装，尝试安装...${NC}"
-        install_chrome
-        return $?
-    fi
-    
-    # 获取更新前的版本
-    CURRENT_VERSION=$(google-chrome-stable --version 2>/dev/null | awk '{print $3}')
-    echo -e "${YELLOW}当前Chrome版本: $CURRENT_VERSION${NC}"
-    
-    # 提示用户可能需要输入密码
-    echo -e "${YELLOW}更新Chrome可能需要sudo权限，请准备输入密码${NC}"
-    
-    echo -e "${YELLOW}更新软件包列表...${NC}"
-    if ! sudo apt update -qq; then
-        echo -e "${RED}软件包列表更新失败${NC}"
+# 检查Chrome版本（admin用户无需更新）
+check_chrome() {
+    echo -e "${YELLOW}检查Chrome安装状态...${NC}"
+    CURRENT_VERSION=$(get_chrome_version)
+    if [ "$CURRENT_VERSION" = "Chrome not found" ]; then
+        echo -e "${RED}Chrome未安装${NC}"
+        echo -e "${YELLOW}请手动安装Chrome浏览器：${NC}"
+        echo -e "  1. 下载Chrome: https://www.google.com/chrome/"
+        echo -e "  2. 或使用包管理器安装"
         return 1
     fi
     
-    echo -e "${YELLOW}更新Chrome...${NC}"
-    if sudo apt --only-upgrade install -y google-chrome-stable; then
-        # 获取更新后的版本
-        NEW_VERSION=$(google-chrome-stable --version 2>/dev/null | awk '{print $3}')
-        echo -e "${GREEN}更新后Chrome版本: $NEW_VERSION${NC}"
-        
-        # 检查是否更新成功
-        if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
-            echo -e "${GREEN}Chrome已成功更新: $CURRENT_VERSION -> $NEW_VERSION${NC}"
-            # Chrome更新后，强制更新ChromeDriver
-            echo -e "${YELLOW}Chrome已更新，需要重新匹配ChromeDriver${NC}"
-            return 2  # 特殊返回码表示需要更新driver
-        else
-            echo -e "${GREEN}Chrome已是最新版本: $NEW_VERSION${NC}"
-        fi
-    else
-        echo -e "${RED}Chrome更新失败${NC}"
-        return 1
-    fi
+    echo -e "${GREEN}当前Chrome版本: $CURRENT_VERSION${NC}"
+    log_message "INFO" "检测到Chrome版本: $CURRENT_VERSION"
     
     return 0
 }
-
-# 安装Chrome（如果未安装）
-install_chrome() {
-    echo -e "${YELLOW}安装Google Chrome...${NC}"
-    
-    # 提示用户可能需要输入密码
-    echo -e "${YELLOW}安装Chrome需要sudo权限，请准备输入密码${NC}"
-    
-    # 添加Google的官方GPG密钥
-    if ! wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -; then
-        echo -e "${RED}添加GPG密钥失败${NC}"
-        return 1
-    fi
-    
-    # 添加Chrome仓库
-    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-    
-    # 更新软件包列表
-    sudo apt update -qq
-    
-    # 安装Chrome
-    if sudo apt install -y google-chrome-stable; then
-        INSTALLED_VERSION=$(google-chrome-stable --version 2>/dev/null | awk '{print $3}')
-        echo -e "${GREEN}Chrome安装成功，版本: $INSTALLED_VERSION${NC}"
-        return 0
-    else
-        echo -e "${RED}Chrome安装失败${NC}"
-        return 1
-    fi
-}
-
 
 # 检查已安装的 chromedriver 是否匹配当前 Chrome
 check_driver() {
@@ -364,18 +327,29 @@ check_driver() {
     return 0
 }
 
-# 自动安装兼容的 chromedriver（Ubuntu版本）- 增强版
+# 自动安装兼容的 chromedriver（Admin用户版本）- 本地安装
 install_driver() {
     echo -e "${YELLOW}尝试下载安装兼容的 chromedriver...${NC}"
     
-    # 提示用户可能需要输入密码
-    echo -e "${YELLOW}安装ChromeDriver需要sudo权限，请准备输入密码${NC}"
+    # 设置本地安装目录
+    LOCAL_BIN_DIR="$HOME/.local/bin"
+    mkdir -p "$LOCAL_BIN_DIR"
+    
+    # 确保本地bin目录在PATH中
+    if [[ ":$PATH:" != *":$LOCAL_BIN_DIR:"* ]]; then
+        echo -e "${YELLOW}添加 $LOCAL_BIN_DIR 到PATH${NC}"
+        export PATH="$LOCAL_BIN_DIR:$PATH"
+        # 添加到bashrc以便永久生效
+        if ! grep -q "$LOCAL_BIN_DIR" "$HOME/.bashrc" 2>/dev/null; then
+            echo "export PATH=\"$LOCAL_BIN_DIR:\$PATH\"" >> "$HOME/.bashrc"
+        fi
+    fi
     
     CHROME_VERSION=$(get_chrome_version)
     BASE_VERSION=$(echo "$CHROME_VERSION" | cut -d'.' -f1-3)
     PATCH_VERSION=$(echo "$CHROME_VERSION" | cut -d'.' -f4)
 
-    TMP_DIR="/tmp/chromedriver_update"
+    TMP_DIR="/tmp/chromedriver_update_$(whoami)"
     mkdir -p "$TMP_DIR"
     cd "$TMP_DIR" || return 1
     
@@ -394,9 +368,9 @@ install_driver() {
     if curl -sfLo chromedriver.zip "$DRIVER_URL"; then
         echo -e "${GREEN}找到完全匹配版本 ${EXACT_VERSION}${NC}"
         if unzip -qo chromedriver.zip && [ -f "chromedriver-linux64/chromedriver" ]; then
-            sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
-            sudo chmod +x /usr/local/bin/chromedriver
-            echo -e "${GREEN}安装成功: $(chromedriver --version)${NC}"
+            mv chromedriver-linux64/chromedriver "$LOCAL_BIN_DIR/"
+            chmod +x "$LOCAL_BIN_DIR/chromedriver"
+            echo -e "${GREEN}安装成功: $("$LOCAL_BIN_DIR/chromedriver" --version)${NC}"
             cd "$SCRIPT_DIR"
             return 0
         fi
@@ -419,9 +393,9 @@ install_driver() {
             if curl -sfLo chromedriver.zip "$DRIVER_URL"; then
                 if unzip -qo chromedriver.zip && [ -f "chromedriver-linux64/chromedriver" ]; then
                     echo -e "${GREEN}成功下载 chromedriver ${TRY_VERSION}${NC}"
-                    sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
-                    sudo chmod +x /usr/local/bin/chromedriver
-                    echo -e "${GREEN}安装成功: $(chromedriver --version)${NC}"
+                    mv chromedriver-linux64/chromedriver "$LOCAL_BIN_DIR/"
+                    chmod +x "$LOCAL_BIN_DIR/chromedriver"
+                    echo -e "${GREEN}安装成功: $("$LOCAL_BIN_DIR/chromedriver" --version)${NC}"
                     cd "$SCRIPT_DIR"
                     return 0
                 fi
@@ -442,9 +416,9 @@ install_driver() {
         if curl -sfLo chromedriver.zip "$DRIVER_URL"; then
             if unzip -qo chromedriver.zip && [ -f "chromedriver-linux64/chromedriver" ]; then
                 echo -e "${GREEN}成功下载 chromedriver ${TRY_VERSION}${NC}"
-                sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
-                sudo chmod +x /usr/local/bin/chromedriver
-                echo -e "${GREEN}安装成功: $(chromedriver --version)${NC}"
+                mv chromedriver-linux64/chromedriver "$LOCAL_BIN_DIR/"
+                chmod +x "$LOCAL_BIN_DIR/chromedriver"
+                echo -e "${GREEN}安装成功: $("$LOCAL_BIN_DIR/chromedriver" --version)${NC}"
                 cd "$SCRIPT_DIR"
                 return 0
             fi
@@ -473,19 +447,17 @@ echo -e "${YELLOW}开始执行浏览器启动流程...${NC}"
 log_message "INFO" "脚本启动，模式: $([ "$CHECK_ONLY_MODE" = true ] && echo '仅检查' || echo '完整启动')"
 show_usage
 
-# 首先更新Chrome
-echo -e "${YELLOW}====== 开始检查并更新Chrome ======${NC}"
-update_chrome
-CHROME_UPDATE_RESULT=$?
-echo -e "${YELLOW}====== Chrome更新完成 ======${NC}"
+# 首先检查Chrome
+echo -e "${YELLOW}====== 开始检查Chrome ======${NC}"
+check_chrome
+CHROME_CHECK_RESULT=$?
+echo -e "${YELLOW}====== Chrome检查完成 ======${NC}"
 
-# 根据Chrome更新结果决定是否强制更新ChromeDriver
+# 根据Chrome检查结果决定是否继续
 FORCE_DRIVER_UPDATE=false
-if [ $CHROME_UPDATE_RESULT -eq 2 ]; then
-    echo -e "${YELLOW}Chrome已更新，将强制更新ChromeDriver${NC}"
-    FORCE_DRIVER_UPDATE=true
-elif [ $CHROME_UPDATE_RESULT -ne 0 ]; then
-    echo -e "${RED}Chrome更新失败，但继续尝试启动${NC}"
+if [ $CHROME_CHECK_RESULT -ne 0 ]; then
+    echo -e "${RED}Chrome检查失败,无法继续${NC}"
+    exit 1
 fi
 
 # 检查ChromeDriver兼容性
@@ -494,7 +466,12 @@ log_message "INFO" "检查ChromeDriver版本兼容性"
 # 获取当前版本进行详细分析
 current_chrome_ver=$(get_chrome_version)
 current_driver_ver=""
-if command -v chromedriver &> /dev/null; then
+
+# 检查本地和系统ChromeDriver
+LOCAL_BIN_DIR="$HOME/.local/bin"
+if [ -x "$LOCAL_BIN_DIR/chromedriver" ]; then
+    current_driver_ver=$("$LOCAL_BIN_DIR/chromedriver" --version 2>/dev/null | awk '{print $2}' || echo "未知")
+elif command -v chromedriver &> /dev/null; then
     current_driver_ver=$(chromedriver --version 2>/dev/null | awk '{print $2}' || echo "未知")
 else
     current_driver_ver="未安装"
@@ -517,10 +494,17 @@ if [ "$FORCE_DRIVER_UPDATE" = true ] || ! check_driver; then
     log_message "WARNING" "ChromeDriver版本不匹配，尝试安装兼容版本"
     
     # 如果是强制更新，先删除现有的chromedriver
-    if [ "$FORCE_DRIVER_UPDATE" = true ] && command -v chromedriver &> /dev/null; then
+    if [ "$FORCE_DRIVER_UPDATE" = true ]; then
         echo -e "${YELLOW}删除旧版本ChromeDriver...${NC}"
-        sudo rm -f /usr/local/bin/chromedriver
-        sudo rm -f /usr/bin/chromedriver
+        # 删除本地版本
+        rm -f "$LOCAL_BIN_DIR/chromedriver"
+        # 如果有系统版本的访问权限，也尝试删除（但不使用sudo）
+        if [ -w "/usr/local/bin/chromedriver" ]; then
+            rm -f /usr/local/bin/chromedriver
+        fi
+        if [ -w "/usr/bin/chromedriver" ]; then
+            rm -f /usr/bin/chromedriver
+        fi
     fi
     
     if install_driver; then
@@ -528,7 +512,11 @@ if [ "$FORCE_DRIVER_UPDATE" = true ] || ! check_driver; then
         log_message "SUCCESS" "ChromeDriver安装成功"
         
         # 重新获取版本并分析
-        new_driver_ver=$(chromedriver --version 2>/dev/null | awk '{print $2}' || echo "未知")
+        if [ -x "$LOCAL_BIN_DIR/chromedriver" ]; then
+            new_driver_ver=$("$LOCAL_BIN_DIR/chromedriver" --version 2>/dev/null | awk '{print $2}' || echo "未知")
+        else
+            new_driver_ver=$(chromedriver --version 2>/dev/null | awk '{print $2}' || echo "未知")
+        fi
         if [ "$new_driver_ver" != "未知" ]; then
             echo -e "\n${BLUE}=== 更新后版本分析 ===${NC}"
             analyze_version_compatibility "$current_chrome_ver" "$new_driver_ver"
@@ -570,7 +558,11 @@ fi
 # 最终版本确认和启动
 log_message "INFO" "开始最终版本确认"
 FINAL_CHROME_VERSION=$(get_chrome_version)
-if command -v chromedriver &> /dev/null; then
+
+# 检查本地和系统ChromeDriver版本
+if [ -x "$LOCAL_BIN_DIR/chromedriver" ]; then
+    FINAL_DRIVER_VERSION=$("$LOCAL_BIN_DIR/chromedriver" --version 2>/dev/null | awk '{print $2}')
+elif command -v chromedriver &> /dev/null; then
     FINAL_DRIVER_VERSION=$(chromedriver --version 2>/dev/null | awk '{print $2}')
 else
     FINAL_DRIVER_VERSION="Not installed"
@@ -647,7 +639,7 @@ if command -v google-chrome-stable &> /dev/null; then
     for i in {1..30}; do
         if curl -s http://127.0.0.1:9222/json > /dev/null 2>&1; then
             log_message "SUCCESS" "Chrome调试端口验证成功"
-            echo -e "${GREEN}✅ Chrome调试端口验证成功${NC}"
+            echo -e "${GREEN}✅ Chrome调试端口验证成功${NC},Chrome启动成功!!!"
             break
         fi
         

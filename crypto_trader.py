@@ -470,9 +470,14 @@ class CryptoTrader:
     def start_chrome_ubuntu(self):
         """启动Chrome浏览器""" 
         self.logger.info("🚀 开始启动Chrome浏览器进程...")
+        
         # 根据操作系统选择启动脚本
-        script_path = ('start_chrome_macos.sh' if platform.system() == 'Darwin' 
-                    else 'start_chrome_ubuntu.sh')
+        if platform.system() == 'Darwin':
+            script_path = 'start_chrome_macos.sh'
+        else:
+            # 使用Ubuntu启动脚本（已适配admin用户）
+            script_path = 'start_chrome_ubuntu.sh'
+                
         script_path = os.path.abspath(script_path)
         
         # 检查脚本是否存在
