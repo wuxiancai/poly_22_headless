@@ -33,7 +33,9 @@ import subprocess
 import shutil
 import csv
 from flask import Flask, render_template_string, request, url_for, jsonify
+import socket
 
+        
 class Logger:
     def __init__(self, name):
         self.logger = logging.getLogger(name)
@@ -483,13 +485,9 @@ class CryptoTrader:
         # 检查Chrome无头模式是否成功启动
         self._check_chrome_headless_status()
 
-        self.logger.info("✅ Chrome启动脚本执行成功")
-
     def _check_chrome_headless_status(self):
         """检查Chrome无头模式是否成功启动"""
-        import socket
-        import time
-        
+        self.logger.info("开始检查chrome无头模式是否启动成功")
         # 等待Chrome启动
         time.sleep(3)
         
