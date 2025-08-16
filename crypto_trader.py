@@ -479,10 +479,28 @@ class CryptoTrader:
         if not os.path.exists(script_path):
             raise FileNotFoundError(f"启动脚本不存在: {script_path}")
         
-        # 启动Chrome进程（异步）
-        subprocess.Popen(['bash', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # 启动Chrome进程（同步执行脚本，让脚本内部处理启动和检查）
+        self.logger.info(f"执行启动脚本: {script_path}")
+        try:
+            result = subprocess.run(['bash', script_path], 
+                                  capture_output=True, text=True, timeout=30)
+            
+            if result.returncode == 0:
+                self.logger.info("✅ Chrome启动脚本执行成功")
+                self.logger.info(f"脚本输出: {result.stdout.strip()}")
+            else:
+                self.logger.error(f"❌ Chrome启动脚本执行失败,退出码: {result.returncode}")
+                self.logger.error(f"错误输出: {result.stderr.strip()}")
+                raise RuntimeError(f"Chrome启动脚本执行失败: {result.stderr.strip()}")
+                
+        except subprocess.TimeoutExpired:
+            self.logger.error("❌ Chrome启动脚本执行超时")
+            raise RuntimeError("Chrome启动脚本执行超时")
+        except Exception as e:
+            self.logger.error(f"❌ 执行Chrome启动脚本时发生错误: {str(e)}")
+            raise
 
-        # 检查Chrome无头模式是否成功启动
+        # 额外检查Chrome无头模式是否成功启动
         self._check_chrome_headless_status()
 
     def _check_chrome_headless_status(self):
@@ -821,38 +839,7 @@ class CryptoTrader:
                     self.logger.info("⏳ 等待进程清理完成...")
                     time.sleep(5)
                     
-                    # 根据操作系统选择启动脚本
-                    script_path = ('start_chrome_macos.sh' if platform.system() == 'Darwin' 
-                                else 'start_chrome_ubuntu.sh')
-                    script_path = os.path.abspath(script_path)
-                    
-                    # 检查脚本是否存在
-                    if not os.path.exists(script_path):
-                        raise FileNotFoundError(f"启动脚本不存在: {script_path}")
-                    
-                    self.logger.info(f"🚀 执行Chrome启动脚本: {script_path}")
-                    # 启动Chrome进程（异步）
-                    subprocess.Popen(['bash', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    
-                    self.logger.info("✅ Chrome启动脚本执行成功")
-                    
-                    # 等待Chrome调试端口可用
-                    self.logger.info("⏳ 等待Chrome调试端口可用...")
-                    max_wait_time = 30
-                    wait_interval = 1
-                    for wait_time in range(0, max_wait_time, wait_interval):
-                        time.sleep(wait_interval)
-                        try:
-                            # 检查调试端口是否可用
-                            import requests
-                            response = requests.get('http://127.0.0.1:9222/json', timeout=2)
-                            if response.status_code == 200:
-                                self.logger.info(f"✅ Chrome浏览器已重新启动,调试端口可用 (等待{wait_time+1}秒)")
-                                break
-                        except:
-                            continue
-                    else:
-                        raise Exception("Chrome调试端口在30秒内未能启动")
+                    self.start_chrome_ubuntu()
                     
                 except Exception as e:
                     self.logger.error(f"启动Chrome失败: {e}")
