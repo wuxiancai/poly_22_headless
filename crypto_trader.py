@@ -4454,7 +4454,7 @@ class CryptoTrader:
                     
                     <!-- 价格监控 -->
                     <div class="card">
-                        <h3>💰 价格监控</h3>
+                        
                         <div class="monitor-controls-section">
                                 <div class="info-item">
                                     <label>UP:</label>
@@ -4578,7 +4578,7 @@ class CryptoTrader:
 
                     <!-- 网站监控信息 -->
                     <div class="card">
-                        <h3>📊 网站监控</h3>
+                        
                         <div class="monitor-controls-section">
                                 <div class="info-item coin-select-item">
                                     <label>币种:</label>
