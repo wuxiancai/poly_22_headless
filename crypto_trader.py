@@ -4395,7 +4395,7 @@ class CryptoTrader:
                         padding: 15px; background: rgba(248, 249, 250, 0.8); border-radius: 8px;
                         transition: all 0.3s ease; border: 2px solid transparent;
                         flex: 1 1 auto;
-                        min-width: 100px;
+                        min-width: 70px;
                         max-width: none;
                         white-space: nowrap;
                         display: flex;
@@ -4409,8 +4409,8 @@ class CryptoTrader:
                     }
                     .coin-select-item {
                         flex: 0 0 auto;
-                        min-width: 110px;
-                        max-width: 110px;
+                        min-width: 120px;
+                        max-width: 120px;
                     }
                     .time-select-item {
                         flex: 0 0 auto;
@@ -4459,6 +4459,11 @@ class CryptoTrader:
                         font-weight: 600;
                         font-family: 'Monaco', 'Menlo', monospace;
                         color: #2c3e50;
+                    }
+                    .up-down-price {
+                        font-size: 18px !important;
+                        color: #9370DB !important;
+                        font-weight: bold !important;
                     }
                     .price-display { 
                         display: flex; justify-content: space-around; text-align: center; gap: 20px;
@@ -4855,46 +4860,10 @@ class CryptoTrader:
                     <div class="header">
                         <h1>🚀 Polymarket自动交易系统</h1>
                     </div>
-                    
-                    <!-- 价格监控 -->
-                    <div class="card">
-                        
-                        <div class="monitor-controls-section">
-                                <div class="info-item">
-                                    <label>UP:</label>
-                                    <div class="value" id="upPrice">{{ data.prices.up_price or 'N/A' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>DOWN:</label>
-                                    <div class="value" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>币安价格:</label>
-                                    <div class="binance-price-container">
-                                        <div class="binance-price-item">
-                                            <span class="binance-label">零点:</span>
-                                            <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
-                                        </div>
-                                        <div class="binance-price-item">
-                                            <span class="binance-label">实时:</span>
-                                            <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
-                                        </div>
-                                        <div class="binance-price-item">
-                                            <span class="binance-label">涨幅:</span>
-                                            <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                        </div>
-                    </div>
-
                     <!-- 日志和仓位并列容器 -->
                     <div class="side-by-side-container">
                         <!-- 日志显示区域 -->
                         <div class="log-section half-width">
-                            <div class="log-header">
-                                <h3>📋 系统日志</h3>
-                            </div>
                             <div class="log-container" id="logContainer">
                                 <div class="log-loading">正在加载日志...</div>
                             </div>
@@ -4902,11 +4871,13 @@ class CryptoTrader:
 
                         <!-- 交易仓位 -->
                         <div class="card half-width">
-                            <h3>📈 交易仓位</h3>
                             <form id="positionsForm">
                                 <div class="positions-grid">
                                     <div class="position-section up-section">
-                                        <h4>Up Positions</h4>
+                                        <div class="info-item">
+                                            <label class="value up-down-price">UP:</label>
+                                            <div class="value up-down-price" id="upPrice">{{ data.prices.up_price or 'N/A' }}</div>
+                                        </div>
                                         <div class="position-row header">
                                             <div class="position-label">方向</div>
                                             <div class="position-label">价格</div>
@@ -4940,7 +4911,10 @@ class CryptoTrader:
                                     </div>
                                     
                                     <div class="position-section down-section">
-                                        <h4>Down Positions</h4>
+                                        <div class="info-item">
+                                            <label class="value up-down-price">DOWN:</label>
+                                            <div class="value up-down-price" id="downPrice">{{ data.prices.down_price or 'N/A' }}</div>
+                                        </div>
                                         <div class="position-row header">
                                             <div class="position-label">方向</div>
                                             <div class="position-label">价格</div>
@@ -4977,16 +4951,12 @@ class CryptoTrader:
                             </form>
                         </div>
                     </div>
-
-
-
                     <!-- 网站监控信息 -->
-                    <div class="card">
-                        
+                    <div class="card"> 
                         <div class="monitor-controls-section">
                                 <div class="info-item coin-select-item">
                                     <label>币种:</label>
-                                    <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 80px; min-width: 80px;">
+                                    <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 40px; min-width: 40px;">
                                         <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
                                         <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
                                         <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
@@ -4995,7 +4965,7 @@ class CryptoTrader:
                                 </div>
                                 <div class="info-item time-select-item">
                                     <label>交易时间:</label>
-                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 80px; min-width: 80px;">
+                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 40px; min-width: 40px;">
                                         <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
                                         <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
                                         <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
@@ -5020,6 +4990,23 @@ class CryptoTrader:
                                         <option value="22:00" {{ 'selected' if data.auto_find_time == '22:00' else '' }}>22:00</option>
                                         <option value="23:00" {{ 'selected' if data.auto_find_time == '23:00' else '' }}>23:00</option>
                                     </select>
+                                </div>
+                                <div class="info-item">
+                                    <label>币安价格:</label>
+                                    <div class="binance-price-container">
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">零点:</span>
+                                            <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                                        </div>
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">实时:</span>
+                                            <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                        </div>
+                                        <div class="binance-price-item">
+                                            <span class="binance-label">涨幅:</span>
+                                            <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="info-item">
                                     <label>Portfolio:</label>
