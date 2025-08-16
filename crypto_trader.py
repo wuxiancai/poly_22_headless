@@ -493,25 +493,42 @@ class CryptoTrader:
         max_retries = 10
         for attempt in range(max_retries):
             try:
-                import urllib.request
-                import urllib.error
+                # 首先使用lsof检查端口9222是否被监听
+                import subprocess
+                lsof_result = subprocess.run(['lsof', '-i', ':9222'], 
+                                           capture_output=True, text=True, timeout=5)
                 
-                # 使用HTTP请求检查Chrome调试端口
-                response = urllib.request.urlopen('http://localhost:9222/json', timeout=5)
-                if response.getcode() == 200:
-                    self.logger.info("✅ Chrome无头模式启动成功")
-                    return
+                if lsof_result.returncode == 0 and lsof_result.stdout.strip():
+                    self.logger.info(f"端口9222正在被监听: {lsof_result.stdout.strip().split()[0]}")
                     
-            except (urllib.error.URLError, ConnectionRefusedError, OSError) as e:
-                if attempt < max_retries - 1:
-                    self.logger.info(f"第{attempt + 1}次检查失败，等待1秒后重试...")
-                    time.sleep(1)
+                    # 端口被监听，尝试HTTP连接
+                    import urllib.request
+                    import urllib.error
+                    
+                    # 尝试localhost和127.0.0.1两个地址
+                    for host in ['localhost', '127.0.0.1']:
+                        try:
+                            response = urllib.request.urlopen(f'http://{host}:9222/json', timeout=5)
+                            if response.getcode() == 200:
+                                self.logger.info(f"✅ Chrome无头模式启动成功，调试端口可通过{host}:9222访问")
+                                return
+                        except Exception as host_e:
+                            self.logger.debug(f"尝试连接{host}:9222失败: {str(host_e)}")
+                            continue
+                    
+                    self.logger.warning(f"端口9222被监听但HTTP连接失败")
                 else:
-                    self.logger.error(f"❌ Chrome无头模式启动失败,经过{max_retries}次尝试仍无法连接到调试端口9222")
-                    self.logger.error(f"错误详情: {str(e)}")
+                    self.logger.info(f"第{attempt + 1}次检查: 端口9222未被监听")
+                    
+            except subprocess.TimeoutExpired:
+                self.logger.warning(f"第{attempt + 1}次检查: lsof命令超时")
             except Exception as e:
-                self.logger.error(f"❌ Chrome无头模式启动失败 - 检查过程出错: {str(e)}")
-                break
+                self.logger.warning(f"第{attempt + 1}次检查失败: {str(e)}")
+            
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                self.logger.error(f"❌ Chrome无头模式启动失败,经过{max_retries}次尝试仍无法确认调试端口9222可用")
 
     def _start_browser_monitoring(self, new_url):
         """在新线程中执行浏览器操作"""
