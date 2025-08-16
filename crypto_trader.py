@@ -556,6 +556,78 @@ class CryptoTrader:
                 self.logger.error(f"❌ Chrome无头模式启动失败,经过{max_retries}次尝试仍无法确认调试端口9222可用")
                 raise RuntimeError(f"Chrome无头模式启动失败,经过{max_retries}次尝试仍无法确认调试端口9222可用")
 
+    def stop_chrome_ubuntu(self):
+        """彻底关闭Chrome浏览器"""
+        self.logger.info("🛑 开始关闭Chrome浏览器进程...")
+        
+        try:
+            # 首先尝试优雅关闭WebDriver
+            if hasattr(self, 'driver') and self.driver:
+                try:
+                    self.driver.quit()
+                    self.logger.info("✅ WebDriver已关闭")
+                except Exception as e:
+                    self.logger.warning(f"关闭WebDriver时出错: {str(e)}")
+                finally:
+                    self.driver = None
+            
+            # 强制杀死所有Chrome进程
+            chrome_processes = [
+                'Google Chrome',
+                'chrome',
+                'chromium',
+                'chromium-browser'
+            ]
+            
+            for process_name in chrome_processes:
+                try:
+                    # 使用pkill命令杀死进程
+                    result = subprocess.run(['pkill', '-f', process_name], 
+                                          capture_output=True, text=True, timeout=10)
+                    if result.returncode == 0:
+                        self.logger.info(f"✅ 已终止{process_name}进程")
+                    else:
+                        self.logger.debug(f"未找到{process_name}进程或已终止")
+                except Exception as e:
+                    self.logger.warning(f"终止{process_name}进程时出错: {str(e)}")
+            
+            # 特别处理调试端口9222的进程
+            try:
+                # 查找占用9222端口的进程
+                lsof_result = subprocess.run(['lsof', '-ti', ':9222'], 
+                                           capture_output=True, text=True, timeout=5)
+                if lsof_result.returncode == 0 and lsof_result.stdout.strip():
+                    pids = lsof_result.stdout.strip().split('\n')
+                    for pid in pids:
+                        try:
+                            subprocess.run(['kill', '-9', pid], timeout=5)
+                            self.logger.info(f"✅ 已强制终止占用9222端口的进程(PID: {pid})")
+                        except Exception as e:
+                            self.logger.warning(f"终止进程{pid}时出错: {str(e)}")
+                else:
+                    self.logger.info("端口9222未被占用")
+            except Exception as e:
+                self.logger.warning(f"检查9222端口占用时出错: {str(e)}")
+            
+            # 清理临时文件和缓存
+            temp_dirs = [
+                '/tmp/.com.google.Chrome*',
+                '/tmp/chrome_*',
+                '/tmp/.org.chromium.Chromium*'
+            ]
+            
+            for temp_pattern in temp_dirs:
+                try:
+                    subprocess.run(['rm', '-rf'] + [temp_pattern], shell=True, timeout=10)
+                except Exception as e:
+                    self.logger.debug(f"清理临时文件{temp_pattern}时出错: {str(e)}")
+            
+            self.logger.info("✅ Chrome浏览器已彻底关闭")
+            
+        except Exception as e:
+            self.logger.error(f"❌ 关闭Chrome浏览器时发生错误: {str(e)}")
+            raise RuntimeError(f"关闭Chrome浏览器失败: {str(e)}")
+
     def _start_browser_monitoring(self, new_url):
         """在新线程中执行浏览器操作"""
         try:
@@ -4598,9 +4670,49 @@ class CryptoTrader:
                                 
                                 if (upPriceElement) upPriceElement.textContent = data.prices.up_price;
                                 if (downPriceElement) downPriceElement.textContent = data.prices.down_price;
-                                if (binancePriceElement) binancePriceElement.textContent = data.prices.binance_price;
                                 if (binanceZeroPriceElement) binanceZeroPriceElement.textContent = data.prices.binance_zero_price;
-                                if (binanceRateElement) binanceRateElement.textContent = data.prices.binance_rate;
+                                
+                                // 实时价格颜色逻辑：与零点价格比较
+                                if (binancePriceElement) {
+                                    binancePriceElement.textContent = data.prices.binance_price;
+                                    const currentPrice = parseFloat(data.prices.binance_price);
+                                    const zeroPrice = parseFloat(data.prices.binance_zero_price);
+                                    
+                                    if (!isNaN(currentPrice) && !isNaN(zeroPrice)) {
+                                        if (currentPrice > zeroPrice) {
+                                            binancePriceElement.style.color = '#28a745'; // 绿色
+                                        } else if (currentPrice < zeroPrice) {
+                                            binancePriceElement.style.color = '#dc3545'; // 红色
+                                        } else {
+                                            binancePriceElement.style.color = '#2c3e50'; // 默认颜色
+                                        }
+                                    }
+                                }
+                                
+                                // 涨幅格式化和颜色逻辑
+                                if (binanceRateElement) {
+                                    const rateValue = parseFloat(data.prices.binance_rate);
+                                    if (!isNaN(rateValue)) {
+                                        // 格式化为百分比，保留三位小数
+                                        const formattedRate = rateValue >= 0 ? 
+                                            `${rateValue.toFixed(3)}%` : 
+                                            `-${Math.abs(rateValue).toFixed(3)}%`;
+                                        
+                                        binanceRateElement.textContent = formattedRate;
+                                        
+                                        // 设置颜色：上涨绿色，下跌红色
+                                        if (rateValue > 0) {
+                                            binanceRateElement.style.color = '#28a745'; // 绿色
+                                        } else if (rateValue < 0) {
+                                            binanceRateElement.style.color = '#dc3545'; // 红色
+                                        } else {
+                                            binanceRateElement.style.color = '#2c3e50'; // 默认颜色
+                                        }
+                                    } else {
+                                        binanceRateElement.textContent = data.prices.binance_rate;
+                                        binanceRateElement.style.color = '#2c3e50';
+                                    }
+                                }
                                 
                                 // 更新账户信息
                                 const portfolioElement = document.querySelector('#portfolio');
@@ -4662,6 +4774,27 @@ class CryptoTrader:
                         .catch(error => {
                             console.error('启动浏览器失败:', error);
                             showMessage('启动浏览器失败', 'error');
+                        });
+                    }
+                    
+                    function stopChrome() {
+                        fetch('/api/stop_chrome', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showMessage('浏览器关闭成功', 'success');
+                            } else {
+                                showMessage('浏览器关闭失败: ' + data.message, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('关闭浏览器失败:', error);
+                            showMessage('关闭浏览器失败', 'error');
                         });
                     }
                     
@@ -4904,6 +5037,7 @@ class CryptoTrader:
                                 <button id="startBtn" onclick="startTrading()">启动监控</button>
                                 <button id="stopBtn" onclick="stopMonitoring()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">🛑 停止监控</button>
                                 <button onclick="startChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🚀 启动浏览器</button>
+                                <button onclick="stopChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
                             </div>
                             <div id="statusMessage" class="status-message"></div>
                         </div>
@@ -5583,6 +5717,17 @@ class CryptoTrader:
             except Exception as e:
                 self.logger.error(f"启动Chrome浏览器失败: {str(e)}")
                 return jsonify({'success': False, 'message': f'启动失败: {str(e)}'})
+
+        @app.route('/api/stop_chrome', methods=['POST'])
+        def stop_chrome():
+            """关闭Chrome浏览器"""
+            try:
+                self.stop_chrome_ubuntu()
+                
+                return jsonify({'success': True, 'message': 'Chrome浏览器关闭成功'})
+            except Exception as e:
+                self.logger.error(f"关闭Chrome浏览器失败: {str(e)}")
+                return jsonify({'success': False, 'message': f'关闭失败: {str(e)}'})
 
         return app
 
