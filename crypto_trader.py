@@ -464,62 +464,40 @@ class CryptoTrader:
         timer = threading.Timer(60.0, self.schedule_record_and_show_cash)
         timer.daemon = True
         timer.start()
-           
+
+    def start_chrome_ubuntu(self):
+        """启动Chrome浏览器"""
+        
+        self.logger.info("🚀 开始启动Chrome浏览器进程...")
+        # 根据操作系统选择启动脚本
+        script_path = ('start_chrome_macos.sh' if platform.system() == 'Darwin' 
+                    else 'start_chrome_ubuntu.sh')
+        script_path = os.path.abspath(script_path)
+        
+        # 检查脚本是否存在
+        if not os.path.exists(script_path):
+            raise FileNotFoundError(f"启动脚本不存在: {script_path}")
+        
+        # 启动Chrome进程（异步）
+        subprocess.Popen(['bash', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        self.logger.info("✅ Chrome启动脚本执行成功")
+
     def _start_browser_monitoring(self, new_url):
         """在新线程中执行浏览器操作"""
         try:
             if not self.driver and not self.is_restarting:
-                # 1. 启动Chrome浏览器进程
-                self.logger.info("🚀 启动Chrome浏览器进程...")
-                system = platform.system()
-                if system == 'Darwin':  # macOS
-                    script_path = os.path.abspath('start_chrome_macos.sh')
-                elif system == 'Linux':
-                    script_path = os.path.abspath('start_chrome_ubuntu.sh')
-                else:
-                    raise Exception(f"不支持的操作系统: {system}")
-                
-                if not os.path.exists(script_path):
-                    raise Exception(f"Chrome启动脚本不存在: {script_path}")
-
-                # 执行Chrome启动脚本
-                process = subprocess.Popen(
-                    ['bash', script_path],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True
-                )
-
-                # 等待脚本执行完成并获取输出
-                stdout, stderr = process.communicate()
-                
-                # 打印输出到终端
-                if stdout:
-                    print(stdout)
-                if stderr:
-                    print(stderr, file=sys.stderr)
-
-                # 检查退出码
-                if process.returncode != 0:
-                    self.logger.error(
-                        f"❌ Chrome启动脚本执行失败:\n"
-                        f"STDOUT: {stdout}\n"
-                        f"STDERR: {stderr}"
-                    )
-                    raise Exception(f"Chrome启动脚本失败: {stderr or stdout}")
-
-                self.logger.info("✅ Chrome启动脚本执行成功")
-
-                # 3. 连接Chrome浏览器
+                # 连接Chrome浏览器
                 chrome_options = Options()
                 chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
                 chrome_options.add_argument('--disable-dev-shm-usage')
                 self.driver = webdriver.Chrome(options=chrome_options)
-                self.driver.set_page_load_timeout(15)
+                self.driver.set_page_load_timeout(10)
 
                 system = platform.system()
                 if system == 'Linux':
                     # 添加与启动脚本一致的所有参数，提高连接稳定性
+                    chrome_options.add_argument('--headless')
                     chrome_options.add_argument('--no-sandbox')
                     chrome_options.add_argument('--disable-gpu')
                     chrome_options.add_argument('--disable-software-rasterizer')
@@ -807,9 +785,7 @@ class CryptoTrader:
                     
                     self.logger.info(f"🚀 执行Chrome启动脚本: {script_path}")
                     # 启动Chrome进程（异步）
-                    process = subprocess.Popen(['bash', script_path], 
-                                             stdout=subprocess.PIPE, 
-                                             stderr=subprocess.PIPE)
+                    subprocess.Popen(['bash', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     
                     self.logger.info("✅ Chrome启动脚本执行成功")
                     
@@ -841,20 +817,23 @@ class CryptoTrader:
             for attempt in range(max_retries):
                 try:
                     chrome_options = Options()
-                    chrome_options.debugger_address = "127.0.0.1:9222"
+                    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
                     chrome_options.add_argument('--disable-dev-shm-usage')
+                    self.driver = webdriver.Chrome(options=chrome_options)
+                    self.driver.set_page_load_timeout(10)
 
                     # 清理旧配置
-                    os.system('rm -f ~/ChromeDebug/SingletonLock')
-                    os.system('rm -f ~/ChromeDebug/SingletonCookie')
-                    os.system('rm -f ~/ChromeDebug/SingletonSocket')
-                    os.system('rm -f ~/ChromeDebug/Default/Recovery/*')
-                    os.system('rm -f ~/ChromeDebug/Default/Sessions/*')
-                    os.system('rm -f ~/ChromeDebug/Default/Last*')
+                    os.system(f'rm -f $HOME/ChromeDebug/SingletonLock')
+                    os.system(f'rm -f $HOME/ChromeDebug/SingletonCookie')
+                    os.system(f'rm -f $HOME/ChromeDebug/SingletonSocket')
+                    os.system(f'rm -f $HOME/ChromeDebug/Default/Recovery/*')
+                    os.system(f'rm -f $HOME/ChromeDebug/Default/Sessions/*')
+                    os.system(f'rm -f $HOME/ChromeDebug/Default/Last*')
 
                     # Linux特定配置
                     if platform.system() == 'Linux':
                         # 添加与启动脚本一致的所有参数，提高连接稳定性
+                        chrome_options.add_argument('--headless')
                         chrome_options.add_argument('--no-sandbox')
                         chrome_options.add_argument('--disable-gpu')
                         chrome_options.add_argument('--disable-software-rasterizer')
@@ -884,14 +863,11 @@ class CryptoTrader:
                         chrome_options.add_argument('--log-level=3')  # 只显示致命错误
                         # 添加用户数据目录，与启动脚本保持一致
                         chrome_options.add_argument(f'--user-data-dir={os.path.expanduser("~/ChromeDebug")}')
-                        # 添加连接超时设置，提高Ubuntu系统稳定性
-                        chrome_options.add_argument('--timeout=30000')
-                        chrome_options.add_argument('--page-load-strategy=eager')
                         
                     self.driver = webdriver.Chrome(options=chrome_options)
                     
                     # 设置超时时间
-                    self.driver.set_page_load_timeout(30)
+                    self.driver.set_page_load_timeout(15)
                     self.driver.implicitly_wait(10)
                     
                     # 验证连接
@@ -4626,6 +4602,27 @@ class CryptoTrader:
                         location.reload();
                     }
                     
+                    function startChrome() {
+                        fetch('/api/start_chrome', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showMessage('浏览器启动成功', 'success');
+                            } else {
+                                showMessage('浏览器启动失败: ' + data.message, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('启动浏览器失败:', error);
+                            showMessage('启动浏览器失败', 'error');
+                        });
+                    }
+                    
                     function updateCoin() {
                         const coin = document.getElementById('coinSelect').value;
                         fetch('/api/update_coin', {
@@ -4864,7 +4861,7 @@ class CryptoTrader:
                                 <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
                                 <button id="startBtn" onclick="startTrading()">启动监控</button>
                                 <button id="stopBtn" onclick="stopMonitoring()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">🛑 停止监控</button>
-                                <button onclick="refreshPage()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🔄 刷新数据</button>
+                                <button onclick="startChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🚀 启动浏览器</button>
                             </div>
                             <div id="statusMessage" class="status-message"></div>
                         </div>
@@ -5533,6 +5530,17 @@ class CryptoTrader:
             except Exception as e:
                 self.logger.error(f"保存交易仓位失败: {str(e)}")
                 return jsonify({'success': False, 'message': f'保存失败: {str(e)}'})
+
+        @app.route('/api/start_chrome', methods=['POST'])
+        def start_chrome():
+            """启动Chrome浏览器"""
+            try:
+                self.start_chrome_ubuntu()
+                self.logger.info("Chrome浏览器启动成功")
+                return jsonify({'success': True, 'message': 'Chrome浏览器启动成功'})
+            except Exception as e:
+                self.logger.error(f"启动Chrome浏览器失败: {str(e)}")
+                return jsonify({'success': False, 'message': f'启动失败: {str(e)}'})
 
         return app
 
