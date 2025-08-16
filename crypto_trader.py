@@ -205,11 +205,11 @@ class CryptoTrader:
             
             # 显示标签
             'trade_count_label': '22',
-            'zero_time_cash_label': '0',
-            'trading_pair_label': '----',
-            'binance_zero_price_label': '0',
-            'binance_now_price_label': '0',
-            'binance_rate_label': '0',
+            'zero_time_cash_label': '--',
+            'trading_pair_label': '--',
+            'binance_zero_price_label': '--',
+            'binance_now_price_label': '--',
+            'binance_rate_label': '--',
             'binance_rate_symbol_label': '%',
             'yes_price_label': '--',
             'no_price_label': '--',
@@ -5064,9 +5064,11 @@ class CryptoTrader:
                         'last_update': datetime.now().strftime('%H:%M:%S')
                     },
                     'prices': {
-                        'up_price': self.get_web_value('yes_price_label') or '0',
-                        'down_price': self.get_web_value('no_price_label') or '0',
-                        'binance_price': self.get_web_value('binance_now_price_label') or '获取中...'
+                        'up_price': self.get_web_value('yes_price_label') or 'Up: 0',
+                        'down_price': self.get_web_value('no_price_label') or 'Down: 0',
+                        'binance_price': self.get_web_value('binance_now_price_label') or '获取中...',
+                        'binance_zero_price': self.get_web_value('binance_zero_price_label') or '--',
+                        'binance_rate': self.get_web_value('binance_rate_label') or '--'
                     },
                     'account': {
                         'portfolio': self.get_web_value('portfolio') or '$0',
