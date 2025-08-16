@@ -403,7 +403,7 @@ class CryptoTrader:
         self.url_check_timer.start()
 
         # 4.启动零点 CASH 监控
-        timer = threading.Timer(3.0, self.schedule_get_zero_time_cash)
+        timer = threading.Timer(12.0, self.schedule_get_zero_time_cash)
         timer.daemon = True
         timer.start()
 
@@ -3003,7 +3003,7 @@ class CryptoTrader:
         self.logger.info(f"当前时间: {now}")
 
         # 计算下一个指定时间的时间点
-        next_run = now.replace(hour=1, minute=38, second=0, microsecond=0)
+        next_run = now.replace(hour=8, minute=50, second=0, microsecond=0)
         self.logger.info(f"自动找币下次执行时间: {next_run}")
 
         if now >= next_run:
@@ -5311,17 +5311,31 @@ class CryptoTrader:
         """在后台线程中启动Flask，24小时常驻"""
         def run():
             try:
+                # 从环境变量读取配置，默认值为localhost:5000
+                flask_host = os.environ.get('FLASK_HOST', '127.0.0.1')
+                flask_port = int(os.environ.get('FLASK_PORT', '5000'))
+                
                 # 关闭Flask详细日志
                 import logging as flask_logging
                 log = flask_logging.getLogger('werkzeug')
                 log.setLevel(flask_logging.ERROR)
-                self.flask_app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
+                
+                self.logger.info(f"Flask服务配置: {flask_host}:{flask_port}")
+                self.flask_app.run(host=flask_host, port=flask_port, debug=False, use_reloader=False)
             except Exception as e:
                 self.logger.error(f"Flask启动失败: {e}")
         
         flask_thread = threading.Thread(target=run, daemon=True)
         flask_thread.start()
-        self.logger.info("✅ Flask服务已启动，24小时在线: http://localhost:5000/")
+        
+        # 根据配置显示访问地址
+        flask_host = os.environ.get('FLASK_HOST', '127.0.0.1')
+        flask_port = os.environ.get('FLASK_PORT', '5000')
+        if flask_host == '127.0.0.1' or flask_host == 'localhost':
+            self.logger.info(f"✅ Flask服务已启动，24小时在线: http://localhost:{flask_port}/")
+            self.logger.info("🔒 服务仅监听本地地址，通过NGINX反向代理访问")
+        else:
+            self.logger.info(f"✅ Flask服务已启动，24小时在线: http://{flask_host}:{flask_port}/")
 
     def schedule_record_cash_daily(self):
         """安排每天 0:30 记录现金到CSV"""
