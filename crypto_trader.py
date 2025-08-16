@@ -211,8 +211,8 @@ class CryptoTrader:
             'binance_now_price_label': '0',
             'binance_rate_label': '0',
             'binance_rate_symbol_label': '%',
-            'yes_price_label': 'Up: --',
-            'no_price_label': 'Down: --',
+            'yes_price_label': '--',
+            'no_price_label': '--',
             'portfolio': '--',
             'cash': '--',
             
@@ -4750,7 +4750,7 @@ class CryptoTrader:
                                 </div>
                                 <div class="info-item">
                                     <label>零点 CASH:</label>
-                                    <div class="value" id="zero_time_cash">{{ data.account.zero_time_cash or '0' }}</div>
+                                    <div class="value" id="zero_time_cash">{{ data.account.zero_time_cash or '--' }}</div>
                                 </div>
                             </div>
                         
