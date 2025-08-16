@@ -4397,7 +4397,8 @@ class CryptoTrader:
                         white-space: nowrap;
                         display: flex;
                         align-items: center;
-                        gap: 8px;
+                        justify-content: center;
+                        gap: 2px;
                         overflow: hidden;
                     }
                     .info-item:hover {
@@ -5130,6 +5131,7 @@ class CryptoTrader:
                 // 日志相关变量
                 let autoScroll = true;
                 let logUpdateInterval;
+                let userScrolling = false;
                 
                 // ANSI颜色代码转换函数
                 function convertAnsiToHtml(text) {
@@ -5220,6 +5222,25 @@ class CryptoTrader:
                     updateLogs();
                     // 每5秒更新一次日志
                     logUpdateInterval = setInterval(updateLogs, 5000);
+                    
+                    // 监听日志容器的滚动事件
+                    const logContainer = document.getElementById('logContainer');
+                    if (logContainer) {
+                        logContainer.addEventListener('scroll', function() {
+                            // 检查是否滚动到底部（允许5px的误差）
+                            const isAtBottom = logContainer.scrollTop >= (logContainer.scrollHeight - logContainer.clientHeight - 5);
+                            
+                            if (isAtBottom) {
+                                // 用户滚动到底部，重新启用自动滚动
+                                autoScroll = true;
+                                userScrolling = false;
+                            } else {
+                                // 用户手动滚动到其他位置，停止自动滚动
+                                autoScroll = false;
+                                userScrolling = true;
+                            }
+                        });
+                    }
                 });
                 </script>
                 
