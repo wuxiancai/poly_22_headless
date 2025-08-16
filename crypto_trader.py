@@ -5455,10 +5455,10 @@ class CryptoTrader:
         flask_host = os.environ.get('FLASK_HOST', '127.0.0.1')
         flask_port = os.environ.get('FLASK_PORT', '5000')
         if flask_host == '127.0.0.1' or flask_host == 'localhost':
-            self.logger.info(f"✅ Flask服务已启动，24小时在线: http://localhost:{flask_port}/")
+            self.logger.info(f"✅ Flask服务已启动")
             self.logger.info("🔒 服务仅监听本地地址，通过NGINX反向代理访问")
         else:
-            self.logger.info(f"✅ Flask服务已启动，24小时在线: http://{flask_host}:{flask_port}/")
+            self.logger.info(f"✅ Flask服务已启动")
 
     def schedule_record_cash_daily(self):
         """安排每天 0:30 记录现金到CSV"""
