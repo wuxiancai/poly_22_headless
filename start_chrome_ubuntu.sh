@@ -654,6 +654,28 @@ if command -v google-chrome-stable &> /dev/null; then
     echo -e "${GREEN}调试端口: http://localhost:9222${NC}"
     echo -e "${GREEN}目标网站: https://polymarket.com/crypto${NC}"
     echo -e "${YELLOW}提示：使用 'kill $CHROME_PID' 可以停止Chrome进程${NC}"
+    
+    # 等待并验证Chrome调试端口是否可用
+    echo -e "${YELLOW}验证Chrome调试端口...${NC}"
+    log_message "INFO" "开始验证Chrome调试端口9222是否可用"
+    
+    # 最多等待30秒
+    for i in {1..30}; do
+        if curl -s http://127.0.0.1:9222/json > /dev/null 2>&1; then
+            log_message "SUCCESS" "Chrome调试端口验证成功"
+            echo -e "${GREEN}✅ Chrome调试端口验证成功${NC}"
+            break
+        fi
+        
+        if [ $i -eq 30 ]; then
+            log_message "ERROR" "Chrome调试端口验证失败，超时30秒"
+            echo -e "${RED}❌ Chrome调试端口验证失败，超时30秒${NC}"
+            exit 1
+        fi
+        
+        echo -e "${YELLOW}等待Chrome启动... ($i/30)${NC}"
+        sleep 1
+    done
 else
     log_message "ERROR" "Chrome未找到,启动失败"
     echo -e "${RED}Chrome 未找到，请确保已安装 google-chrome-stable${NC}"
