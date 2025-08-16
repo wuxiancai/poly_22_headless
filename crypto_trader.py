@@ -395,68 +395,68 @@ class CryptoTrader:
         self.set_web_state('set_amount_button', 'normal')
 
         # 2.检查是否登录
-        self.login_check_timer = threading.Timer(4.0, self.start_login_monitoring)
+        self.login_check_timer = threading.Timer(31.0, self.start_login_monitoring)
         self.login_check_timer.daemon = True
         self.login_check_timer.start()
 
         # 3.启动URL监控
-        self.url_check_timer = threading.Timer(8.0, self.start_url_monitoring)
+        self.url_check_timer = threading.Timer(35.0, self.start_url_monitoring)
         self.url_check_timer.daemon = True
         self.url_check_timer.start()
 
         # 4.启动零点 CASH 监控
-        timer = threading.Timer(12.0, self.schedule_get_zero_time_cash)
+        timer = threading.Timer(38.0, self.schedule_get_zero_time_cash)
         timer.daemon = True
         timer.start()
 
         # 5.启动币安零点时价格监控
-        self.get_binance_zero_time_price_timer = threading.Timer(14.0, self.get_binance_zero_time_price)
+        self.get_binance_zero_time_price_timer = threading.Timer(40.0, self.get_binance_zero_time_price)
         self.get_binance_zero_time_price_timer.daemon = True
         self.get_binance_zero_time_price_timer.start()
         
         # 6.启动币安实时价格监控
-        self.get_binance_price_websocket_timer = threading.Timer(16.0, self.get_binance_price_websocket)
+        self.get_binance_price_websocket_timer = threading.Timer(42.0, self.get_binance_price_websocket)
         self.get_binance_price_websocket_timer.daemon = True
         self.get_binance_price_websocket_timer.start()
 
         # 7.启动币安价格对比
-        self.comparison_binance_price_timer = threading.Timer(20.0, self.comparison_binance_price)
+        self.comparison_binance_price_timer = threading.Timer(44.0, self.comparison_binance_price)
         self.comparison_binance_price_timer.daemon = True
         self.comparison_binance_price_timer.start()
 
         # 8.启动自动找币
-        timer = threading.Timer(30.0, self.schedule_auto_find_coin)
+        timer = threading.Timer(46.0, self.schedule_auto_find_coin)
         timer.daemon = True
         timer.start()
 
         # 9.启动设置 YES1/NO1价格为 54
-        timer = threading.Timer(36.0, self.schedule_price_setting)
+        timer = threading.Timer(48.0, self.schedule_price_setting)
         timer.daemon = True
         timer.start()
         
         # 10.启动页面刷新
-        self.refresh_page_timer = threading.Timer(40.0, self.refresh_page)
+        self.refresh_page_timer = threading.Timer(50.0, self.refresh_page)
         self.refresh_page_timer.daemon = True
         self.refresh_page_timer.start()
-        self.logger.info("\033[34m✅ 40秒后启动页面刷新!\033[0m")
+        self.logger.info("\033[34m✅ 50秒后启动页面刷新!\033[0m")
         
         # 11.启动夜间自动卖出检查（每30分钟检查一次）
-        timer = threading.Timer(45.0, self.schedule_night_auto_sell_check)
+        timer = threading.Timer(52.0, self.schedule_night_auto_sell_check)
         timer.daemon = True
         timer.start()
         
         # 12.启动自动Swap检查（每30分钟检查一次）
-        timer = threading.Timer(100.0, self.schedule_auto_use_swap)
+        timer = threading.Timer(54.0, self.schedule_auto_use_swap)
         timer.daemon = True
         timer.start()
 
         # 13.启动自动清除缓存
-        timer = threading.Timer(120.0, self.schedule_clear_chrome_mem_cache)
+        timer = threading.Timer(56.0, self.schedule_clear_chrome_mem_cache)
         timer.daemon = True
         timer.start()
 
         # 14. 启动程序立即获取当前CASH值
-        timer = threading.Timer(50.0, self.get_cash_value)
+        timer = threading.Timer(58.0, self.get_cash_value)
         timer.daemon = True
         timer.start()
         
@@ -475,17 +475,39 @@ class CryptoTrader:
                 os.system('pkill -f "chrome.*--remote-debugging-port=9222" 2>/dev/null || true')
                 time.sleep(2)  # 等待进程完全关闭
                 
-                chrome_options = Options()
-                chrome_options.debugger_address = "127.0.0.1:9222"
-                chrome_options.add_argument('--disable-dev-shm-usage')
+                # 删除锁文件
+                for f in ["SingletonLock", "SingletonCookie", "SingletonSocket"]:
+                    path = os.path.expanduser(f"~/ChromeDebug/{f}")
+                    if os.path.exists(path):
+                        os.remove(path)
 
-                # 清理旧配置
-                os.system('rm -f ~/ChromeDebug/SingletonLock')
-                os.system('rm -f ~/ChromeDebug/SingletonCookie')
-                os.system('rm -f ~/ChromeDebug/SingletonSocket')
-                os.system('rm -f ~/ChromeDebug/Default/Recovery/*')
-                os.system('rm -f ~/ChromeDebug/Default/Sessions/*')
-                os.system('rm -f ~/ChromeDebug/Default/Last*')
+                # 2. 启动Chrome浏览器进程
+                self.logger.info("🚀 启动Chrome浏览器进程...")
+                system = platform.system()
+                if system == 'Darwin':  # macOS
+                    script_path = os.path.abspath('start_chrome_macos.sh')
+                elif system == 'Linux':
+                    script_path = os.path.abspath('start_chrome_ubuntu.sh')
+                else:
+                    raise Exception(f"不支持的操作系统: {system}")
+                
+                if not os.path.exists(script_path):
+                    raise Exception(f"Chrome启动脚本不存在: {script_path}")
+
+                result = subprocess.run(['bash', script_path], capture_output=True, text=True)
+                if result.returncode != 0:
+                    self.logger.error(f"❌ Chrome启动脚本执行失败: {result.stderr}")
+                    raise Exception(f"Chrome启动脚本失败: {result.stderr}")
+
+                self.logger.info("✅ Chrome启动脚本执行成功")
+
+
+                # 3. 连接Chrome浏览器
+                chrome_options = Options()
+                chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+                chrome_options.add_argument('--disable-dev-shm-usage')
+                self.driver = webdriver.Chrome(options=chrome_options)
+                self.driver.set_page_load_timeout(15)
 
                 system = platform.system()
                 if system == 'Linux':
@@ -519,38 +541,8 @@ class CryptoTrader:
                     chrome_options.add_argument('--log-level=3')  # 只显示致命错误
                     # 添加用户数据目录，与启动脚本保持一致
                     chrome_options.add_argument(f'--user-data-dir={os.path.expanduser("~/ChromeDebug")}')
-                    
-                # 添加连接超时设置，提高Ubuntu系统稳定性
-                if platform.system() == 'Linux':
-                    # 设置页面加载超时
-                    chrome_options.add_argument('--timeout=30000')
-                    chrome_options.add_argument('--page-load-strategy=eager')
                 
-                # 2. 启动Chrome浏览器进程
-                self.logger.info("🚀 启动Chrome浏览器进程...")
-                system = platform.system()
-                if system == 'Darwin':  # macOS
-                    script_path = os.path.abspath('start_chrome_macos.sh')
-                elif system == 'Linux':
-                    script_path = os.path.abspath('start_chrome_ubuntu.sh')
-                else:
-                    raise Exception(f"不支持的操作系统: {system}")
-                
-                # 检查脚本是否存在
-                if not os.path.exists(script_path):
-                    raise Exception(f"Chrome启动脚本不存在: {script_path}")
-                
-                # 执行启动脚本
-                self.logger.info(f"🚀 执行Chrome启动脚本: {script_path}")
-                result = subprocess.run(['bash', script_path], capture_output=True, text=True, cwd=os.getcwd())
-                if result.returncode != 0:
-                    self.logger.error(f"❌ Chrome启动脚本执行失败: {result.stderr}")
-                    self.logger.error(f"脚本输出: {result.stdout}")
-                    raise Exception(f"Chrome启动脚本失败: {result.stderr}")
-                else:
-                    self.logger.info(f"✅ Chrome启动脚本执行成功")
-                
-                # 3. 等待Chrome调试端口可用
+                # 4. 等待Chrome调试端口可用
                 self.logger.info("⏳ 等待Chrome调试端口可用...")
                 max_wait_time = 30
                 wait_interval = 1
@@ -567,7 +559,7 @@ class CryptoTrader:
                 else:
                     raise Exception("Chrome调试端口在30秒内未能启动")
 
-                # 4. 连接到Chrome浏览器（增加重试机制）
+                # 5. 连接到Chrome浏览器（增加重试机制）
                 self.logger.info("🔗 连接到Chrome浏览器...")
                 max_retries = 3
                 for attempt in range(max_retries):
