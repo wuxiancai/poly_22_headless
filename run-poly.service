@@ -18,13 +18,6 @@ Environment=FLASK_HOST=127.0.0.1
 Environment=FLASK_PORT=5000
 Environment=FLASK_ENV=production
 
-# 安全设置
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=read-only
-ReadWritePaths=/home/admin/poly_22_headless
-
 # 资源限制
 LimitNOFILE=65536
 TimeoutStartSec=60
