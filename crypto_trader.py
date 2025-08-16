@@ -488,22 +488,30 @@ class CryptoTrader:
     def _check_chrome_headless_status(self):
         """检查Chrome无头模式是否成功启动"""
         self.logger.info("开始检查chrome无头模式是否启动成功")
-        # 等待Chrome启动
-        time.sleep(3)
         
-        try:
-            # 尝试连接Chrome调试端口
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(5)
-            result = sock.connect_ex(('127.0.0.1', 9222))
-            sock.close()
-            
-            if result == 0:
-                self.logger.info("✅ Chrome无头模式启动成功")
-            else:
-                self.logger.error("❌ Chrome无头模式启动失败,无法连接到调试端口9222,请重新启动")
-        except Exception as e:
-            self.logger.error(f"❌ Chrome无头模式启动失败 - 检查过程出错: {str(e)}")
+        # 增加重试机制，最多尝试10次，每次间隔1秒
+        max_retries = 10
+        for attempt in range(max_retries):
+            try:
+                import urllib.request
+                import urllib.error
+                
+                # 使用HTTP请求检查Chrome调试端口
+                response = urllib.request.urlopen('http://127.0.0.1:9222/json', timeout=5)
+                if response.getcode() == 200:
+                    self.logger.info("✅ Chrome无头模式启动成功")
+                    return
+                    
+            except (urllib.error.URLError, ConnectionRefusedError, OSError) as e:
+                if attempt < max_retries - 1:
+                    self.logger.info(f"第{attempt + 1}次检查失败，等待1秒后重试...")
+                    time.sleep(1)
+                else:
+                    self.logger.error(f"❌ Chrome无头模式启动失败,经过{max_retries}次尝试仍无法连接到调试端口9222")
+                    self.logger.error(f"错误详情: {str(e)}")
+            except Exception as e:
+                self.logger.error(f"❌ Chrome无头模式启动失败 - 检查过程出错: {str(e)}")
+                break
 
     def _start_browser_monitoring(self, new_url):
         """在新线程中执行浏览器操作"""
@@ -5558,7 +5566,7 @@ class CryptoTrader:
             """启动Chrome浏览器"""
             try:
                 self.start_chrome_ubuntu()
-                self.logger.info("Chrome浏览器启动成功")
+                
                 return jsonify({'success': True, 'message': 'Chrome浏览器启动成功'})
             except Exception as e:
                 self.logger.error(f"启动Chrome浏览器失败: {str(e)}")
