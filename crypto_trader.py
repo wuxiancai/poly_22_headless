@@ -466,8 +466,7 @@ class CryptoTrader:
         timer.start()
 
     def start_chrome_ubuntu(self):
-        """启动Chrome浏览器"""
-        
+        """启动Chrome浏览器""" 
         self.logger.info("🚀 开始启动Chrome浏览器进程...")
         # 根据操作系统选择启动脚本
         script_path = ('start_chrome_macos.sh' if platform.system() == 'Darwin' 
@@ -481,7 +480,32 @@ class CryptoTrader:
         # 启动Chrome进程（异步）
         subprocess.Popen(['bash', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+        # 检查Chrome无头模式是否成功启动
+        self._check_chrome_headless_status()
+
         self.logger.info("✅ Chrome启动脚本执行成功")
+
+    def _check_chrome_headless_status(self):
+        """检查Chrome无头模式是否成功启动"""
+        import socket
+        import time
+        
+        # 等待Chrome启动
+        time.sleep(3)
+        
+        try:
+            # 尝试连接Chrome调试端口
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            result = sock.connect_ex(('127.0.0.1', 9222))
+            sock.close()
+            
+            if result == 0:
+                self.logger.info("✅ Chrome无头模式启动成功")
+            else:
+                self.logger.error("❌ Chrome无头模式启动失败,无法连接到调试端口9222,请重新启动")
+        except Exception as e:
+            self.logger.error(f"❌ Chrome无头模式启动失败 - 检查过程出错: {str(e)}")
 
     def _start_browser_monitoring(self, new_url):
         """在新线程中执行浏览器操作"""

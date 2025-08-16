@@ -611,10 +611,10 @@ if [ "$CHECK_ONLY_MODE" = true ]; then
 fi
 
 # 启动 Chrome（调试端口）- 使用系统安装的Chrome（无头模式）
-log_message "INFO" "启动Chrome浏览器（无头模式）"
+log_message "INFO" "启动Chrome浏览器(无头模式)"
 echo -e "${GREEN}启动 Chrome 中（无头模式）...${NC}"
 if command -v google-chrome-stable &> /dev/null; then
-    log_message "INFO" "Chrome启动参数已设置（无头模式），开始启动"
+    log_message "INFO" "Chrome启动参数已设置(无头模式),开始启动"
     google-chrome-stable \
         --headless \
         --remote-debugging-port=9222 \
@@ -649,13 +649,13 @@ if command -v google-chrome-stable &> /dev/null; then
         https://polymarket.com/crypto &
     
     CHROME_PID=$!
-    log_message "SUCCESS" "Chrome已启动（无头模式），PID: $CHROME_PID"
-    echo -e "${GREEN}Chrome已启动（无头模式），PID: $CHROME_PID${NC}"
+    log_message "SUCCESS" "Chrome已启动(无头模式)PID: $CHROME_PID"
+    echo -e "${GREEN}Chrome已启动(无头模式),PID: $CHROME_PID${NC}"
     echo -e "${GREEN}调试端口: http://localhost:9222${NC}"
     echo -e "${GREEN}目标网站: https://polymarket.com/crypto${NC}"
     echo -e "${YELLOW}提示：使用 'kill $CHROME_PID' 可以停止Chrome进程${NC}"
 else
-    log_message "ERROR" "Chrome未找到，启动失败"
+    log_message "ERROR" "Chrome未找到,启动失败"
     echo -e "${RED}Chrome 未找到，请确保已安装 google-chrome-stable${NC}"
     exit 1
 fi
