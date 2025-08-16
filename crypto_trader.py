@@ -469,6 +469,12 @@ class CryptoTrader:
         """在新线程中执行浏览器操作"""
         try:
             if not self.driver and not self.is_restarting:
+                # 1. 首先强制清理所有Chrome进程
+                self.logger.info("🔄 启动前清理Chrome进程...")
+                os.system('pkill -f "Chrome.*--remote-debugging-port=9222" 2>/dev/null || true')
+                os.system('pkill -f "chrome.*--remote-debugging-port=9222" 2>/dev/null || true')
+                time.sleep(2)  # 等待进程完全关闭
+                
                 chrome_options = Options()
                 chrome_options.debugger_address = "127.0.0.1:9222"
                 chrome_options.add_argument('--disable-dev-shm-usage')
@@ -519,8 +525,75 @@ class CryptoTrader:
                     # 设置页面加载超时
                     chrome_options.add_argument('--timeout=30000')
                     chrome_options.add_argument('--page-load-strategy=eager')
-                    
-                self.driver = webdriver.Chrome(options=chrome_options)
+                
+                # 2. 启动Chrome浏览器进程
+                self.logger.info("🚀 启动Chrome浏览器进程...")
+                system = platform.system()
+                if system == 'Darwin':  # macOS
+                    script_path = './start_chrome_macos.sh'
+                elif system == 'Linux':
+                    script_path = './start_chrome_ubuntu.sh'
+                else:
+                    raise Exception(f"不支持的操作系统: {system}")
+                
+                # 执行启动脚本
+                result = subprocess.run(['bash', script_path], capture_output=True, text=True)
+                if result.returncode != 0:
+                    self.logger.error(f"Chrome启动脚本执行失败: {result.stderr}")
+                    raise Exception(f"Chrome启动脚本失败: {result.stderr}")
+                
+                # 3. 等待Chrome调试端口可用
+                self.logger.info("⏳ 等待Chrome调试端口可用...")
+                max_wait_time = 30
+                wait_interval = 1
+                for wait_time in range(0, max_wait_time, wait_interval):
+                    time.sleep(wait_interval)
+                    try:
+                        import requests
+                        response = requests.get('http://127.0.0.1:9222/json', timeout=2)
+                        if response.status_code == 200:
+                            self.logger.info(f"✅ Chrome调试端口已可用 (等待{wait_time+1}秒)")
+                            break
+                    except:
+                        continue
+                else:
+                    raise Exception("Chrome调试端口在30秒内未能启动")
+                
+                # 4. 连接到Chrome浏览器（增加重试机制）
+                self.logger.info("🔗 连接到Chrome浏览器...")
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        self.logger.info(f"📍 尝试初始化webdriver.Chrome (第{attempt+1}次)")
+                        
+                        # 再次检查调试端口是否响应
+                        try:
+                            import requests
+                            response = requests.get('http://127.0.0.1:9222/json', timeout=5)
+                            self.logger.info(f"✅ Chrome调试端口响应正常: {response.status_code}")
+                        except Exception as port_e:
+                            self.logger.error(f"❌ Chrome调试端口无响应: {type(port_e).__name__}: {port_e}")
+                            if attempt < max_retries - 1:
+                                self.logger.info("⏳ 等待5秒后重试...")
+                                time.sleep(5)
+                                continue
+                            else:
+                                raise Exception(f"Chrome调试端口无响应: {port_e}")
+                        
+                        # 尝试初始化webdriver
+                        self.driver = webdriver.Chrome(options=chrome_options)
+                        self.logger.info(f"✅ Chrome浏览器连接成功 (尝试{attempt+1}/{max_retries})")
+                        break
+                    except Exception as e:
+                        error_type = type(e).__name__
+                        self.logger.error(f"❌ Chrome连接失败 (尝试{attempt+1}/{max_retries}): {error_type}: {e}")
+                        
+                        if attempt < max_retries - 1:
+                            self.logger.info("⏳ 等待3秒后重试连接...")
+                            time.sleep(3)
+                        else:
+                            self.logger.error(f"Chrome连接最终失败: {error_type}: {e}")
+                            raise Exception(f"webdriver.Chrome连接失败: {error_type}: {e}")
                 
                 # 设置超时时间
                 self.driver.set_page_load_timeout(30)
@@ -528,12 +601,27 @@ class CryptoTrader:
                 
             try:
                 # 在当前标签页打开URL
-                self.driver.get(new_url)
+                self.logger.info(f"🌐 尝试访问网站: {new_url}")
+                try:
+                    self.driver.get(new_url)
+                    self.logger.info("✅ 网站访问成功")
+                except Exception as get_e:
+                    error_type = type(get_e).__name__
+                    self.logger.error(f"❌ 网站访问失败: {error_type}: {get_e}")
+                    raise Exception(f"访问网站失败: {error_type}: {get_e}")
                 
                 # 等待页面加载，减少超时时间避免长时间等待
-                WebDriverWait(self.driver, 30).until(
-                    lambda driver: driver.execute_script('return document.readyState') == 'complete'
-                )
+                self.logger.info("⏳ 等待页面加载完成...")
+                try:
+                    WebDriverWait(self.driver, 30).until(
+                        lambda driver: driver.execute_script('return document.readyState') == 'complete'
+                    )
+                    self.logger.info("✅ 页面加载完成")
+                except Exception as wait_e:
+                    error_type = type(wait_e).__name__
+                    self.logger.error(f"❌ 页面加载等待失败: {error_type}: {wait_e}")
+                    raise Exception(f"页面加载等待失败: {error_type}: {wait_e}")
+                    
                 self.logger.info("\033[34m✅ 浏览器启动成功!\033[0m")
                 
                 # 保存配置
@@ -696,6 +784,10 @@ class CryptoTrader:
             # 2. 如果需要强制重启，启动新的Chrome进程
             if force_restart:
                 try:
+                    # 额外等待确保进程完全清理
+                    self.logger.info("⏳ 等待进程清理完成...")
+                    time.sleep(5)
+                    
                     # 根据操作系统选择启动脚本
                     script_path = ('start_chrome_macos.sh' if platform.system() == 'Darwin' 
                                 else 'start_chrome_ubuntu.sh')
@@ -705,12 +797,16 @@ class CryptoTrader:
                     if not os.path.exists(script_path):
                         raise FileNotFoundError(f"启动脚本不存在: {script_path}")
                     
+                    self.logger.info(f"🚀 执行Chrome启动脚本: {script_path}")
                     # 启动Chrome进程（异步）
                     process = subprocess.Popen(['bash', script_path], 
                                              stdout=subprocess.PIPE, 
                                              stderr=subprocess.PIPE)
                     
+                    self.logger.info("✅ Chrome启动脚本执行成功")
+                    
                     # 等待Chrome调试端口可用
+                    self.logger.info("⏳ 等待Chrome调试端口可用...")
                     max_wait_time = 30
                     wait_interval = 1
                     for wait_time in range(0, max_wait_time, wait_interval):

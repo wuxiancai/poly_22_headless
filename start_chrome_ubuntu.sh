@@ -15,6 +15,25 @@ NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/chrome_update.log"
+
+# 强制杀死所有Chrome进程
+echo -e "${YELLOW}正在杀死所有Chrome进程...${NC}"
+pkill -f "chrome" 2>/dev/null || true
+pkill -f "google-chrome" 2>/dev/null || true
+pkill -f "chromium" 2>/dev/null || true
+
+# 等待进程完全关闭
+sleep 2
+
+# 检查是否还有Chrome进程在运行
+if pgrep -f "chrome" > /dev/null 2>&1; then
+    echo -e "${RED}警告: 仍有Chrome进程在运行，强制终止...${NC}"
+    pkill -9 -f "chrome" 2>/dev/null || true
+    sleep 1
+fi
+
+echo -e "${GREEN}✅ Chrome进程清理完成${NC}"
+
 # 清理旧配置
 rm -f ~/ChromeDebug/SingletonLock
 rm -f ~/ChromeDebug/SingletonCookie
