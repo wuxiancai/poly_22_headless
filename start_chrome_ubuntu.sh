@@ -35,10 +35,12 @@ fi
 echo -e "${GREEN}✅ Chrome进程清理完成${NC}"
 
 # 删除锁文件
-for f in ["SingletonLock", "SingletonCookie", "SingletonSocket"]:
-    path = os.path.expanduser(f"~/ChromeDebug/{f}")
-    if os.path.exists(path):
-        os.remove(path)
+for f in "SingletonLock" "SingletonCookie" "SingletonSocket"; do
+    path="$HOME/ChromeDebug/$f"
+    if [ -f "$path" ]; then
+        rm -f "$path"
+    fi
+done
 
 # 显示使用说明
 show_usage() {
@@ -243,7 +245,9 @@ update_chrome() {
     CURRENT_VERSION=$(google-chrome-stable --version 2>/dev/null | awk '{print $3}')
     echo -e "${YELLOW}当前Chrome版本: $CURRENT_VERSION${NC}"
     
-    # 使用apt直接更新Chrome
+    # 提示用户可能需要输入密码
+    echo -e "${YELLOW}更新Chrome可能需要sudo权限，请准备输入密码${NC}"
+    
     echo -e "${YELLOW}更新软件包列表...${NC}"
     if ! sudo apt update -qq; then
         echo -e "${RED}软件包列表更新失败${NC}"
@@ -276,6 +280,9 @@ update_chrome() {
 # 安装Chrome（如果未安装）
 install_chrome() {
     echo -e "${YELLOW}安装Google Chrome...${NC}"
+    
+    # 提示用户可能需要输入密码
+    echo -e "${YELLOW}安装Chrome需要sudo权限，请准备输入密码${NC}"
     
     # 添加Google的官方GPG密钥
     if ! wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -; then
@@ -376,6 +383,10 @@ check_driver() {
 # 自动安装兼容的 chromedriver（Ubuntu版本）- 增强版
 install_driver() {
     echo -e "${YELLOW}尝试下载安装兼容的 chromedriver...${NC}"
+    
+    # 提示用户可能需要输入密码
+    echo -e "${YELLOW}安装ChromeDriver需要sudo权限，请准备输入密码${NC}"
+    
     CHROME_VERSION=$(get_chrome_version)
     BASE_VERSION=$(echo "$CHROME_VERSION" | cut -d'.' -f1-3)
     PATCH_VERSION=$(echo "$CHROME_VERSION" | cut -d'.' -f4)

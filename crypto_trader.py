@@ -482,37 +482,31 @@ class CryptoTrader:
                 if not os.path.exists(script_path):
                     raise Exception(f"Chrome启动脚本不存在: {script_path}")
 
-                # 实时输出+捕获日志
+                # 执行Chrome启动脚本
                 process = subprocess.Popen(
                     ['bash', script_path],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True,
-                    bufsize=1  # 行缓冲
+                    text=True
                 )
 
-                stdout_lines = []
-                stderr_lines = []
-
-                # 持续读取输出
-                for line in process.stdout:
-                    sys.stdout.write(line)  # 实时打印到终端
-                    stdout_lines.append(line)
-
-                for line in process.stderr:
-                    sys.stderr.write(line)  # 实时打印错误到终端
-                    stderr_lines.append(line)
-
-                process.wait()
+                # 等待脚本执行完成并获取输出
+                stdout, stderr = process.communicate()
+                
+                # 打印输出到终端
+                if stdout:
+                    print(stdout)
+                if stderr:
+                    print(stderr, file=sys.stderr)
 
                 # 检查退出码
                 if process.returncode != 0:
                     self.logger.error(
                         f"❌ Chrome启动脚本执行失败:\n"
-                        f"STDOUT: {''.join(stdout_lines)}\n"
-                        f"STDERR: {''.join(stderr_lines)}"
+                        f"STDOUT: {stdout}\n"
+                        f"STDERR: {stderr}"
                     )
-                    raise Exception(f"Chrome启动脚本失败: {''.join(stderr_lines) or ''.join(stdout_lines)}")
+                    raise Exception(f"Chrome启动脚本失败: {stderr or stdout}")
 
                 self.logger.info("✅ Chrome启动脚本执行成功")
 
