@@ -469,19 +469,7 @@ class CryptoTrader:
         """在新线程中执行浏览器操作"""
         try:
             if not self.driver and not self.is_restarting:
-                # 1. 首先强制清理所有Chrome进程
-                self.logger.info("🔄 启动前清理Chrome进程...")
-                os.system('pkill -f "Chrome.*--remote-debugging-port=9222" 2>/dev/null || true')
-                os.system('pkill -f "chrome.*--remote-debugging-port=9222" 2>/dev/null || true')
-                time.sleep(2)  # 等待进程完全关闭
-                
-                # 删除锁文件
-                for f in ["SingletonLock", "SingletonCookie", "SingletonSocket"]:
-                    path = os.path.expanduser(f"~/ChromeDebug/{f}")
-                    if os.path.exists(path):
-                        os.remove(path)
-
-                # 2. 启动Chrome浏览器进程
+                # 1. 启动Chrome浏览器进程
                 self.logger.info("🚀 启动Chrome浏览器进程...")
                 system = platform.system()
                 if system == 'Darwin':  # macOS
@@ -494,13 +482,39 @@ class CryptoTrader:
                 if not os.path.exists(script_path):
                     raise Exception(f"Chrome启动脚本不存在: {script_path}")
 
-                result = subprocess.run(['bash', script_path], capture_output=True, text=True)
-                if result.returncode != 0:
-                    self.logger.error(f"❌ Chrome启动脚本执行失败: {result.stderr}")
-                    raise Exception(f"Chrome启动脚本失败: {result.stderr}")
+                # 实时输出+捕获日志
+                process = subprocess.Popen(
+                    ['bash', script_path],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    bufsize=1  # 行缓冲
+                )
+
+                stdout_lines = []
+                stderr_lines = []
+
+                # 持续读取输出
+                for line in process.stdout:
+                    sys.stdout.write(line)  # 实时打印到终端
+                    stdout_lines.append(line)
+
+                for line in process.stderr:
+                    sys.stderr.write(line)  # 实时打印错误到终端
+                    stderr_lines.append(line)
+
+                process.wait()
+
+                # 检查退出码
+                if process.returncode != 0:
+                    self.logger.error(
+                        f"❌ Chrome启动脚本执行失败:\n"
+                        f"STDOUT: {''.join(stdout_lines)}\n"
+                        f"STDERR: {''.join(stderr_lines)}"
+                    )
+                    raise Exception(f"Chrome启动脚本失败: {''.join(stderr_lines) or ''.join(stdout_lines)}")
 
                 self.logger.info("✅ Chrome启动脚本执行成功")
-
 
                 # 3. 连接Chrome浏览器
                 chrome_options = Options()

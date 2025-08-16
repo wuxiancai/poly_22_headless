@@ -34,11 +34,11 @@ fi
 
 echo -e "${GREEN}✅ Chrome进程清理完成${NC}"
 
-# 清理旧配置
-rm -f ~/ChromeDebug/SingletonLock
-rm -f ~/ChromeDebug/SingletonCookie
-rm -f ~/ChromeDebug/SingletonSocket
-echo "清理旧配置完成"
+# 删除锁文件
+for f in ["SingletonLock", "SingletonCookie", "SingletonSocket"]:
+    path = os.path.expanduser(f"~/ChromeDebug/{f}")
+    if os.path.exists(path):
+        os.remove(path)
 
 # 显示使用说明
 show_usage() {
@@ -49,11 +49,6 @@ show_usage() {
     echo -e "  • 增强的版本兼容性检查"
     echo -e "  • 详细的日志记录和错误处理"
     echo -e "  • 版本信息备份功能"
-    echo -e "${GREEN}使用方法：${NC}"
-    echo -e "  bash $0                    # 正常启动"
-    echo -e "  bash $0 --help            # 显示帮助"
-    echo -e "  bash $0 --version         # 显示版本信息"
-    echo -e "  bash $0 --check-only      # 仅检查版本，不启动Chrome"
     echo -e "${GREEN}日志文件：${NC} $LOG_FILE"
     echo -e "${GREEN}备份文件：${NC} $SCRIPT_DIR/version_backup.txt"
     echo ""
@@ -68,7 +63,6 @@ handle_arguments() {
             ;;
         "--version"|-v)
             echo "Ubuntu Chrome自动匹配更新脚本 v2.0"
-            echo "更新日期：2024-12-19"
             exit 0
             ;;
         "--check-only")
@@ -561,9 +555,6 @@ else
     echo -e "${GREEN}ChromeDriver版本检查通过${NC}"
     log_message "SUCCESS" "ChromeDriver版本检查通过"
 fi
-
-# X11配置已移除 - 无头模式下不需要虚拟桌面
-# 原GUI模式下的VNC远程登录配置在Web模式下不再需要
 
 # 清理崩溃文件
 rm -f "$HOME/ChromeDebug/SingletonLock"
