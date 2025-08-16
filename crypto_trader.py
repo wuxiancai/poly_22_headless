@@ -1134,8 +1134,8 @@ class CryptoTrader:
                 # 数据合理性检查
                 if 0 <= up_price_val <= 100 and 0 <= down_price_val <= 100:
                     # 更新Web界面价格显示
-                    self.set_web_value('yes_price_label', f'{up_price_val:.1f}')
-                    self.set_web_value('no_price_label', f'{down_price_val:.1f}')
+                    self.set_web_value('yes_price_label', f'Up: {up_price_val:.1f}')
+                    self.set_web_value('no_price_label', f'Down: {down_price_val:.1f}')
                     
                     # 执行所有交易检查函数（仅在没有交易进行时）
                     if not self.trading:
@@ -1146,8 +1146,8 @@ class CryptoTrader:
                         
                 else:
                     self.logger.warning(f"价格数据异常: Up={up_price_val}, Down={down_price_val}")
-                    self.set_web_value('yes_price_label', 'Invalid')
-                    self.set_web_value('no_price_label', 'Invalid')
+                    self.set_web_value('yes_price_label', 'Up: Invalid')
+                    self.set_web_value('no_price_label', 'Down: Invalid')
                     
             else:
                 # 显示具体的缺失信息
@@ -1158,8 +1158,8 @@ class CryptoTrader:
                     missing_info.append("Down价格")
                     
                 self.logger.warning(f"数据获取不完整，缺失: {', '.join(missing_info)}")
-                self.set_web_value('yes_price_label', 'N/A')
-                self.set_web_value('no_price_label', 'N/A')
+                self.set_web_value('yes_price_label', 'Up: N/A')
+                self.set_web_value('no_price_label', 'Down: N/A')
                 # 尝试刷新页面
                 try:
                     self.driver.refresh()
