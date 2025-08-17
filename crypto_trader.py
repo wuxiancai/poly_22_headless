@@ -35,6 +35,7 @@ import csv
 from flask import Flask, render_template_string, request, url_for, jsonify
 import psutil
 import socket
+import urllib.request
 
         
 class Logger:
@@ -469,7 +470,7 @@ class CryptoTrader:
 
     def start_chrome_ubuntu(self):
         """启动Chrome浏览器""" 
-        self.logger.info("🚀 开始启动Chrome浏览器进程...")
+        self.logger.info("\033[34m🚀 0开始启动Chrome浏览器进程...\033[0m")
         
         # 根据操作系统选择启动脚本
         if platform.system() == 'Darwin':
@@ -491,8 +492,8 @@ class CryptoTrader:
                                   capture_output=True, text=True, timeout=10)
             
             if result.returncode == 0:
-                self.logger.info("✅ Chrome启动脚本执行成功")
-                self.logger.info(f"脚本输出: {result.stdout.strip()}")
+                self.logger.info("\033[34m✅ Chrome启动脚本执行成功\033[0m")
+                
             elif result.returncode == -15:
                 # 脚本被SIGTERM终止，可能是正常的，继续检查Chrome状态
                 self.logger.warning(f"⚠️ Chrome启动脚本被终止(SIGTERM),退出码: {result.returncode}")
@@ -505,8 +506,8 @@ class CryptoTrader:
                 self.logger.info("尝试检查Chrome是否已启动...")
                 
         except subprocess.TimeoutExpired:
-            self.logger.warning(f"⚠️ Chrome启动脚本执行超时(30秒)，可能脚本仍在后台运行")
-            self.logger.info("继续检查Chrome是否已成功启动...")
+            self.logger.info(f"⚠️ Chrome启动脚本执行超时(10秒)，可能脚本仍在后台运行")
+            
         except Exception as e:
             self.logger.warning(f"⚠️ 执行Chrome启动脚本时发生异常: {str(e)}")
             # 不直接抛出异常，而是继续检查Chrome状态
@@ -515,7 +516,7 @@ class CryptoTrader:
         # 额外检查Chrome无头模式是否成功启动
         try:
             self._check_chrome_headless_status()
-            self.logger.info("✅ 浏览器启动成功")
+            
         except Exception as e:
             self.logger.error(f"❌ 浏览器启动失败: {str(e)}")
             raise
@@ -536,16 +537,12 @@ class CryptoTrader:
                 if lsof_result.returncode == 0 and lsof_result.stdout.strip():
                     self.logger.info(f"端口9222正在被监听: {lsof_result.stdout.strip().split()[0]}")
                     
-                    # 端口被监听，尝试HTTP连接
-                    import urllib.request
-                    import urllib.error
-                    
                     # 尝试localhost和127.0.0.1两个地址
                     for host in ['localhost', '127.0.0.1']:
                         try:
                             response = urllib.request.urlopen(f'http://{host}:9222/json', timeout=5)
                             if response.getcode() == 200:
-                                self.logger.info(f"✅ Chrome无头模式启动成功，调试端口可通过{host}:9222访问")
+                                self.logger.info(f"✅ \033[34mChrome无头模式启动成功!!!可以点击"启动监控"按钮了!\033[0m")
                                 return
                         except Exception as host_e:
                             self.logger.debug(f"尝试连接{host}:9222失败: {str(host_e)}")
