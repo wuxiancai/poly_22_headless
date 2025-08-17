@@ -555,7 +555,7 @@ class CryptoTrader:
             if attempt < max_retries - 1:
                 time.sleep(1)
             else:
-                self.logger.error(f"❌ Chrome无头模式启动失败,经过{max_retries}次尝试仍无法确认调试端口9222可用")
+                self.logger.error(f"❌ \033[31mChrome无头模式启动失败,经过{max_retries}次尝试仍无法确认调试端口9222可用\033[0m")
                 raise RuntimeError(f"Chrome无头模式启动失败,经过{max_retries}次尝试仍无法确认调试端口9222可用")
 
     def stop_chrome_ubuntu(self):
@@ -627,7 +627,7 @@ class CryptoTrader:
             self.logger.info("✅ Chrome浏览器已彻底关闭")
             
         except Exception as e:
-            self.logger.error(f"❌ 关闭Chrome浏览器时发生错误: {str(e)}")
+            self.logger.error(f"❌ \033[31m关闭Chrome浏览器时发生错误: {str(e)}\033[0m")
             raise RuntimeError(f"关闭Chrome浏览器失败: {str(e)}")
 
     def _start_browser_monitoring(self, new_url):
@@ -705,7 +705,7 @@ class CryptoTrader:
                             response = requests.get('http://127.0.0.1:9222/json', timeout=5)
                             self.logger.info(f"✅ Chrome调试端口响应正常: {response.status_code}")
                         except Exception as port_e:
-                            self.logger.error(f"❌ Chrome调试端口无响应: {type(port_e).__name__}: {port_e}")
+                            self.logger.error(f"❌ \033[31mChrome调试端口无响应: {type(port_e).__name__}: {port_e}\033[0m")
                             if attempt < max_retries - 1:
                                 self.logger.info("⏳ 等待5秒后重试...")
                                 time.sleep(5)
@@ -715,11 +715,11 @@ class CryptoTrader:
                         
                         # 尝试初始化webdriver
                         self.driver = webdriver.Chrome(options=chrome_options)
-                        self.logger.info(f"✅ Chrome浏览器连接成功 (尝试{attempt+1}/{max_retries})")
+                        self.logger.info(f"✅ \033[34mChrome浏览器连接成功 (尝试{attempt+1}/{max_retries})\033[0m")
                         break
                     except Exception as e:
                         error_type = type(e).__name__
-                        self.logger.error(f"❌ Chrome连接失败 (尝试{attempt+1}/{max_retries}): {error_type}: {e}")
+                        self.logger.error(f"❌ \033[31mChrome连接失败 (尝试{attempt+1}/{max_retries}): {error_type}: {e}\033[0m")
                         
                         if attempt < max_retries - 1:
                             self.logger.info("⏳ 等待3秒后重试连接...")
@@ -737,10 +737,10 @@ class CryptoTrader:
                 self.logger.info(f"🌐 尝试访问网站: {new_url}")
                 try:
                     self.driver.get(new_url)
-                    self.logger.info("✅ 网站访问成功")
+                    self.logger.info("✅ \033[34m网站访问成功\033[0m")
                 except Exception as get_e:
                     error_type = type(get_e).__name__
-                    self.logger.error(f"❌ 网站访问失败: {error_type}: {get_e}")
+                    self.logger.error(f"❌ \033[31m网站访问失败: {error_type}: {get_e}\033[0m")
                     raise Exception(f"访问网站失败: {error_type}: {get_e}")
                 
                 # 等待页面加载，减少超时时间避免长时间等待
@@ -749,10 +749,10 @@ class CryptoTrader:
                     WebDriverWait(self.driver, 30).until(
                         lambda driver: driver.execute_script('return document.readyState') == 'complete'
                     )
-                    self.logger.info("✅ 页面加载完成")
+                    self.logger.info("✅ \033[34m页面加载完成\033[0m")
                 except Exception as wait_e:
                     error_type = type(wait_e).__name__
-                    self.logger.error(f"❌ 页面加载等待失败: {error_type}: {wait_e}")
+                    self.logger.error(f"❌ \033[31m页面加载等待失败: {error_type}: {wait_e}\033[0m")
                     raise Exception(f"页面加载等待失败: {error_type}: {wait_e}")
                     
                 self.logger.info("\033[34m✅ 浏览器启动成功!\033[0m")
@@ -1061,7 +1061,7 @@ class CryptoTrader:
                 return
             
             # 日期不匹配，需要更新URL
-            self.logger.info(f"\033[31m日期不匹配,更新URL中的日期从 {url_date_str} 到 {current_date_str}\033[0m")
+            self.logger.info(f"\033[31m❌ 日期不匹配,更新URL中的日期从 {url_date_str} 到 {current_date_str}\033[0m")
             
             # 替换URL中的日期
             old_date_pattern = f"{url_month}-{url_day}"
@@ -1428,14 +1428,14 @@ class CryptoTrader:
                 # 成功获取时不显示日志
             else:
                 self.portfolio_value = "--"
-                self.logger.warning("❌ 无法获取Portfolio值，可能需要登录")
+                self.logger.warning("\033[31m❌ 无法获取Portfolio值，可能需要登录\033[0m")
                 
             if cash_element:
                 self.cash_value = cash_element.text.strip()
                 # 成功获取时不显示日志
             else:
                 self.cash_value = "--"
-                self.logger.warning("❌ 无法获取Cash值，可能需要登录")
+                self.logger.warning("\033[31m❌ 无法获取Cash值，可能需要登录\033[0m")
         
             # 更新Portfolio和Cash显示
             self.set_web_value('portfolio', self.portfolio_value)
@@ -1565,7 +1565,7 @@ class CryptoTrader:
                         
                         # 如果URL基础部分不匹配，重新导航
                         if clean_current != clean_target:
-                            self.logger.info(f"❌ URL不匹配,重新导航到: {target_url}")
+                            self.logger.info(f"\033[31m❌ URL不匹配,重新导航到: {target_url}\033[0m")
                             self.driver.get(target_url)
 
                     except Exception as e:
@@ -1647,7 +1647,7 @@ class CryptoTrader:
                         google_login_button.click()
                         self.logger.info("✅ 已点击Google登录按钮")
                     except Exception as e:
-                        self.logger.info(f"❌ 点击Google登录按钮失败,使用坐标法点击")
+                        self.logger.info(f"\033[31m❌ 点击Google登录按钮失败,使用坐标法点击\033[0m")
                         
                     
                     # 不再固定等待15秒，而是循环检测CASH值
@@ -1690,22 +1690,7 @@ class CryptoTrader:
             self.login_check_timer = threading.Timer(15.0, self.start_login_monitoring)
             self.login_check_timer.daemon = True
             self.login_check_timer.start()
-
-    def entry_accept(self):
-        """敲击回车键"""
-        try:
-            self.accept_button.click()
-            self.logger.info("✅ 已通过敲击 ENTRY 按键,敲击了ACCEPT按钮")
-            timer = threading.Timer(1.0, self.driver.refresh)
-            timer.daemon = True
-            timer.start()
-        except Exception as e:
-            self.logger.info(f"❌ 敲击 ENTRY 按键失败,重新点击ACCEPT按钮")
-            timer = threading.Timer(2.0, self.driver.refresh)
-            timer.daemon = True
-            timer.start()
-            self.logger.info("✅ 已使用 坐标法 鼠标点击ACCEPT按钮成功")
-
+            
     def refresh_page(self):
         """定时刷新页面"""
         # 生成随机的5-10分钟（以毫秒为单位）
@@ -1803,7 +1788,7 @@ class CryptoTrader:
             except TimeoutException:
                 self.logger.error("定位确认按钮超时")
 
-            # 5. 等待确认弹窗出现
+            # 5. 等待ACCEPT弹窗出现,然后点击ACCEPT按钮
             try:
                 accept_button = WebDriverWait(self.driver, 0.5).until(
                     EC.presence_of_element_located((By.XPATH, XPathConfig.ACCEPT_BUTTON[0]))
@@ -1812,7 +1797,7 @@ class CryptoTrader:
                 self.logger.info("✅ 点击ACCEPT按钮成功")
             except TimeoutException:
                 # 弹窗没出现,不用处理
-                self.logger.info("没有出现ACCEPT弹窗,跳过点击")
+                self.logger.info("❌ \033[32m没有出现ACCEPT弹窗,跳过点击\033[0m")
 
         except Exception as e:
             self.logger.error(f"交易失败: {str(e)}")
@@ -1881,7 +1866,7 @@ class CryptoTrader:
 
                             break
                         else:
-                            self.logger.warning(f"❌  Buy Up1 交易失败,第{retry+1}次,等待1秒后重试")
+                            self.logger.warning(f"\033[31m❌  Buy Up1 交易失败,第{retry+1}次,等待1秒后重试\033[0m")
                             time.sleep(1)
                     else:
                         # 3次失败后发邮件
@@ -1897,7 +1882,7 @@ class CryptoTrader:
 
                 elif 0 <= round((down_price - no1_price), 2) <= self.price_premium and down_price > 50:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[31mDown 1: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mDown 1: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_up()
@@ -1944,11 +1929,11 @@ class CryptoTrader:
                                 cash_value=self.cash_value,
                                 portfolio_value=self.portfolio_value
                             )
-                            self.logger.info(f"\033[34m✅ 第{self.buy_count}次 BUY DOWN1成功\033[0m")
+                            self.logger.info(f"\033[32m✅ 第{self.buy_count}次 BUY DOWN1成功\033[0m")
 
                             break
                         else:
-                            self.logger.warning(f"❌  Buy Down1 交易失败,第{retry+1}次,等待1秒后重试")
+                            self.logger.warning(f"\033[31m❌  Buy Down1 交易失败,第{retry+1}次,等待1秒后重试\033[0m")
                             time.sleep(1)
                     else:
                         self.send_trade_email(
@@ -2004,7 +1989,7 @@ class CryptoTrader:
                             # 设置No3价格为默认值
                             self.set_web_value('no3_price_entry', str(self.default_target_price))
                             # Web模式下不需要设置前景色   
-                            self.logger.info(f"✅ No3价格已重置为{self.default_target_price}")
+                            self.logger.info(f"\033[34m✅ No3价格已重置为{self.default_target_price}\033[0m")
 
                             # 自动改变交易次数
                             self.change_buy_and_trade_count()
@@ -2022,7 +2007,7 @@ class CryptoTrader:
                                  
                             break
                         else:
-                            self.logger.warning(f"❌  Buy Up2 交易失败,第{retry+1}次,等待1秒后重试")
+                            self.logger.warning(f"\033[31m❌  Buy Up2 交易失败,第{retry+1}次,等待1秒后重试\033[0m")
                             time.sleep(1)
                     else:
                         self.send_trade_email(
@@ -2037,7 +2022,7 @@ class CryptoTrader:
                 # 检查No2价格匹配
                 elif 0 <= round((down_price - no2_price), 2) <= self.price_premium and down_price > 50:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[31mDown 2: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mDown 2: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_up()
@@ -2065,7 +2050,7 @@ class CryptoTrader:
                             # 设置YES3价格为默认值
                             self.set_web_value('yes3_price_entry', str(self.default_target_price))
                             # Web模式下不需要设置前景色
-                            self.logger.info(f"✅ Yes3价格已重置为{self.default_target_price}")
+                            self.logger.info(f"\033[34m✅ Yes3价格已重置为{self.default_target_price}\033[0m")
 
                             # 自动改变交易次数
                             self.change_buy_and_trade_count()
@@ -2080,11 +2065,11 @@ class CryptoTrader:
                                 cash_value=self.cash_value,
                                 portfolio_value=self.portfolio_value
                             )
-                            self.logger.info(f"\033[34m✅ 第{self.buy_count}次 BUY DOWN2成功\033[0m")
+                            self.logger.info(f"\033[32m✅ 第{self.buy_count}次 BUY DOWN2成功\033[0m")
                             
                             break
                         else:
-                            self.logger.warning(f"❌  Buy Down2 交易失败,第{retry+1}次,等待1秒后重试")
+                            self.logger.warning(f"\033[31m❌  Buy Down2 交易失败,第{retry+1}次,等待1秒后重试\033[0m")
                             time.sleep(1)
                     else:
                         self.send_trade_email(
@@ -2141,7 +2126,7 @@ class CryptoTrader:
                             # 设置No4价格为默认值
                             self.set_web_value('no4_price_entry', str(self.default_target_price))
                             # Web模式下不需要设置前景色
-                            self.logger.info(f"✅ No4价格已重置为{self.default_target_price}")
+                            self.logger.info(f"\033[34m✅ No4价格已重置为{self.default_target_price}\033[0m")
 
                             # 自动改变交易次数
                             self.change_buy_and_trade_count()
@@ -2156,11 +2141,11 @@ class CryptoTrader:
                                 cash_value=self.cash_value,
                                 portfolio_value=self.portfolio_value
                             )   
-                            self.logger.info(f"\033[34m✅ 第{self.buy_count}次 BUY UP3成功\033[0m")
+                            self.logger.info(f"\033[32m✅ 第{self.buy_count}次 BUY UP3成功\033[0m")
 
                             break
                         else:
-                            self.logger.warning("❌  Buy Up3 交易失败,等待1秒后重试")
+                            self.logger.warning(f"\033[31m❌  Buy Up3 交易失败,等待1秒后重试\033[0m")
                             time.sleep(1)  # 添加延时避免过于频繁的重试
                     else:
                         # 3次失败后发邮件
@@ -2177,7 +2162,7 @@ class CryptoTrader:
                 # 检查No3价格匹配
                 elif 0 <= round((down_price - no3_price), 2) <= self.price_premium and down_price > 50:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[31mDown 3: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mDown 3: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_up()
@@ -2204,7 +2189,7 @@ class CryptoTrader:
                             # 设置Yes4价格为默认值
                             self.set_web_value('yes4_price_entry', str(self.default_target_price))
                             # Web模式下不需要设置前景色
-                            self.logger.info(f"✅ Yes4价格已重置为{self.default_target_price}")
+                            self.logger.info(f"\033[34m✅ Yes4价格已重置为{self.default_target_price}\033[0m")
 
                             # 自动改变交易次数
                             self.change_buy_and_trade_count()
@@ -2219,11 +2204,11 @@ class CryptoTrader:
                                 cash_value=self.cash_value,
                                 portfolio_value=self.portfolio_value
                             )
-                            self.logger.info(f"\033[34m✅ 第{self.buy_count}次 BUY DOWN3成功\033[0m")
+                            self.logger.info(f"\033[32m✅ 第{self.buy_count}次 BUY DOWN3成功\033[0m")
 
                             break
                         else:
-                            self.logger.warning(f"❌  Buy Down3 交易失败,第{retry+1}次,等待1秒后重试")
+                            self.logger.warning(f"\033[31m❌  Buy Down3 交易失败,第{retry+1}次,等待1秒后重试\033[0m")
                             time.sleep(1)  # 添加延时避免过于频繁的重试
                     else:
                         # 3次失败后发邮件
@@ -2298,11 +2283,11 @@ class CryptoTrader:
                                 cash_value=self.cash_value,
                                 portfolio_value=self.portfolio_value
                             )
-                            self.logger.info(f"\033[34m✅ 第{self.buy_count}次 BUY UP4成功\033[0m")
+                            self.logger.info(f"\033[32m✅ 第{self.buy_count}次 BUY UP4成功\033[0m")
                            
                             break
                         else:
-                            self.logger.warning(f"❌  Buy Up4 交易失败,第{retry+1}次,等待2秒后重试")
+                            self.logger.warning(f"\033[31m❌  Buy Up4 交易失败,第{retry+1}次,等待2秒后重试\033[0m")
                             time.sleep(2)  # 添加延时避免过于频繁的重试
                     else:
                         # 3次失败后发邮件
@@ -2318,7 +2303,7 @@ class CryptoTrader:
                 # 检查No4价格匹配
                 elif 0 <= round((down_price - no4_price), 2) <= self.price_premium and down_price > 50:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[31mDown 4: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mDown 4: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_up()
@@ -2362,11 +2347,11 @@ class CryptoTrader:
                                 cash_value=self.cash_value,
                                 portfolio_value=self.portfolio_value
                             )
-                            self.logger.info(f"\033[34m✅ 第{self.buy_count}次 BUY DOWN4成功\033[0m")
+                            self.logger.info(f"\033[32m✅ 第{self.buy_count}次 BUY DOWN4成功\033[0m")
                             
                             break
                         else:
-                            self.logger.warning(f"❌  Buy Down4 交易失败,第{retry+1}次,等待1秒后重试")
+                            self.logger.warning(f"\033[31m❌  Buy Down4 交易失败,第{retry+1}次,等待1秒后重试\033[0m")
                             time.sleep(1)  # 添加延时避免过于频繁的重试
                     else:
                         # 3次失败后发邮件
@@ -2424,7 +2409,7 @@ class CryptoTrader:
         self.no4_entry = self.no_frame.grid_slaves(row=7, column=1)[0]
         self.no4_entry.delete(0, tk.END)
         self.no4_entry.insert(0, f"{yes4_amount:.2f}")
-        self.logger.info("设置 YES1-4/NO1-4金额成功")
+        self.logger.info("\033[34m✅ 设置 YES1-4/NO1-4金额成功\033[0m")
 
     def click_positions_sell_and_sell_confirm_and_accept(self):
         """卖出并点击确认"""
@@ -2435,9 +2420,9 @@ class CryptoTrader:
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.POSITION_SELL_BUTTON[0]))
                 )
                 positions_sell_button.click()
-                self.logger.info("✅ 点击SELL按钮成功")
+                self.logger.info("\033[34m✅ 点击SELL按钮成功\033[0m")
             except TimeoutException:
-                self.logger.error("没有出现SELL按钮,跳过点击")
+                self.logger.info("\033[31m❌ 没有出现SELL按钮,跳过点击\033[0m")
 
             # 点击卖出确认按钮
             try:
@@ -2445,9 +2430,9 @@ class CryptoTrader:
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.SELL_CONFIRM_BUTTON[0]))
                 )
                 sell_confirm_button.click()
-                self.logger.info("✅ 点击SELL_CONFIRM按钮成功")
+                self.logger.info("\033[34m✅ 点击SELL_CONFIRM按钮成功\033[0m")
             except TimeoutException:
-                self.logger.error("没有出现SELL_CONFIRM按钮,跳过点击")
+                self.logger.info("\033[31m❌ 没有出现SELL_CONFIRM按钮,跳过点击\033[0m")
 
             # 等待ACCEPT弹窗出现
             try:
@@ -2455,10 +2440,10 @@ class CryptoTrader:
                     EC.presence_of_element_located((By.XPATH, XPathConfig.ACCEPT_BUTTON[0]))
                 )
                 accept_button.click()
-                self.logger.info("✅ 点击ACCEPT按钮成功")
+                self.logger.info("\033[34m✅ 点击ACCEPT按钮成功\033[0m")
             except TimeoutException:
                 # 弹窗没出现,不用处理
-                self.logger.info("没有出现ACCEPT弹窗,跳过点击")
+                self.logger.info("\033[31m❌ 没有出现ACCEPT弹窗,跳过点击\033[0m")
         except Exception as e:
             self.logger.error(f"卖出失败: {str(e)}")
 
@@ -2483,11 +2468,11 @@ class CryptoTrader:
                     cash_value=self.cash_value,
                     portfolio_value=self.portfolio_value
                 )
-                self.logger.info(f"卖出 Up 成功")
+                self.logger.info("\033[32m✅ 卖出 Up 成功\033[0m")
                 self.driver.refresh()
                 break
             else:
-                self.logger.warning(f"❌ 卖出only_sell_up第{retry+1}次验证失败,重试")
+                self.logger.warning(f"\033[31m❌ 卖出only_sell_up第{retry+1}次验证失败,重试\033[0m")
                 time.sleep(1)
       
     def only_sell_down(self):
@@ -2512,11 +2497,11 @@ class CryptoTrader:
                     cash_value=self.cash_value,
                     portfolio_value=self.portfolio_value
                 )
-                self.logger.info(f"卖出 Down 成功")
+                self.logger.info("\033[32m✅ 卖出 Down 成功\033[0m")
                 self.driver.refresh()
                 break
             else:
-                self.logger.warning(f"❌ 卖出only_sell_down第{retry+1}次验证失败,重试")
+                self.logger.warning(f"\033[31m❌ 卖出only_sell_down第{retry+1}次验证失败,重试\033[0m")
                 time.sleep(1)
 
     def Verify_buy_up(self):
@@ -2569,14 +2554,13 @@ class CryptoTrader:
         """
         try:
             for attempt in range(2):
-                self.logger.info(f"开始第{attempt + 1}次验证尝试（基于次数重试）")
+                self.logger.info("\033[34m✅ 开始第{attempt + 1}次验证尝试(基于\033[31m2\033[0m次重试)\033[0m")
                 # 检查 3次,每次等待1秒检查交易记录
                 max_retries = 3  # 最大重试次数
                 wait_interval = 1  # 检查间隔
                 
                 for retry in range(max_retries):
-                    self.logger.info(f"第{retry + 1}次检查交易记录（共{max_retries}次）")
-                    
+                    self.logger.info("\033[34m✅ 第{retry + 1}次检查交易记录（共{max_retries}次）\033[0m")
                     try:
                         # 等待历史记录元素出现                  
                         try:
@@ -2591,7 +2575,7 @@ class CryptoTrader:
                         if history_element:
                             # 获取历史记录文本
                             history_text = history_element.text
-                            self.logger.info(f"找到交易记录: \033[34m{history_text}\033[0m")
+                            self.logger.info(f"✅ 找到交易记录: \033[34m{history_text}\033[0m")
                             
                             # 分别查找action_type和direction，避免同时匹配导致的问题
                             action_found = re.search(rf"\b{action_type}\b", history_text, re.IGNORECASE)
@@ -2609,7 +2593,7 @@ class CryptoTrader:
                                 # shares可能是浮点数，先转为float再转为int
                                 self.shares = int(float(shares_match.group(1))) if shares_match else 0
 
-                                self.logger.info(f"✅ \033[31m交易验证成功: {action_type} {direction} 价格: {self.price} 金额: {self.amount} Shares: {self.shares}\033[0m")
+                                self.logger.info(f"✅ 交易验证成功: \033[33m{action_type} {direction} 价格: {self.price} 金额: {self.amount} Shares: {self.shares}\033[0m")
                                 return True, self.price, self.amount, self.shares
                     
                     except StaleElementReferenceException:
@@ -2625,12 +2609,12 @@ class CryptoTrader:
                         time.sleep(wait_interval)
                     
                 # 3次重试结束，刷新页面
-                # self.logger.info(f"第{attempt + 1}次尝试的3次重试结束,刷新页面")
+                self.logger.info(f"✅ {max_retries}次重试结束,刷新页面")
                 self.driver.refresh()
                 time.sleep(1)  # 刷新后等待页面加载
             
             # 超时未找到匹配的交易记录
-            self.logger.warning(f"❌ 交易验证失败: 未找到 {action_type} {direction} (已尝试2轮,每轮3次重试)")
+            self.logger.warning(f"\033[31m❌ 交易验证失败: 未找到 {action_type} {direction} (已尝试2轮,每轮3次重试)\033[0m")
             return False, 0, 0
                 
         except Exception as e:
@@ -2923,7 +2907,7 @@ class CryptoTrader:
                     self.logger.info(f"✅ \033[34m邮件发送成功: {trade_type} -> {', '.join(receivers)}\033[0m")
                     return  # 发送成功,退出重试循环
                 except Exception as e:
-                    self.logger.error(f"❌ SMTP操作失败 (尝试 {attempt + 1}/{max_retries}): {str(e)}")
+                    self.logger.error(f"❌ \033[31mSMTP操作失败 (尝试 {attempt + 1}/{max_retries}): {str(e)}\033[0m")
                     if attempt < max_retries - 1:
                         self.logger.info(f"等待 {retry_delay} 秒后重试...")
                         time.sleep(retry_delay)
@@ -2933,7 +2917,7 @@ class CryptoTrader:
                     except Exception:
                         pass          
             except Exception as e:
-                self.logger.error(f"❌ 邮件准备失败 (尝试 {attempt + 1}/{max_retries}): {str(e)}")
+                self.logger.error(f"❌ \033[31m邮件准备失败 (尝试 {attempt + 1}/{max_retries}): {str(e)}\033[0m")
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)     
         # 所有重试都失败
@@ -2991,9 +2975,9 @@ class CryptoTrader:
             try:
                 server.login(sender, app_password)
                 server.sendmail(sender, receiver, msg.as_string())
-                self.logger.info(f"✅ Chrome异常警报邮件发送成功")
+                self.logger.info(f"✅ \033[34mChrome异常警报邮件发送成功\033[0m")
             except Exception as e:
-                self.logger.error(f"❌ Chrome异常警报邮件发送失败: {str(e)}")
+                self.logger.error(f"❌ \033[31mChrome异常警报邮件发送失败: {str(e)}\033[0m")
             finally:
                 try:
                     server.quit()
@@ -3042,7 +3026,7 @@ class CryptoTrader:
                         self.logger.info("✅ find-element,找到了Up持仓标签: {position_label_up.text}")
                         return True
                     else:
-                        self.logger.info("❌ find_element,未找到Up持仓标签")
+                        self.logger.info("❌ \033[31mfind_element,未找到Up持仓标签\033[0m")
                         return False
                 except NoSuchElementException:
                     position_label_up = self._find_element_with_retry(XPathConfig.POSITION_UP_LABEL, timeout=3, silent=True)
@@ -3050,7 +3034,7 @@ class CryptoTrader:
                         self.logger.info(f"✅ with-retry,找到了Up持仓标签: {position_label_up.text}")
                         return True
                     else:
-                        self.logger.info("❌ use with-retry,未找到Up持仓标签")
+                        self.logger.info("❌ \033[31muse with-retry,未找到Up持仓标签\033[0m")
                         return False
                          
             except TimeoutException:
@@ -3089,7 +3073,7 @@ class CryptoTrader:
                         self.logger.info(f"✅ find-element,找到了Down持仓标签: {position_label_down.text}")
                         return True
                     else:
-                        self.logger.info("❌ find-element,未找到Down持仓标签")
+                        self.logger.info("❌ \033[31mfind-element,未找到Down持仓标签\033[0m")
                         return False
                 except NoSuchElementException:
                     position_label_down = self._find_element_with_retry(XPathConfig.POSITION_DOWN_LABEL, timeout=3, silent=True)
@@ -3097,11 +3081,11 @@ class CryptoTrader:
                         self.logger.info(f"✅ with-retry,找到了Down持仓标签: {position_label_down.text}")
                         return True
                     else:
-                        self.logger.info("❌ with-retry,未找到Down持仓标签")
+                        self.logger.info("❌ \033[31mwith-retry,未找到Down持仓标签\033[0m")
                         return False
                                
             except TimeoutException:
-                self.logger.warning(f"第{attempt + 1}次尝试未找到Down标签")
+                self.logger.warning(f"❌ \033[31m第{attempt + 1}次尝试未找到Down标签\033[0m")
                 
             if attempt < max_retries - 1:
                 self.logger.info(f"等待{retry_delay}秒后重试...")
@@ -3122,7 +3106,7 @@ class CryptoTrader:
                     return element
                 except TimeoutException:
                     if not silent:
-                        self.logger.warning(f"第{i}个XPATH定位超时: {xpath}")
+                        self.logger.warning(f"❌ \033[31m第{i}个XPATH定位超时: {xpath}\033[0m")
                     continue
         except Exception as e:
             if not silent:
@@ -3243,7 +3227,7 @@ class CryptoTrader:
                 )
                 self.logger.info("✅ CRYPTO按钮点击后的页面加载完成")
             except TimeoutException:
-                self.logger.error(f"❌ 定位CRYPTO按钮超时")
+                self.logger.error(f"❌ \033[31m定位CRYPTO按钮超时\033[0m")
 
             # 第二步:点击 DAILY 按钮
             try:
@@ -3257,7 +3241,7 @@ class CryptoTrader:
                 )
                 self.logger.info("✅ DAILY按钮点击后的页面加载完成")
             except (TimeoutException):
-                self.logger.error(f"❌ 定位DAILY按钮超时")
+                self.logger.error(f"❌ \033[31m定位DAILY按钮超时\033[0m")
             
             # 第三步:点击目标 URL 按钮,在当前页面打开 URL
             if self.click_today_card():
@@ -3280,12 +3264,12 @@ class CryptoTrader:
                 self.set_web_value('trading_pair_label', pair.group(1))
                 self.logger.info(f"✅ {new_url}:已插入到主界面上并保存到配置文件")
             else:
-                self.logger.error(f"❌ 未成功点击目标URL按钮")
+                self.logger.error(f"❌ \033[31m未成功点击目标URL按钮\033[0m")
                 # 继续点击目标 URL 按钮
                 if self.click_today_card():
                     self.logger.info(f"✅ 成功点击目标URL按钮")
                 else:
-                    self.logger.error(f"❌ 未成功点击目标URL按钮")
+                    self.logger.error(f"❌ \033[31m未成功点击目标URL按钮\033[0m")
 
         except Exception as e:
             self.logger.error(f"自动找币失败.错误信息:{e}")
@@ -3388,7 +3372,7 @@ class CryptoTrader:
                 cash_match = re.search(r'\$?([\d,]+\.?\d*)', cash_value)
 
                 if not cash_match:
-                    self.logger.error("❌ 无法从Cash值中提取数字")
+                    self.logger.error("❌ \033[31m无法从Cash值中提取数字\033[0m")
                     return
 
                 # 移除逗号并转换为浮点数
@@ -3405,7 +3389,7 @@ class CryptoTrader:
             except Exception as e:
                 self.logger.warning(f"⚠️ 第 {i + 1} 次尝试失败: {str(e)}")
                 time.sleep(1)
-        self.logger.error("❌ 获取CASH值失败,已重试3次仍未成功")
+        self.logger.error("❌ \033[31m获取CASH值失败,已重试3次仍未成功\033[0m")
 
     def schedule_get_zero_time_cash(self):
         """定时获取零点CASH值"""
@@ -3460,7 +3444,7 @@ class CryptoTrader:
             cash_match = re.search(r'\$?([\d,]+\.?\d*)', cash_value)
 
             if not cash_match:
-                self.logger.error("❌ 无法从Cash值中提取数字")
+                self.logger.error("❌ \033[31m无法从Cash值中提取数字\033[0m")
                 return
 
             # 移除逗号并转换为浮点数
@@ -3576,12 +3560,12 @@ class CryptoTrader:
                 break # 获取成功，跳出重试循环
 
             except Exception as e:
-                self.logger.warning(f"❌ (尝试 {attempt + 1}/{max_retries}) 获取币安 \033[34m{coin_form_websocket}\033[0m 价格时发生错误: {e}")
+                self.logger.warning(f"❌ \033[31m(尝试 {attempt + 1}/{max_retries}) 获取币安 \033[34m{coin_form_websocket}\033[0m 价格时发生错误: {e}\033[0m")
                 if attempt < max_retries - 1: # 如果不是最后一次尝试
                     self.logger.info(f"等待 {retry_delay} 秒后重试...")
                     time.sleep(retry_delay) # 等待后重试
                 else: # 最后一次尝试仍然失败
-                    self.logger.error(f"❌ 获取币安 \033[34m{coin_form_websocket}\033[0m 价格失败，已达到最大重试次数 ({max_retries})。")
+                    self.logger.error(f"❌ \033[31m获取币安 \033[34m{coin_form_websocket}\033[0m 价格失败，已达到最大重试次数 ({max_retries})\033[0m")
         
         # 3. 如果成功获取数据 (即try块没有异常且api_data不为None)，则更新Web界面数据
         if api_data:
@@ -3591,7 +3575,7 @@ class CryptoTrader:
                     self.zero_time_price = api_data["price"]
                     self.set_web_value('binance_zero_price_label', str(self.zero_time_price))
                 except Exception as e_web:
-                    self.logger.debug(f"❌ 更新零点价格Web数据时出错: {e_web}")
+                    self.logger.debug(f"❌ \033[31m更新零点价格Web数据时出错: {e_web}\033[0m")
             
             # 在Web模式下直接执行数据更新
             update_web_data()
@@ -3658,7 +3642,7 @@ class CryptoTrader:
                         self.set_web_value('binance_rate_label', binance_rate_text)
                         # Web模式下不需要设置字体和颜色
                     except Exception as e:
-                        self.logger.debug("❌ 更新Web数据时发生错误:", e)
+                        self.logger.debug("❌ \033[31m更新Web数据时发生错误:\033[0m", e)
 
                 # 在Web模式下直接执行数据更新
                 update_web_data()
@@ -3800,17 +3784,16 @@ class CryptoTrader:
                     self.logger.info(f"✅ 交易次数已恢复到初始值: {self.trade_count}")
                         
                 else:
-                    self.logger.info(f"ℹ️ 交易次数 {self.trade_count} > 14,不执行夜间自动卖出")
+                    self.logger.info(f"\033[34mℹ️ 交易次数 {self.trade_count} > 14,不执行夜间自动卖出\033[0m")
                 
         except Exception as e:
-            self.logger.error(f"❌ 夜间自动卖出检查失败: {str(e)}")
+            self.logger.error(f"❌ \033[31m夜间自动卖出检查失败: {str(e)}\033[0m")
 
     def schedule_night_auto_sell_check(self):
         """
         调度夜间自动卖出检查
         每30分钟执行一次检查
         """
-        #self.logger.info("\033[34m✅ 启动夜间自动卖出检查!\033[0m")
         try:
             # 执行夜间自动卖出检查
             self.night_auto_sell_check()
@@ -3823,7 +3806,7 @@ class CryptoTrader:
                 #self.logger.info("✅ 已设置30分钟后进行下一次夜间自动卖出检查")
                 
         except Exception as e:
-            self.logger.error(f"❌ 调度夜间自动卖出检查失败: {str(e)}")
+            self.logger.error(f"❌ \033[31m调度夜间自动卖出检查失败: {str(e)}\033[0m")
             # 即使出错也要设置下一次检查
             if self.running and not self.stop_event.is_set():
                 self.night_auto_sell_timer = threading.Timer(30 * 60, self.schedule_night_auto_sell_check)
@@ -3928,7 +3911,7 @@ class CryptoTrader:
                 self.logger.error(f"获取内存信息失败: {e}")
                 
         except Exception as e:
-            self.logger.error(f"❌ 自动Swap管理失败: {str(e)}")
+            self.logger.error(f"❌ \033[31m自动Swap管理失败: {str(e)}\033[0m")
 
     def schedule_auto_use_swap(self):
         """
@@ -3947,7 +3930,7 @@ class CryptoTrader:
                 self.auto_use_swap_timer.start()
             
         except Exception as e:
-            self.logger.error(f"❌ 调度自动Swap检查失败: {str(e)}")
+            self.logger.error(f"❌ \033[31m调度自动Swap检查失败: {str(e)}\033[0m")
             # 即使出错也要设置下一次检查（但要检查定时器状态）
             if (self.running and not self.stop_event.is_set() and 
                 hasattr(self, 'auto_use_swap_timer') and self.auto_use_swap_timer is not None):
@@ -3972,7 +3955,7 @@ class CryptoTrader:
                 self.clear_chrome_mem_cache_timer.start()
             
         except Exception as e:
-            self.logger.error(f"❌ 调度清除Chrome内存缓存失败: {str(e)}")
+            self.logger.error(f"❌ \033[31m调度清除Chrome内存缓存失败: {str(e)}\033[0m")
             # 即使出错也要设置下一次检查（但要检查定时器状态）
             if (self.running and not self.stop_event.is_set() and 
                 hasattr(self, 'clear_chrome_mem_cache_timer') and self.clear_chrome_mem_cache_timer is not None):
@@ -4030,7 +4013,7 @@ class CryptoTrader:
                     self.logger.info("ℹ️ 未找到 Cache_Data 缓存目录")
 
         except Exception as e:
-            self.logger.error(f"❌ 关闭Chrome进程失败: {str(e)}")
+            self.logger.error(f"❌ \033[31m关闭Chrome进程失败: {str(e)}\033[0m")
 
     def schedule_record_and_show_cash(self):
         """安排每天 0:30 记录现金到CSV"""
@@ -4042,7 +4025,7 @@ class CryptoTrader:
         self.record_and_show_cash_timer = threading.Timer(wait_time, self.record_cash_daily)
         self.record_and_show_cash_timer.daemon = True
         self.record_and_show_cash_timer.start()
-        self.logger.info(f"✅ 已安排在 {next_run.strftime('%Y-%m-%d %H:%M:%S')} 记录利润")
+        self.logger.info(f"✅ \033[32m已安排在 {next_run.strftime('%Y-%m-%d %H:%M:%S')} 记录利润\033[0m")
 
     def load_cash_history(self):
         """启动时从CSV加载全部历史记录, 兼容旧4/6列并补齐为7列(日期,Cash,利润,利润率,总利润,总利润率,交易次数)"""
@@ -4321,21 +4304,21 @@ class CryptoTrader:
                         min-height: 100vh;
                     }
                     .container { 
-                        max-width: 1160px; margin: 15px auto; background: rgba(255, 255, 255, 0.95); 
-                        padding: 25px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                        max-width: 1160px; margin: 5px auto; background: rgba(255, 255, 255, 0.95); 
+                        padding: 10px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
                         backdrop-filter: blur(10px);
                     }
-                    .header { text-align: center; margin-bottom: 15px; }
+                    .header { text-align: center; margin-bottom: 5px; }
                     .header h1 { 
                         color: #2c3e50; margin: 0; font-size: 36px; font-weight: 700;
                         background: linear-gradient(45deg, #667eea, #764ba2);
                         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                         text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
                     }
-                    .header p { color: #5a6c7d; margin: 15px 0 0 0; font-size: 18px; font-weight: 500; }
+                    .header p { color: #5a6c7d; margin: 5px 0 0 0; font-size: 18px; font-weight: 500; }
                     .nav { 
                         display: flex; justify-content: center; gap: 20px; 
-                        margin-bottom: 35px; padding: 20px; background: rgba(248, 249, 250, 0.8); 
+                        margin-bottom: 5px; padding: 8px; background: rgba(248, 249, 250, 0.8); 
                         border-radius: 12px; backdrop-filter: blur(5px);
                     }
                     .nav a { 
@@ -4379,14 +4362,14 @@ class CryptoTrader:
                         flex: 1;
                         display: flex;
                         flex-direction: column;
-                        gap: 20px;
+                        gap: 1px;
                     }
                     
 
                     
                     .info-grid { 
                         display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-                        gap: 20px; 
+                        gap: 8px; 
                     }
                     .monitor-controls-section {
                         max-width: 1160px;
@@ -4399,7 +4382,7 @@ class CryptoTrader:
                         overflow: visible;
                     }
                     .info-item { 
-                        padding: 15px; background: rgba(248, 249, 250, 0.8); border-radius: 8px;
+                        padding: 3px; background: rgba(248, 249, 250, 0.8); border-radius: 8px;
                         transition: all 0.3s ease; border: 2px solid transparent;
                         flex: 1 1 auto;
                         min-width: 70px;
@@ -4408,7 +4391,7 @@ class CryptoTrader:
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        gap: 0;
+                        gap: 2px;
                         overflow: hidden;
                     }
                     .info-item:hover {
@@ -4448,15 +4431,17 @@ class CryptoTrader:
                     }
                     .binance-price-container {
                         display: flex;
+                        margin-top: 0px;      /* 上间距 */
+                        margin-bottom: 0px;   /* 下间距 */
                         flex-direction: row;
-                        gap: 15px;
+                        gap: 5px;
                         flex: 1;
                         align-items: center;
-                    }
-                    .binance-price-container {
-                        display: flex;
                         justify-content: center; /* 水平居中 */
-                        align-items: center;    /* 垂直居中 */
+                    }
+                    /* 减少上方币安价格区与下方资产区之间的垂直间距 */
+                    .binance-price-container + .binance-price-container {
+                        margin-top: 2px;
                     }
                     .binance-price-item {
                         display: flex;
@@ -4480,10 +4465,10 @@ class CryptoTrader:
                         justify-content: center;
                         align-items: center;
                         gap: 20px;
-                        padding: 15px;
+                        padding: 2px;
                         background-color: #f8f9fa;
                         border-radius: 8px;
-                        margin-bottom: 20px;
+                        margin-bottom: 0px;
                     }
                     
                     .up-price-display, .down-price-display {
@@ -4512,16 +4497,16 @@ class CryptoTrader:
                         margin-right: 5px;
                     }
                     .price-display { 
-                        display: flex; justify-content: space-around; text-align: center; gap: 20px;
-                        margin-top: 20px;
+                        display: flex; justify-content: space-around; text-align: center; gap: 12px;
+                        margin-top: 10px;
                     }
                     .price-box { 
-                        padding: 25px; border-radius: 12px; min-width: 150px;
+                        padding: 18px; border-radius: 12px; min-width: 150px;
                         font-size: 20px; font-weight: 800; transition: all 0.3s ease;
                         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                     }
                     .price-box:hover {
-                        transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                        transform: translateY(-3px); box-shadow: 0 8px 10px rgba(0,0,0,0.15);
                     }
                     .price-up { 
                         background: linear-gradient(135deg, #d4edda, #c3e6cb); 
@@ -4531,10 +4516,10 @@ class CryptoTrader:
                         background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
                         color: #721c24; border: 2px solid #dc3545;
                     }
-                    .positions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+                    .positions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
                     .position-section h4 { 
-                        margin: 0 0 20px 0; padding: 15px; border-radius: 8px; text-align: center; 
-                        color: white; font-size: 20px; font-weight: 700;
+                        margin: 0 0 10px 0; padding: 10px; border-radius: 8px; text-align: center; 
+                        color: white; font-size: 18px; font-weight: 700;
                     }
                     .up-section h4 { 
                         background: linear-gradient(45deg, #28a745, #20c997); 
@@ -4545,8 +4530,8 @@ class CryptoTrader:
                         box-shadow: 0 4px 15px rgba(220,53,69,0.3);
                     }
                     .position-row { 
-                        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; 
-                        padding: 12px; border-bottom: 1px solid rgba(238, 238, 238, 0.8); 
+                        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; 
+                        padding: 2px 2px; border-bottom: 1px solid rgba(238, 238, 238, 0.8); 
                         align-items: center; font-size: 15px; font-weight: 500;
                     }
                     .position-row:last-child { border-bottom: none; }
@@ -4563,7 +4548,7 @@ class CryptoTrader:
                     }
                     .position-input {
                         width: 100%;
-                        padding: 6px 8px;
+                        padding: 2px 4px;
                         border: 1px solid #ddd;
                         border-radius: 4px;
                         font-size: 14px;
@@ -4606,14 +4591,14 @@ class CryptoTrader:
                     .refresh-info { 
                         text-align: center; padding: 20px; 
                         background: linear-gradient(135deg, #e9ecef, #dee2e6); 
-                        border-radius: 12px; margin-top: 25px; color: #495057;
+                        border-radius: 12px; margin-top: 5px; color: #495057;
                         font-size: 16px; font-weight: 500;
                         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
                     }
                     .control-section {
                         max-width: 1160px;
-                        margin: 20px auto 0 auto;
-                        padding: 20px 20px 0 20px;
+                        margin: 5px auto 0 auto;
+                        padding: 10px 10px 0 10px;
                         border-top: 2px solid rgba(222, 226, 230, 0.5);
                     }
                     .url-input-group {
@@ -4706,8 +4691,9 @@ class CryptoTrader:
                         flex: 1;
                         display: grid;
                         grid-template-columns: 1fr 1fr;
-                        gap: 25px;
+                        gap: 15px;
                     }
+                 
                 </style>
                 <script>
                     function updateData() {
@@ -4920,7 +4906,6 @@ class CryptoTrader:
                                 </div>
                             </div>
                         </div>
-
                         <!-- 右侧：价格和交易区域 -->
                         <div class="right-panel">
                             <!-- UP和DOWN价格显示 -->
@@ -4932,21 +4917,74 @@ class CryptoTrader:
                                     <span class="price-label">DOWN:</span> {{ data.prices.down_price or 'N/A' }}
                                 </div>
                             </div>
+                            <!-- 币安价格显示区域 -->
+                            <div class="binance-price-container up-down-prices-container">
+                                
+                                <span class="binance-label">零点:</span>
+                                <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                            
+                                <span class="binance-label">实时:</span>
+                                <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                            
+                                <span class="binance-label">涨幅:</span>
+                                <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>                               
+                            </div>
+                            <!-- 资产显示区域 -->
                             <div class="binance-price-container">
-                                <div class="up-down-prices-container">
-                                    <span class="binance-label">零点:</span>
-                                    <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                                <div class="info-item">
+                                    <label>Portfolio:</label>
+                                    <div class="value" id="portfolio">{{ data.account.portfolio or '0' }}</div>
                                 </div>
-                                <div class="up-down-prices-container">
-                                    <span class="binance-label">实时:</span>
-                                    <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                <div class="info-item">
+                                    <label>Cash:</label>
+                                    <div class="value" id="cash">{{ data.account.cash or '0' }}</div>
                                 </div>
-                                <div class="up-down-prices-container">
-                                    <span class="binance-label">涨幅:</span>
-                                    <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
+                                <div class="info-item">
+                                    <label>零点 CASH:</label>
+                                    <div class="value" id="zero_time_cash">{{ data.account.zero_time_cash or '--' }}</div>
                                 </div>
                             </div>
-                            <!-- 交易仓位 -->
+                            <!-- 币种和交易时间显示区域 -->
+                            <div class="binance-price-container">
+                                <div class="info-item coin-select-item">
+                                        <label>币种:</label>
+                                        <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 60px; min-width: 60px;">
+                                            <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
+                                            <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
+                                            <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
+                                            <option value="XRP" {{ 'selected' if data.coin == 'XRP' else '' }}>XRP</option>
+                                        </select>
+                                    </div>
+                                <div class="info-item time-select-item">
+                                    <label>交易时间:</label>
+                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 60px; min-width: 60px;">
+                                        <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
+                                        <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
+                                        <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
+                                        <option value="4:00" {{ 'selected' if data.auto_find_time == '4:00' else '' }}>4:00</option>
+                                        <option value="5:00" {{ 'selected' if data.auto_find_time == '5:00' else '' }}>5:00</option>
+                                        <option value="6:00" {{ 'selected' if data.auto_find_time == '6:00' else '' }}>6:00</option>
+                                        <option value="7:00" {{ 'selected' if data.auto_find_time == '7:00' else '' }}>7:00</option>
+                                        <option value="8:00" {{ 'selected' if data.auto_find_time == '8:00' else '' }}>8:00</option>
+                                        <option value="9:00" {{ 'selected' if data.auto_find_time == '9:00' else '' }}>9:00</option>
+                                        <option value="10:00" {{ 'selected' if data.auto_find_time == '10:00' else '' }}>10:00</option>
+                                        <option value="11:00" {{ 'selected' if data.auto_find_time == '11:00' else '' }}>11:00</option>
+                                        <option value="12:00" {{ 'selected' if data.auto_find_time == '12:00' else '' }}>12:00</option>
+                                        <option value="13:00" {{ 'selected' if data.auto_find_time == '13:00' else '' }}>13:00</option>
+                                        <option value="14:00" {{ 'selected' if data.auto_find_time == '14:00' else '' }}>14:00</option>
+                                        <option value="15:00" {{ 'selected' if data.auto_find_time == '15:00' else '' }}>15:00</option>
+                                        <option value="16:00" {{ 'selected' if data.auto_find_time == '16:00' else '' }}>16:00</option>
+                                        <option value="17:00" {{ 'selected' if data.auto_find_time == '17:00' else '' }}>17:00</option>
+                                        <option value="18:00" {{ 'selected' if data.auto_find_time == '18:00' else '' }}>18:00</option>
+                                        <option value="19:00" {{ 'selected' if data.auto_find_time == '19:00' else '' }}>19:00</option>
+                                        <option value="20:00" {{ 'selected' if data.auto_find_time == '20:00' else '' }}>20:00</option>
+                                        <option value="21:00" {{ 'selected' if data.auto_find_time == '21:00' else '' }}>21:00</option>
+                                        <option value="22:00" {{ 'selected' if data.auto_find_time == '22:00' else '' }}>22:00</option>
+                                        <option value="23:00" {{ 'selected' if data.auto_find_time == '23:00' else '' }}>23:00</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- 交易仓位显示区域 -->
                             <div class="card">
                             <form id="positionsForm">
                                 <div class="positions-grid">
@@ -5025,56 +5063,8 @@ class CryptoTrader:
                     
                     <!-- 网站监控信息 -->
                     <div class="monitor-controls-section">
-                                <div class="info-item coin-select-item">
-                                    <label>币种:</label>
-                                    <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 60px; min-width: 60px;">
-                                        <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
-                                        <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
-                                        <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
-                                        <option value="XRP" {{ 'selected' if data.coin == 'XRP' else '' }}>XRP</option>
-                                    </select>
-                                </div>
-                                <div class="info-item time-select-item">
-                                    <label>交易时间:</label>
-                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 60px; min-width: 60px;">
-                                        <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
-                                        <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
-                                        <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
-                                        <option value="4:00" {{ 'selected' if data.auto_find_time == '4:00' else '' }}>4:00</option>
-                                        <option value="5:00" {{ 'selected' if data.auto_find_time == '5:00' else '' }}>5:00</option>
-                                        <option value="6:00" {{ 'selected' if data.auto_find_time == '6:00' else '' }}>6:00</option>
-                                        <option value="7:00" {{ 'selected' if data.auto_find_time == '7:00' else '' }}>7:00</option>
-                                        <option value="8:00" {{ 'selected' if data.auto_find_time == '8:00' else '' }}>8:00</option>
-                                        <option value="9:00" {{ 'selected' if data.auto_find_time == '9:00' else '' }}>9:00</option>
-                                        <option value="10:00" {{ 'selected' if data.auto_find_time == '10:00' else '' }}>10:00</option>
-                                        <option value="11:00" {{ 'selected' if data.auto_find_time == '11:00' else '' }}>11:00</option>
-                                        <option value="12:00" {{ 'selected' if data.auto_find_time == '12:00' else '' }}>12:00</option>
-                                        <option value="13:00" {{ 'selected' if data.auto_find_time == '13:00' else '' }}>13:00</option>
-                                        <option value="14:00" {{ 'selected' if data.auto_find_time == '14:00' else '' }}>14:00</option>
-                                        <option value="15:00" {{ 'selected' if data.auto_find_time == '15:00' else '' }}>15:00</option>
-                                        <option value="16:00" {{ 'selected' if data.auto_find_time == '16:00' else '' }}>16:00</option>
-                                        <option value="17:00" {{ 'selected' if data.auto_find_time == '17:00' else '' }}>17:00</option>
-                                        <option value="18:00" {{ 'selected' if data.auto_find_time == '18:00' else '' }}>18:00</option>
-                                        <option value="19:00" {{ 'selected' if data.auto_find_time == '19:00' else '' }}>19:00</option>
-                                        <option value="20:00" {{ 'selected' if data.auto_find_time == '20:00' else '' }}>20:00</option>
-                                        <option value="21:00" {{ 'selected' if data.auto_find_time == '21:00' else '' }}>21:00</option>
-                                        <option value="22:00" {{ 'selected' if data.auto_find_time == '22:00' else '' }}>22:00</option>
-                                        <option value="23:00" {{ 'selected' if data.auto_find_time == '23:00' else '' }}>23:00</option>
-                                    </select>
-                                </div>
                                 
-                                <div class="info-item">
-                                    <label>Portfolio:</label>
-                                    <div class="value" id="portfolio">{{ data.account.portfolio or '0' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>Cash:</label>
-                                    <div class="value" id="cash">{{ data.account.cash or '0' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>零点 CASH:</label>
-                                    <div class="value" id="zero_time_cash">{{ data.account.zero_time_cash or '--' }}</div>
-                                </div>
+                                
                             </div>
                         
                         <!-- URL输入和启动控制 -->
@@ -5301,7 +5291,7 @@ class CryptoTrader:
                 </script>
                 
                 <!-- 交易记录表格 -->
-                <div style="max-width: 1160px; margin: 30px auto 0 auto; padding: 20px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
+                <div style="max-width: 1160px; margin: 5px auto 0 auto; padding: 10px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
                     
                     {% if data.cash_history and data.cash_history|length > 0 %}
                     <div style="overflow-x: auto;">
@@ -5342,7 +5332,7 @@ class CryptoTrader:
                         <p style="font-size: 14px; margin: 10px 0 0 0;">数据将在每日 0:30 自动记录</p>
                     </div>
                     {% endif %}
-                    <div style="text-align: center; margin-top: 15px; padding: 10px; background-color: #e9ecef; border-radius: 5px; font-size: 12px; color: #6c757d;">
+                    <div style="text-align: center; margin-top: 5px; padding: 10px; background-color: #e9ecef; border-radius: 5px; font-size: 12px; color: #6c757d;">
                         📅 数据来源：每日 0:30 自动记录 | 💾 数据持久化：追加模式，程序重启不丢失 | 🔄 页面实时：24小时在线，随时可访问
                     </div>
                 </div>
@@ -5480,9 +5470,9 @@ class CryptoTrader:
                 <style>
                     body { 
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-                        padding: 20px; margin: 0; background: #f8f9fa; 
+                        padding: 5px; margin: 0; background: #f8f9fa; 
                     }
-                    .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                    .container { max-width: 900px; margin: 0 auto; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
                     h2 { color: #333; text-align: center; margin-bottom: 20px; }
                     table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
                     th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
