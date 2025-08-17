@@ -543,6 +543,8 @@ class CryptoTrader:
                             response = urllib.request.urlopen(f'http://{host}:9222/json', timeout=5)
                             if response.getcode() == 200:
                                 self.logger.info(f"✅ \033[34mChrome无头模式启动成功!!!可以点击'启动监控'按钮了!\033[0m")
+                                # 设置浏览器启动状态，用于前端按钮状态控制
+                                self.set_web_state('browser_started', True)
                                 return
                         except Exception as host_e:
                             self.logger.debug(f"尝试连接{host}:9222失败: {str(host_e)}")
@@ -5558,8 +5560,8 @@ class CryptoTrader:
         def get_monitoring_status():
             """获取监控状态API"""
             try:
-                # 检查浏览器是否已启动（driver不为None表示浏览器已连接）
-                monitoring_active = self.driver is not None
+                # 检查浏览器是否已启动
+                monitoring_active = self.get_web_value('browser_started') == True
                 
                 return jsonify({
                     'monitoring_active': monitoring_active,
