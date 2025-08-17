@@ -510,7 +510,12 @@ class CryptoTrader:
             self.logger.info("尝试检查Chrome是否已启动...")
 
         # 额外检查Chrome无头模式是否成功启动
-        self._check_chrome_headless_status()
+        try:
+            self._check_chrome_headless_status()
+            self.logger.info("✅ 浏览器启动成功")
+        except Exception as e:
+            self.logger.error(f"❌ 浏览器启动失败: {str(e)}")
+            raise
 
     def _check_chrome_headless_status(self):
         """检查Chrome无头模式是否成功启动"""
