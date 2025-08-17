@@ -4971,6 +4971,60 @@ class CryptoTrader:
                         grid-template-columns: 1fr 1fr;
                         gap: 15px;
                     }
+                    
+                    /* 时间显示和倒计时样式 */
+                    .time-display-section {
+                        margin: 5px 0;
+                        padding: 5px 10px;
+                        background: rgba(248, 249, 250, 0.9);
+                        border-radius: 6px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        flex-wrap: wrap;
+                    }
+                    
+                    .current-time {
+                        margin: 0;
+                    }
+                    
+                    #currentTime {
+                        font-size: 10px;
+                        font-weight: 600;
+                        color: #2c3e50;
+                        background: linear-gradient(45deg, #667eea, #764ba2);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                    }
+                    
+                    .countdown-container {
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                    }
+                    
+                    .countdown-label {
+                        font-size: 10px;
+                        font-weight: 600;
+                        background: linear-gradient(45deg, #667eea, #764ba2);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                    }
+                    
+                    .simple-clock {
+                        display: flex;
+                        gap: 1px;
+                        align-items: center;
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: #dc3545;
+                    }
+                    
+                    .simple-clock span {
+                        min-width: 18px;
+                        text-align: center;
+                    }
                  
                 </style>
                 <script>
@@ -5117,6 +5171,9 @@ class CryptoTrader:
                         // 开始定期更新数据和按钮状态
                         updateData();
                         setInterval(updateData, 2000);
+                        
+                        // 初始化时间显示和倒计时
+                        initializeTimeDisplay();
                     });
                     
                     function startChrome() {
@@ -5222,6 +5279,77 @@ class CryptoTrader:
                         .catch(error => {
                             console.error('Error updating time:', error);
                         });
+                    }
+                    
+                    // 时间显示和倒计时功能
+                    function updateCurrentTime() {
+                        const now = new Date();
+                        const timeString = now.getFullYear() + '-' + 
+                            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(now.getDate()).padStart(2, '0') + ' ' + 
+                            String(now.getHours()).padStart(2, '0') + ':' + 
+                            String(now.getMinutes()).padStart(2, '0') + ':' + 
+                            String(now.getSeconds()).padStart(2, '0');
+                        document.getElementById('currentTime').textContent = timeString;
+                    }
+                    
+                    function updateCountdown() {
+                        const now = new Date();
+                        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                        const timeDiff = endOfDay - now;
+                        
+                        if (timeDiff <= 0) {
+                            // 如果已经过了当天23:59:59，显示00:00:00
+                            updateFlipClock('00', '00', '00');
+                            return;
+                        }
+                        
+                        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+                        
+                        const hoursStr = String(hours).padStart(2, '0');
+                        const minutesStr = String(minutes).padStart(2, '0');
+                        const secondsStr = String(seconds).padStart(2, '0');
+                        
+                        updateFlipClock(hoursStr, minutesStr, secondsStr);
+                    }
+                    
+                    function updateFlipClock(hours, minutes, seconds) {
+                        // 先检查元素是否存在
+                        if (document.getElementById('hours') && 
+                            document.getElementById('minutes') && 
+                            document.getElementById('seconds')) {
+                            updateSimpleUnit('hours', hours);
+                            updateSimpleUnit('minutes', minutes);
+                            updateSimpleUnit('seconds', seconds);
+                        } else {
+                            console.log('Countdown elements not found, retrying in 1 second...');
+                        }
+                    }
+                    
+                    function updateSimpleUnit(unitId, newValue) {
+                        const unit = document.getElementById(unitId);
+                        if (!unit) {
+                            console.error('Element not found:', unitId);
+                            return;
+                        }
+                        
+                        // 直接更新数字内容
+                        unit.textContent = newValue;
+                    }
+                    
+                    // 初始化时间显示和倒计时
+                    function initializeTimeDisplay() {
+                        // 延迟执行以确保DOM完全加载
+                        setTimeout(() => {
+                            updateCurrentTime();
+                            updateCountdown();
+                            
+                            // 每秒更新时间和倒计时
+                            setInterval(updateCurrentTime, 1000);
+                            setInterval(updateCountdown, 1000);
+                        }, 100);
                     }
                     
                     // 注意：数据更新和按钮状态管理已在DOMContentLoaded事件中处理
@@ -5381,8 +5509,24 @@ class CryptoTrader:
                                     </div>
                                 </div>
 
-                            </form>
+                                <!-- 时间显示和倒计时 -->
+                                <div class="time-display-section">
+                                    <div class="current-time">
+                                        <span id="currentTime">2025-08-17 18:08:30</span>
+                                    </div>
+                                    <div class="countdown-container">
+                                        <span class="countdown-label">距离当天交易结束还有:</span>
+                                        <div class="simple-clock">
+                                            <span id="hours">06</span>:
+                                            <span id="minutes">50</span>:
+                                            <span id="seconds">30</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </form>                           
                         </div>
+                        
                     </div>
                         </div>
                     </div>
