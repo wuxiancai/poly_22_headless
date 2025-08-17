@@ -3255,6 +3255,22 @@ class CryptoTrader:
         self.save_config()
         selected_coin = self.get_web_value('coin_combobox')
         self.logger.info(f"💰 币种选择已更改为: {selected_coin}")
+        
+        # 立即重新获取新币种的币安价格
+        if hasattr(self, 'running') and self.running:
+            # 取消现有的价格获取定时器
+            if hasattr(self, 'get_binance_price_websocket_timer') and self.get_binance_price_websocket_timer:
+                self.get_binance_price_websocket_timer.cancel()
+            if hasattr(self, 'get_binance_zero_time_price_timer') and self.get_binance_zero_time_price_timer:
+                self.get_binance_zero_time_price_timer.cancel()
+            
+            # 立即获取新币种的零点价格
+            threading.Timer(1.0, self.get_binance_zero_time_price).start()
+            
+            # 立即开始新币种的实时价格监控
+            threading.Timer(3.0, self.get_binance_price_websocket).start()
+            
+            self.logger.info(f"🔄 已切换到 {selected_coin} 价格监控")
 
     def schedule_auto_find_coin(self):
         """安排每天指定时间执行自动找币"""
@@ -5145,6 +5161,29 @@ class CryptoTrader:
                         });
                     }
                     
+                    function restartProgram() {
+                        if (confirm('确定要重启程序吗？这将重启整个系统服务。')) {
+                            fetch('/api/restart_program', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showMessage('程序重启命令已发送，系统将在几秒后重启', 'success');
+                                } else {
+                                    showMessage('程序重启失败: ' + data.message, 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('程序重启失败:', error);
+                                showMessage('程序重启失败', 'error');
+                            });
+                        }
+                    }
+                    
                     function updateCoin() {
                         const coin = document.getElementById('coinSelect').value;
                         fetch('/api/update_coin', {
@@ -5362,6 +5401,7 @@ class CryptoTrader:
                                 <button id="stopBtn" onclick="stopMonitoring()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">🛑 停止监控</button>
                                 <button id="startChromeBtn" onclick="startChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🚀 启动浏览器</button>
                                 <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
+                                <button id="restartBtn" onclick="restartProgram()" style="padding: 14px 28px; background: linear-gradient(45deg, #fd7e14, #e55a00); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(253,126,20,0.3); margin-left: 10px;">🔄 重启程序</button>
                             </div>
                             <div id="statusMessage" class="status-message"></div>
                         </div>
@@ -6247,6 +6287,32 @@ class CryptoTrader:
             except Exception as e:
                 self.logger.error(f"关闭Chrome浏览器失败: {str(e)}")
                 return jsonify({'success': False, 'message': f'关闭失败: {str(e)}'})
+
+        @app.route('/api/restart_program', methods=['POST'])
+        def restart_program():
+            """重启程序"""
+            try:
+                self.logger.info("收到程序重启请求")
+                
+                # 执行重启命令
+                import subprocess
+                result = subprocess.run(['sudo', 'systemctl', 'restart', 'run-poly.service'], 
+                                      capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0:
+                    self.logger.info("程序重启命令执行成功")
+                    return jsonify({'success': True, 'message': '程序重启命令已发送'})
+                else:
+                    error_msg = result.stderr or result.stdout or '未知错误'
+                    self.logger.error(f"程序重启命令执行失败: {error_msg}")
+                    return jsonify({'success': False, 'message': f'重启失败: {error_msg}'})
+                    
+            except subprocess.TimeoutExpired:
+                self.logger.error("程序重启命令执行超时")
+                return jsonify({'success': False, 'message': '重启命令执行超时'})
+            except Exception as e:
+                self.logger.error(f"程序重启失败: {str(e)}")
+                return jsonify({'success': False, 'message': f'重启失败: {str(e)}'})
 
         return app
 
