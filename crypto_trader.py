@@ -5045,10 +5045,10 @@ class CryptoTrader:
                                     const downPriceEl = document.querySelector(`#down${i}_price`);
                                     const downAmountEl = document.querySelector(`#down${i}_amount`);
                                     
-                                    if (upPriceEl) upPriceEl.textContent = data.positions[`up${i}_price`];
-                                    if (upAmountEl) upAmountEl.textContent = data.positions[`up${i}_amount`];
-                                    if (downPriceEl) downPriceEl.textContent = data.positions[`down${i}_price`];
-                                    if (downAmountEl) downAmountEl.textContent = data.positions[`down${i}_amount`];
+                                    if (upPriceEl) upPriceEl.value = data.positions[`up${i}_price`];
+                                    if (upAmountEl) upAmountEl.value = data.positions[`up${i}_amount`];
+                                    if (downPriceEl) downPriceEl.value = data.positions[`down${i}_price`];
+                                    if (downAmountEl) downAmountEl.value = data.positions[`down${i}_amount`];
                                 }
                                 
                                 // 更新最后更新时间
