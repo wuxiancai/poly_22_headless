@@ -4581,7 +4581,7 @@ class CryptoTrader:
                     .up-price-display, .down-price-display {
                         font-size: 28px;
                         font-weight: 800;
-                        color: white;
+                        color: #2F3E46; /* 深灰蓝，比纯黑柔和 */
                         text-align: center;
                         padding: 20px 30px;
                         border-radius: 12px;
@@ -4595,12 +4595,12 @@ class CryptoTrader:
                     }
                     
                     .up-price-display {
-                        background: linear-gradient(135deg, #00c9ff, #92fe9d);
+                        background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
                         border: 2px solid rgba(255,255,255,0.3);
                     }
                     
                     .down-price-display {
-                        background: linear-gradient(135deg, #fc466b, #3f5efb);
+                        background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
                         border: 2px solid rgba(255,255,255,0.3);
                     }
                     
@@ -4746,11 +4746,11 @@ class CryptoTrader:
                     }
                     .position-name {
                         font-weight: 600;
-                        color: #2c3e50;
+                        color: #2F3E46; /* 深灰蓝，比纯黑柔和 */
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+                        background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
                         border-radius: 8px;
                         padding: 8px;
                         font-size: 13px;
