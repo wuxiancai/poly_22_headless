@@ -386,6 +386,9 @@ class CryptoTrader:
         # 设置开始按钮状态为禁用
         self.set_web_state('start_button', 'disabled')
         
+        # 设置监控状态为运行中
+        self.set_web_value('monitoring_status', '运行中')
+        
         # 重置交易次数计数器
         self.buy_count = 0
 
@@ -843,6 +846,7 @@ class CryptoTrader:
         
         # 重置按钮状态
         self.set_web_state('start_button', 'normal')
+        self.set_web_value('monitoring_status', '未启动')
         self.running = False
 
     def stop_monitoring(self):
@@ -895,6 +899,7 @@ class CryptoTrader:
             
             # 重置按钮状态
             self.set_web_state('start_button', 'normal')
+            self.set_web_value('monitoring_status', '未启动')
             
             self.logger.info(f"✅ 监控已完全停止，共取消了 {cancelled_count} 个定时器")
             
@@ -5560,9 +5565,9 @@ class CryptoTrader:
         def get_monitoring_status():
             """获取监控状态API"""
             try:
-                # 检查浏览器是否已启动
-                browser_status = self.get_web_value('browser_status') or '未连接'
-                monitoring_active = browser_status == '运行中'
+                # 检查监控状态
+                monitoring_status = self.get_web_value('monitoring_status') or '未启动'
+                monitoring_active = monitoring_status == '运行中'
                 
                 return jsonify({
                     'monitoring_active': monitoring_active,
