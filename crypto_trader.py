@@ -452,17 +452,22 @@ class CryptoTrader:
         timer.daemon = True
         timer.start()
 
-        # 13.启动自动清除缓存
+        # 13.启动设置 YES1/NO1价格为 54
+        timer = threading.Timer(36.0, self.schedule_price_setting)
+        timer.daemon = True
+        timer.start()
+
+        # 14.启动自动清除缓存
         timer = threading.Timer(56.0, self.schedule_clear_chrome_mem_cache)
         timer.daemon = True
         timer.start()
 
-        # 14. 启动程序立即获取当前CASH值
+        # 15. 启动程序立即获取当前CASH值
         timer = threading.Timer(58.0, self.get_cash_value)
         timer.daemon = True
         timer.start()
         
-        # 15.每天 0:30 获取 cash 值并展示历史记录页面
+        # 16.每天 0:30 获取 cash 值并展示历史记录页面
         timer = threading.Timer(60.0, self.schedule_record_and_show_cash)
         timer.daemon = True
         timer.start()
@@ -1270,6 +1275,16 @@ class CryptoTrader:
             else:
                 self.schedule_record_cash_daily()
                 self.logger.info("✅ 恢复记录利润定时器（每日0:30）")
+            
+            # 11. 恢复价格设置定时器（YES1/NO1价格设置为54）
+            if hasattr(self, 'set_yes1_no1_default_target_price_timer') and self.set_yes1_no1_default_target_price_timer:
+                self.logger.info("✅ 价格设置定时器已存在，保持不变")
+            else:
+                # 检查是否有设置的时间，如果有则恢复定时器
+                selected_time = self.get_web_value('auto_find_time_combobox')
+                if selected_time and selected_time != "":
+                    self.schedule_price_setting()
+                    self.logger.info("✅ 恢复价格设置定时器（YES1/NO1价格设置为54）")
             
             self.logger.info("✅ 所有监控状态恢复完成")
             
@@ -3625,7 +3640,7 @@ class CryptoTrader:
 
         seconds_until_next_run = (next_run_time - now).total_seconds()
 
-        if hasattr(self, 'binance_zero_price_timer_thread') and self.binance_zero_price_timer and self.binance_zero_price_timer.is_alive():
+        if hasattr(self, 'binance_zero_price_timer') and self.binance_zero_price_timer and self.binance_zero_price_timer.is_alive():
             self.binance_zero_price_timer.cancel()
 
         if self.running and not self.stop_event.is_set():
