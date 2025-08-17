@@ -4948,30 +4948,19 @@ class CryptoTrader:
                                 </div>
                             </div>
                             <!-- 币安价格显示区域 -->
-                            <div class="binance-price-container up-down-prices-container">
-                                
-                                <span class="binance-label">零点:</span>
-                                <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
-                            
-                                <span class="binance-label">实时:</span>
-                                <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
-                            
-                                <span class="binance-label">涨幅:</span>
-                                <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>                               
+                            <div class="up-down-prices-container">
+                                <div class="up-price-display">
+                                    <span class="price-label">零点:</span> {{ data.prices.binance_zero_price or '--' }}
+                                    <span class="price-label">实时:</span> {{ data.prices.binance_price or '--' }}
+                                    <span class="price-label">涨幅:</span> {{ data.prices.binance_rate or '--' }}
+                                </div>
                             </div>
                             <!-- 资产显示区域 -->
-                            <div class="binance-price-container">
-                                <div class="info-item">
-                                    <label>Portfolio:</label>
-                                    <div class="value" id="portfolio">{{ data.account.portfolio or '0' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>Cash:</label>
-                                    <div class="value" id="cash">{{ data.account.cash or '0' }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>零点 CASH:</label>
-                                    <div class="value" id="zero_time_cash">{{ data.account.zero_time_cash or '--' }}</div>
+                            <div class="up-down-prices-container">
+                                <div class="down-price-display">
+                                    <span class="price-label">Portfolio:</span> {{ data.account.portfolio or '0' }}
+                                    <span class="price-label">Cash:</span> {{ data.account.cash or '0' }}
+                                    <span class="price-label">零点 CASH:</span> {{ data.account.zero_time_cash or '--' }}
                                 </div>
                             </div>
                             <!-- 币种和交易时间显示区域 -->
