@@ -473,7 +473,7 @@ class CryptoTrader:
         
         # 根据操作系统选择启动脚本
         if platform.system() == 'Darwin':
-            script_path = 'start_chrome_macos.sh'
+            script_path = 'start_chrome_ubuntu.sh'
         else:
             # 使用Ubuntu启动脚本（已适配admin用户）
             script_path = 'start_chrome_ubuntu.sh'
@@ -4374,6 +4374,18 @@ class CryptoTrader:
                         background: linear-gradient(45deg, #138496, #117a8b);
                         transform: translateY(-2px); box-shadow: 0 6px 20px rgba(23,162,184,0.4);
                     }
+                    .nav button:disabled, button:disabled {
+                        background: linear-gradient(45deg, #6c757d, #5a6268) !important;
+                        cursor: not-allowed !important;
+                        opacity: 0.6 !important;
+                        transform: none !important;
+                        box-shadow: none !important;
+                    }
+                    .nav button:disabled:hover, button:disabled:hover {
+                        background: linear-gradient(45deg, #6c757d, #5a6268) !important;
+                        transform: none !important;
+                        box-shadow: none !important;
+                    }
 
                     .main-layout {
                         display: flex;
@@ -4822,6 +4834,9 @@ class CryptoTrader:
                                 // 更新最后更新时间
                                 const timeElement = document.querySelector('.last-update-time');
                                 if (timeElement) timeElement.textContent = data.status.last_update;
+                                
+                                // 更新按钮状态
+                                updateButtonStates(data.status);
                             })
                             .catch(error => {
                                 console.error('更新数据失败:', error);
@@ -4831,6 +4846,42 @@ class CryptoTrader:
                     function refreshPage() {
                         location.reload();
                     }
+                    
+                    function updateButtonStates(status) {
+                        const startBtn = document.getElementById('startBtn');
+                        const stopBtn = document.getElementById('stopBtn');
+                        const startChromeBtn = document.getElementById('startChromeBtn');
+                        const stopChromeBtn = document.getElementById('stopChromeBtn');
+                        
+                        // 根据监控状态管理启动/停止监控按钮
+                        const isMonitoring = status.monitoring === '运行中' || status.monitoring === 'Running';
+                        if (startBtn) startBtn.disabled = isMonitoring;
+                        if (stopBtn) stopBtn.disabled = !isMonitoring;
+                        
+                        // 根据浏览器状态管理启动/关闭浏览器按钮
+                        const isBrowserRunning = status.browser_status === '运行中' || status.browser_status === 'Running';
+                        if (startChromeBtn) startChromeBtn.disabled = isBrowserRunning;
+                        if (stopChromeBtn) stopChromeBtn.disabled = !isBrowserRunning;
+                    }
+                    
+                    // 页面加载时初始化按钮状态
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // 初始状态：程序刚启动，监控未开始，浏览器未启动
+                        const startBtn = document.getElementById('startBtn');
+                        const stopBtn = document.getElementById('stopBtn');
+                        const startChromeBtn = document.getElementById('startChromeBtn');
+                        const stopChromeBtn = document.getElementById('stopChromeBtn');
+                        
+                        // 初始状态设置
+                        if (startBtn) startBtn.disabled = false;
+                        if (stopBtn) stopBtn.disabled = true;  // 程序启动时停止监控应该是灰色
+                        if (startChromeBtn) startChromeBtn.disabled = false;
+                        if (stopChromeBtn) stopChromeBtn.disabled = true;  // 浏览器未启动时关闭浏览器应该是灰色
+                        
+                        // 开始定期更新数据和按钮状态
+                        updateData();
+                        setInterval(updateData, 2000);
+                    });
                     
                     function startChrome() {
                         fetch('/api/start_chrome', {
@@ -4914,11 +4965,7 @@ class CryptoTrader:
                         });
                     }
                     
-                    // 每2秒更新数据（不刷新整个页面）
-                    setInterval(updateData, 2000);
-                    
-                    // 页面加载完成后立即更新一次数据
-                    document.addEventListener('DOMContentLoaded', updateData);
+                    // 注意：数据更新和按钮状态管理已在DOMContentLoaded事件中处理
                 </script>
             </head>
             <body>
@@ -5094,8 +5141,8 @@ class CryptoTrader:
                                 <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
                                 <button id="startBtn" onclick="startTrading()">启动监控</button>
                                 <button id="stopBtn" onclick="stopMonitoring()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">🛑 停止监控</button>
-                                <button onclick="startChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🚀 启动浏览器</button>
-                                <button onclick="stopChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
+                                <button id="startChromeBtn" onclick="startChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🚀 启动浏览器</button>
+                                <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
                             </div>
                             <div id="statusMessage" class="status-message"></div>
                         </div>
