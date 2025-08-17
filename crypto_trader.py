@@ -485,10 +485,10 @@ class CryptoTrader:
             raise FileNotFoundError(f"启动脚本不存在: {script_path}")
         
         # 启动Chrome进程（同步执行脚本，让脚本内部处理启动和检查）
-        self.logger.info(f"执行启动脚本")
+        self.logger.info(f"执行启动脚本: {script_path}")
         try:
             result = subprocess.run(['bash', script_path], 
-                                  capture_output=True, text=True)
+                                  capture_output=True, text=True, timeout=10)
             
             if result.returncode == 0:
                 self.logger.info("✅ Chrome启动脚本执行成功")
@@ -504,6 +504,9 @@ class CryptoTrader:
                 # 不直接抛出异常，而是继续检查Chrome状态
                 self.logger.info("尝试检查Chrome是否已启动...")
                 
+        except subprocess.TimeoutExpired:
+            self.logger.warning(f"⚠️ Chrome启动脚本执行超时(30秒)，可能脚本仍在后台运行")
+            self.logger.info("继续检查Chrome是否已成功启动...")
         except Exception as e:
             self.logger.warning(f"⚠️ 执行Chrome启动脚本时发生异常: {str(e)}")
             # 不直接抛出异常，而是继续检查Chrome状态
