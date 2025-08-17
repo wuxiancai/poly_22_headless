@@ -3137,7 +3137,7 @@ class CryptoTrader:
         self.set_yes1_no1_default_target_price_timer = threading.Timer(wait_time/1000.0, self.set_yes1_no1_default_target_price)
         self.set_yes1_no1_default_target_price_timer.daemon = True
         self.set_yes1_no1_default_target_price_timer.start()
-        self.logger.info(f"✅ \033[34m{round(wait_time_hours,2)}\033[0m小时后开始设置 YES1/NO1 价格为54")
+        self.logger.info(f"✅ \033[34m{round(wait_time_hours,2)}\033[0m小时后开始设置 YES1/NO1 价格为{self.default_target_price}")
 
     def on_auto_find_time_changed(self, event=None):
         """当时间选择改变时的处理函数"""
@@ -3153,24 +3153,24 @@ class CryptoTrader:
             self.schedule_price_setting()
     
     def set_yes1_no1_default_target_price(self):
-        """设置默认目标价格54"""
-        
-        self.no1_price_entry.delete(0, tk.END)
-        self.no1_price_entry.insert(0, "54")
-        self.no1_price_entry.configure(foreground='red')
-        self.logger.info(f"✅ 设置DOWN1价格为54成功")
-    
-        self.yes1_price_entry.delete(0, tk.END)
-        self.yes1_price_entry.insert(0, "54")
-        self.yes1_price_entry.configure(foreground='red')
-        self.logger.info(f"✅ 设置UP1价格为54成功")
+        """设置默认目标价格"""
+        try:
+            target = str(self.default_target_price)
+            # Web 模式：通过虚拟控件值写入
+            self.set_web_value('no1_price_entry', target)
+            self.logger.info(f"✅ 设置DOWN1价格为{target}成功")
 
-        self.close_windows()
-        
-        # 价格设置完成后，重新安排下一次的价格设置定时任务
-        # 使用schedule_price_setting确保与Web界面时间选择保持一致
-        self.logger.info("🔄 价格设置完成，重新安排下一次定时任务")
-        self.schedule_price_setting()
+            self.set_web_value('yes1_price_entry', target)
+            self.logger.info(f"✅ 设置UP1价格为{target}成功")
+        except Exception as e:
+            self.logger.error(f"设置默认目标价格失败: {e}")
+        finally:
+            self.close_windows()
+            
+            # 价格设置完成后，重新安排下一次的价格设置定时任务
+            # 使用schedule_price_setting确保与Web界面时间选择保持一致
+            self.logger.info("🔄 价格设置完成，重新安排下一次定时任务")
+            self.schedule_price_setting()
         
     def on_coin_changed(self, event=None):
         """当币种选择改变时的处理函数"""
