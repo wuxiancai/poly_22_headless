@@ -400,7 +400,7 @@ class CryptoTrader:
         self.login_check_timer = threading.Timer(31.0, self.start_login_monitoring)
         self.login_check_timer.daemon = True
         self.login_check_timer.start()
-
+        
         # 3.启动URL监控
         self.url_check_timer = threading.Timer(35.0, self.start_url_monitoring)
         self.url_check_timer.daemon = True
@@ -6336,52 +6336,49 @@ class CryptoTrader:
                 # 获取当前配置以便比较变化
                 current_positions = self.config.get('positions', {})
                 
-                # 保存到配置文件
-                positions_config = {
-                    'up1_price': data.get('up1_price', 0),
-                    'up1_amount': data.get('up1_amount', 0),
-                    'up2_price': data.get('up2_price', 0),
-                    'up2_amount': data.get('up2_amount', 0),
-                    'up3_price': data.get('up3_price', 0),
-                    'up3_amount': data.get('up3_amount', 0),
-                    'up4_price': data.get('up4_price', 0),
-                    'up4_amount': data.get('up4_amount', 0),
-                    'down1_price': data.get('down1_price', 0),
-                    'down1_amount': data.get('down1_amount', 0),
-                    'down2_price': data.get('down2_price', 0),
-                    'down2_amount': data.get('down2_amount', 0),
-                    'down3_price': data.get('down3_price', 0),
-                    'down3_amount': data.get('down3_amount', 0),
-                    'down4_price': data.get('down4_price', 0),
-                    'down4_amount': data.get('down4_amount', 0)
-                }
+                # 获取现有的positions配置，如果不存在则创建空字典
+                if 'positions' not in self.config:
+                    self.config['positions'] = {}
+                positions_config = self.config['positions'].copy()
+                
+                # 只更新实际传入的字段，保持其他字段不变
+                for field_name, field_value in data.items():
+                    positions_config[field_name] = field_value
                 
                 # 更新内存中的配置
                 self.config['positions'] = positions_config
                 
                 # 同时更新web_data，确保交易逻辑能获取到最新的价格和金额
-                self.set_web_value('yes1_price_entry', str(data.get('up1_price', 0)))
-                self.set_web_value('yes1_amount_entry', str(data.get('up1_amount', 0)))
-                self.set_web_value('yes2_price_entry', str(data.get('up2_price', 0)))
-                self.set_web_value('yes2_amount_entry', str(data.get('up2_amount', 0)))
-                self.set_web_value('yes3_price_entry', str(data.get('up3_price', 0)))
-                self.set_web_value('yes3_amount_entry', str(data.get('up3_amount', 0)))
-                self.set_web_value('yes4_price_entry', str(data.get('up4_price', 0)))
-                self.set_web_value('yes4_amount_entry', str(data.get('up4_amount', 0)))
-                self.set_web_value('no1_price_entry', str(data.get('down1_price', 0)))
-                self.set_web_value('no1_amount_entry', str(data.get('down1_amount', 0)))
-                self.set_web_value('no2_price_entry', str(data.get('down2_price', 0)))
-                self.set_web_value('no2_amount_entry', str(data.get('down2_amount', 0)))
-                self.set_web_value('no3_price_entry', str(data.get('down3_price', 0)))
-                self.set_web_value('no3_amount_entry', str(data.get('down3_amount', 0)))
-                self.set_web_value('no4_price_entry', str(data.get('down4_price', 0)))
-                self.set_web_value('no4_amount_entry', str(data.get('down4_amount', 0)))
+                # 建立字段映射关系
+                field_mapping = {
+                    'up1_price': 'yes1_price_entry',
+                    'up1_amount': 'yes1_amount_entry',
+                    'up2_price': 'yes2_price_entry',
+                    'up2_amount': 'yes2_amount_entry',
+                    'up3_price': 'yes3_price_entry',
+                    'up3_amount': 'yes3_amount_entry',
+                    'up4_price': 'yes4_price_entry',
+                    'up4_amount': 'yes4_amount_entry',
+                    'down1_price': 'no1_price_entry',
+                    'down1_amount': 'no1_amount_entry',
+                    'down2_price': 'no2_price_entry',
+                    'down2_amount': 'no2_amount_entry',
+                    'down3_price': 'no3_price_entry',
+                    'down3_amount': 'no3_amount_entry',
+                    'down4_price': 'no4_price_entry',
+                    'down4_amount': 'no4_amount_entry'
+                }
+                
+                # 只更新实际传入的字段
+                for field_name, field_value in data.items():
+                    if field_name in field_mapping:
+                        self.set_web_value(field_mapping[field_name], str(field_value))
                 
                 # 保存到文件
                 self.save_config()
                 
                 # 只记录实际发生变化的字段，使用简洁的日志格式
-                field_mapping = {
+                log_field_mapping = {
                     'up1_price': 'UP1 价格',
                     'up1_amount': 'UP1 金额',
                     'up2_price': 'UP2 价格',
@@ -6404,7 +6401,7 @@ class CryptoTrader:
                 for field, value in data.items():
                     current_value = current_positions.get(field, 0)
                     if float(value) != float(current_value):
-                        field_name = field_mapping.get(field, field)
+                        field_name = log_field_mapping.get(field, field)
                         self.logger.info(f"{field_name}设置为 {value}")
                 
                 return jsonify({'success': True, 'message': '交易仓位设置已保存'})
