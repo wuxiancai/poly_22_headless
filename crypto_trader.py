@@ -33,6 +33,7 @@ import subprocess
 import shutil
 import csv
 from flask import Flask, render_template_string, request, url_for, jsonify
+import psutil
 import socket
 
         
@@ -165,8 +166,7 @@ class CryptoTrader:
         # 买入价格冗余
         self.price_premium = 6 # 不修改
         
-        # 按钮区域按键 WIDTH
-        self.button_width = 8 # 不修改
+        # Web模式下不需要按钮宽度设置
 
         # 停止事件
         self.stop_event = threading.Event()
@@ -1083,7 +1083,7 @@ class CryptoTrader:
                 self.config['url_history'].insert(0, updated_url)
                 # 保持历史记录不超过10条
                 self.config['url_history'] = self.config['url_history'][:10]
-                self.url_entry['values'] = self.config['url_history']
+                # URL历史记录已保存到配置文件
             
             self.save_config()
             
@@ -1969,8 +1969,8 @@ class CryptoTrader:
                         if self.buy_count > 14:
                             self.only_sell_down()
 
-                        # 传 GUI 的 AmountEntry 对象，比如 self.yes2_amount_entry
-                        self.send_amount_and_buy_confirm(self.yes2_amount_entry)
+                        # 传 Web 模式的金额值
+                        self.send_amount_and_buy_confirm(self.get_web_value('yes2_amount_entry'))
                         
                         time.sleep(1)
                         if self.Verify_buy_up():
@@ -2376,39 +2376,23 @@ class CryptoTrader:
         """重置 YES/NO ENTRY 金额"""
         # 设置 UP1 和 DOWN1金额
         yes1_amount = float(self.get_web_value('yes4_amount_entry')) * (self.n_rebound / 100)
-        self.yes1_entry = self.yes_frame.grid_slaves(row=1, column=1)[0]
-        self.yes1_amount_entry.delete(0, tk.END)
-        self.yes1_amount_entry.insert(0, f"{yes1_amount:.2f}")
-        self.no1_entry = self.no_frame.grid_slaves(row=1, column=1)[0]
-        self.no1_amount_entry.delete(0, tk.END)
-        self.no1_amount_entry.insert(0, f"{yes1_amount:.2f}")
+        self.set_web_value('yes1_amount_entry', f"{yes1_amount:.2f}")
+        self.set_web_value('no1_amount_entry', f"{yes1_amount:.2f}")
         
         # 计算并设置 UP2/DOWN2金额
         yes2_amount = yes1_amount * (self.n_rebound / 100)
-        self.yes2_entry = self.yes_frame.grid_slaves(row=3, column=1)[0]
-        self.yes2_entry.delete(0, tk.END)
-        self.yes2_entry.insert(0, f"{yes2_amount:.2f}")
-        self.no2_entry = self.no_frame.grid_slaves(row=3, column=1)[0]
-        self.no2_entry.delete(0, tk.END)
-        self.no2_entry.insert(0, f"{yes2_amount:.2f}")
+        self.set_web_value('yes2_amount_entry', f"{yes2_amount:.2f}")
+        self.set_web_value('no2_amount_entry', f"{yes2_amount:.2f}")
         
         # 计算并设置 UP3/DOWN3 金额
         yes3_amount = yes2_amount * (self.n_rebound / 100)
-        self.yes3_entry = self.yes_frame.grid_slaves(row=5, column=1)[0]
-        self.yes3_entry.delete(0, tk.END)
-        self.yes3_entry.insert(0, f"{yes3_amount:.2f}")
-        self.no3_entry = self.no_frame.grid_slaves(row=5, column=1)[0]
-        self.no3_entry.delete(0, tk.END)
-        self.no3_entry.insert(0, f"{yes3_amount:.2f}")
+        self.set_web_value('yes3_amount_entry', f"{yes3_amount:.2f}")
+        self.set_web_value('no3_amount_entry', f"{yes3_amount:.2f}")
 
         # 计算并设置 UP4/DOWN4金额
         yes4_amount = yes3_amount * (self.n_rebound / 100)
-        self.yes4_entry = self.yes_frame.grid_slaves(row=7, column=1)[0]
-        self.yes4_entry.delete(0, tk.END)
-        self.yes4_entry.insert(0, f"{yes4_amount:.2f}")
-        self.no4_entry = self.no_frame.grid_slaves(row=7, column=1)[0]
-        self.no4_entry.delete(0, tk.END)
-        self.no4_entry.insert(0, f"{yes4_amount:.2f}")
+        self.set_web_value('yes4_amount_entry', f"{yes4_amount:.2f}")
+        self.set_web_value('no4_amount_entry', f"{yes4_amount:.2f}")
         self.logger.info("\033[34m✅ 设置 YES1-4/NO1-4金额成功\033[0m")
 
     def click_positions_sell_and_sell_confirm_and_accept(self):
@@ -2933,7 +2917,7 @@ class CryptoTrader:
             app_password = 'PUaRF5FKeKJDrYH7'
             
             # 获取交易币对信息
-            full_pair = self.trading_pair_label.cget("text")
+            full_pair = self.get_web_value('trading_pair_label') or "未知交易币对"
             trading_pair = full_pair.split('-')[0] if full_pair and '-' in full_pair else "未知交易币对"
             
             msg = MIMEMultipart()
@@ -3497,18 +3481,6 @@ class CryptoTrader:
         """获取币安BTC实时价格,并在中国时区00:00触发。此方法在threading.Timer的线程中执行。"""
         if self.driver is None:
             return
-            
-        # 先把所有 YES/NO 价格设置为 0
-        for i in range(1,6):  # 1-5
-            yes_entry = getattr(self, f'yes{i}_price_entry', None)
-            no_entry = getattr(self, f'no{i}_price_entry', None)
-
-            if yes_entry:
-                # Web模式下直接设置值
-                pass
-            if no_entry:
-                # Web模式下直接设置值
-                pass
 
         api_data = None
         coin_form_websocket = ""
@@ -3757,17 +3729,8 @@ class CryptoTrader:
 
                     # 设置 YES1-4/NO1-4 价格为 0
                     for i in range(1,6):  # 1-5
-                        yes_entry = getattr(self, f'yes{i}_price_entry', None)
-                        no_entry = getattr(self, f'no{i}_price_entry', None)
-
-                        if yes_entry:
-                            yes_entry.delete(0, tk.END)
-                            yes_entry.insert(0, "0")
-                            yes_entry.configure(foreground='black')
-                        if no_entry:
-                            no_entry.delete(0, tk.END)
-                            no_entry.insert(0, "0")
-                            no_entry.configure(foreground='black')
+                        self.set_web_value(f'yes{i}_price_entry', "0")
+                        self.set_web_value(f'no{i}_price_entry', "0")
 
                     # 设置 YES1/NO1 价格为默认值
                     self.set_web_value('no1_price_entry', str(self.default_target_price))
@@ -5602,8 +5565,7 @@ class CryptoTrader:
                 self.save_config()
                 
                 # 调用币种变化处理函数
-                if hasattr(self, 'on_coin_changed'):
-                    self.on_coin_changed()
+                self.on_coin_changed()
                 
                 self.logger.info(f"币种已更新为: {coin}")
                 return jsonify({'success': True, 'message': f'币种已更新为: {coin}'})
@@ -5632,8 +5594,7 @@ class CryptoTrader:
                 self.save_config()
                 
                 # 调用时间变化处理函数
-                if hasattr(self, 'on_auto_find_time_changed'):
-                    self.on_auto_find_time_changed()
+                self.on_auto_find_time_changed()
                 
                 self.logger.info(f"时间已更新为: {time}")
                 return jsonify({'success': True, 'message': f'时间已更新为: {time}'})
@@ -5787,35 +5748,82 @@ class CryptoTrader:
 
         return app
 
+    def check_and_kill_port_processes(self, port):
+        """检查端口是否被占用，如果被占用则强制杀死占用进程"""
+        try:
+            killed_processes = []
+            for proc in psutil.process_iter(['pid', 'name']):
+                try:
+                    # 获取进程的网络连接
+                    connections = proc.net_connections()
+                    if connections:
+                        for conn in connections:
+                            if hasattr(conn, 'laddr') and conn.laddr and conn.laddr.port == port:
+                                proc_name = proc.info['name']
+                                proc_pid = proc.info['pid']
+                                self.logger.warning(f"🔍 发现端口 {port} 被进程占用: {proc_name} (PID: {proc_pid})")
+                                
+                                # 强制杀死进程
+                                proc.terminate()
+                                try:
+                                    proc.wait(timeout=3)
+                                except psutil.TimeoutExpired:
+                                    proc.kill()
+                                    proc.wait()
+                                
+                                killed_processes.append(f"{proc_name} (PID: {proc_pid})")
+                                self.logger.info(f"💀 已强制杀死进程: {proc_name} (PID: {proc_pid})")
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+            
+            if killed_processes:
+                self.logger.info(f"🧹 端口 {port} 清理完成，已杀死 {len(killed_processes)} 个进程")
+                time.sleep(1)  # 等待端口释放
+            else:
+                self.logger.info(f"✅ 端口 {port} 未被占用")
+                
+        except Exception as e:
+            self.logger.error(f"检查端口 {port} 时出错: {e}")
+
     def start_flask_server(self):
         """在后台线程中启动Flask，24小时常驻"""
+        # 从环境变量读取配置，默认值为localhost:5000
+        flask_host = os.environ.get('FLASK_HOST', '127.0.0.1')
+        flask_port = int(os.environ.get('FLASK_PORT', '5000'))
+        
+        # 检查并清理端口占用
+        self.logger.info(f"🔍 检查端口 {flask_port} 是否被占用...")
+        self.check_and_kill_port_processes(flask_port)
+        
         def run():
             try:
-                # 从环境变量读取配置，默认值为localhost:5000
-                flask_host = os.environ.get('FLASK_HOST', '127.0.0.1')
-                flask_port = int(os.environ.get('FLASK_PORT', '5000'))
-                
                 # 关闭Flask详细日志
                 import logging as flask_logging
                 log = flask_logging.getLogger('werkzeug')
                 log.setLevel(flask_logging.ERROR)
                 
-                
                 self.flask_app.run(host=flask_host, port=flask_port, debug=False, use_reloader=False)
             except Exception as e:
                 self.logger.error(f"Flask启动失败: {e}")
+                # 如果启动失败，再次尝试清理端口
+                if "Address already in use" in str(e) or "端口" in str(e):
+                    self.logger.warning(f"🔄 端口 {flask_port} 仍被占用，再次尝试清理...")
+                    self.check_and_kill_port_processes(flask_port)
+                    time.sleep(2)
+                    try:
+                        self.flask_app.run(host=flask_host, port=flask_port, debug=False, use_reloader=False)
+                    except Exception as retry_e:
+                        self.logger.error(f"重试启动Flask失败: {retry_e}")
         
         flask_thread = threading.Thread(target=run, daemon=True)
         flask_thread.start()
         
         # 根据配置显示访问地址
-        flask_host = os.environ.get('FLASK_HOST', '127.0.0.1')
-        flask_port = os.environ.get('FLASK_PORT', '5000')
         if flask_host == '127.0.0.1' or flask_host == 'localhost':
-            self.logger.info(f"✅ Flask服务已启动")
+            self.logger.info(f"✅ Flask服务已启动，监听端口: {flask_port}")
             self.logger.info("🔒 服务仅监听本地地址，通过NGINX反向代理访问")
         else:
-            self.logger.info(f"✅ Flask服务已启动")
+            self.logger.info(f"✅ Flask服务已启动，监听端口: {flask_port}")
 
     def schedule_record_cash_daily(self):
         """安排每天 0:30 记录现金到CSV"""
