@@ -488,7 +488,7 @@ class CryptoTrader:
         self.logger.info(f"执行启动脚本")
         try:
             result = subprocess.run(['bash', script_path], 
-                                  capture_output=True, text=True, timeout=10)
+                                  capture_output=True, text=True)
             
             if result.returncode == 0:
                 self.logger.info("✅ Chrome启动脚本执行成功")
