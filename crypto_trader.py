@@ -5558,8 +5558,8 @@ class CryptoTrader:
         def get_monitoring_status():
             """获取监控状态API"""
             try:
-                # 检查监控是否已启动
-                monitoring_active = self.running and self.driver is not None
+                # 检查浏览器是否已启动（driver不为None表示浏览器已连接）
+                monitoring_active = self.driver is not None
                 
                 return jsonify({
                     'monitoring_active': monitoring_active,
