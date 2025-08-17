@@ -36,8 +36,8 @@ from flask import Flask, render_template_string, request, url_for, jsonify
 import psutil
 import socket
 import urllib.request
+import requests
 
-        
 class Logger:
     def __init__(self, name):
         self.logger = logging.getLogger(name)
@@ -3226,6 +3226,19 @@ class CryptoTrader:
 
             self.set_web_value('yes1_price_entry', target)
             self.logger.info(f"✅ 设置UP1价格为{target}成功")
+            
+            # 同时通过API更新Web界面上的价格输入框
+            try:
+                response = requests.post('http://localhost:5000/api/update_prices', 
+                                       json={'up1_price': target, 'down1_price': target},
+                                       timeout=5)
+                if response.status_code == 200:
+                    self.logger.info("✅ Web界面价格更新成功")
+                else:
+                    self.logger.warning(f"Web界面价格更新失败: {response.status_code}")
+            except Exception as api_error:
+                self.logger.warning(f"调用价格更新API失败: {api_error}")
+                
         except Exception as e:
             self.logger.error(f"设置默认目标价格失败: {e}")
         finally:
@@ -5639,6 +5652,31 @@ class CryptoTrader:
                         });
                     }
                 });
+                
+                // 定期检查价格更新
+                function checkPriceUpdates() {
+                    fetch('/api/data')
+                        .then(response => response.json())
+                        .then(data => {
+                            // 更新UP1价格
+                            const up1Input = document.getElementById('up1_price');
+                            const down1Input = document.getElementById('down1_price');
+                            
+                            if (up1Input && data.yes1_price_entry && data.yes1_price_entry !== up1Input.value) {
+                                up1Input.value = data.yes1_price_entry;
+                            }
+                            
+                            if (down1Input && data.no1_price_entry && data.no1_price_entry !== down1Input.value) {
+                                down1Input.value = data.no1_price_entry;
+                            }
+                        })
+                        .catch(error => {
+                            console.log('价格检查失败:', error);
+                        });
+                }
+                
+                // 每2秒检查一次价格更新
+                setInterval(checkPriceUpdates, 2000);
                 </script>
                 
                 <!-- 交易记录表格 -->
@@ -6023,6 +6061,27 @@ class CryptoTrader:
                 
             except Exception as e:
                 self.logger.error(f"更新时间失败: {e}")
+                return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
+        
+        @app.route("/api/update_prices", methods=["POST"])
+        def update_prices():
+            """更新价格API"""
+            try:
+                data = request.get_json()
+                up1_price = data.get('up1_price', '')
+                down1_price = data.get('down1_price', '')
+                
+                # 更新内存中的价格数据
+                if up1_price:
+                    self.set_web_value('yes1_price_entry', up1_price)
+                if down1_price:
+                    self.set_web_value('no1_price_entry', down1_price)
+                
+                self.logger.info(f"价格已更新 - UP1: {up1_price}, DOWN1: {down1_price}")
+                return jsonify({'success': True, 'message': '价格更新成功', 'up1_price': up1_price, 'down1_price': down1_price})
+                
+            except Exception as e:
+                self.logger.error(f"更新价格失败: {e}")
                 return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
         
         @app.route("/api/logs", methods=['GET'])
