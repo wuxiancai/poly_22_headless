@@ -4405,6 +4405,7 @@ class CryptoTrader:
                         max-width: 1160px;
                         margin: 0 auto;
                         padding: 0 20px;
+                        align-items: flex-start;
                     }
                     
                     .left-panel {
@@ -4416,7 +4417,8 @@ class CryptoTrader:
                         flex: 1;
                         display: flex;
                         flex-direction: column;
-                        gap: 1px;
+                        gap: 15px;
+                        align-items: stretch;
                     }
                     
 
@@ -4516,33 +4518,49 @@ class CryptoTrader:
                     /* UP和DOWN价格显示独立样式 */
                     .up-down-prices-container {
                         display: flex;
-                        justify-content: center;
+                        justify-content: space-between;
                         align-items: center;
-                        gap: 20px;
+                        gap: 25px;
                         padding: 2px;
-                        background-color: #f8f9fa;
-                        border-radius: 8px;
-                        margin-bottom: 0px;
+                        background: transparent;
+                        border-radius: 16px;
+                        margin-bottom: 2px;
+                        box-shadow: none;
+                        backdrop-filter: none;
+                        border: none;
+                        flex: 2;
+                        min-height: 120px;
                     }
                     
                     .up-price-display, .down-price-display {
-                        font-size: 20px;
-                        font-weight: bold;
-                        color: #9370DB;
+                        font-size: 28px;
+                        font-weight: 800;
+                        color: white;
                         text-align: center;
-                        padding: 12px 20px;
-                        background-color: white;
-                        border-radius: 6px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        min-width: 120px;
+                        padding: 20px 30px;
+                        border-radius: 12px;
+                        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+                        min-width: 180px;
+                        flex: 1;
+                        position: relative;
+                        overflow: hidden;
+                        transition: all 0.3s ease;
+                        font-family: 'Monaco', 'Menlo', monospace;
                     }
                     
                     .up-price-display {
-                        border-left: 4px solid #28a745;
+                        background: linear-gradient(135deg, #00c9ff, #92fe9d);
+                        border: 2px solid rgba(255,255,255,0.3);
                     }
                     
                     .down-price-display {
-                        border-left: 4px solid #dc3545;
+                        background: linear-gradient(135deg, #fc466b, #3f5efb);
+                        border: 2px solid rgba(255,255,255,0.3);
+                    }
+                    
+                    .up-price-display:hover, .down-price-display:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 10px 35px rgba(0,0,0,0.2);
                     }
                     
                     .price-label {
@@ -4570,84 +4588,243 @@ class CryptoTrader:
                         background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
                         color: #721c24; border: 2px solid #dc3545;
                     }
-                    .positions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+                    .positions-grid { 
+                        display: grid; 
+                        grid-template-columns: 1fr 1fr; 
+                        gap: 2px; 
+                        margin-top: 0px;
+                        flex: 0.5;
+                        max-height: 250px;
+                        overflow-y: auto;
+                    }
+                    .position-section {
+                        background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,249,250,0.9));
+                        border-radius: 8px;
+                        padding: 8px;
+                        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+                        backdrop-filter: blur(10px);
+                        border: 1px solid rgba(255,255,255,0.2);
+                        transition: all 0.3s ease;
+                        position: relative;
+                        overflow: hidden;
+                        height: fit-content;
+                    }
+                    .position-section::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 4px;
+                        background: linear-gradient(90deg, #667eea, #764ba2);
+                        border-radius: 16px 16px 0 0;
+                    }
+                    .position-section:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+                    }
+                    .up-section::before {
+                        background: linear-gradient(90deg, #00c9ff, #92fe9d);
+                    }
+                    .down-section::before {
+                        background: linear-gradient(90deg, #fc466b, #3f5efb);
+                    }
                     .position-section h4 { 
-                        margin: 0 0 10px 0; padding: 10px; border-radius: 8px; text-align: center; 
-                        color: white; font-size: 18px; font-weight: 700;
+                        margin: 0 0 8px 0; 
+                        padding: 8px 12px; 
+                        border-radius: 8px; 
+                        text-align: center; 
+                        color: white; 
+                        font-size: 14px; 
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .position-section h4::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: -100%;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                        transition: left 0.5s;
+                    }
+                    .position-section:hover h4::before {
+                        left: 100%;
                     }
                     .up-section h4 { 
-                        background: linear-gradient(45deg, #28a745, #20c997); 
-                        box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+                        background: linear-gradient(135deg, #00c9ff, #92fe9d); 
+                        box-shadow: 0 6px 20px rgba(0,201,255,0.4);
                     }
                     .down-section h4 { 
-                        background: linear-gradient(45deg, #dc3545, #c82333); 
-                        box-shadow: 0 4px 15px rgba(220,53,69,0.3);
+                        background: linear-gradient(135deg, #fc466b, #3f5efb); 
+                        box-shadow: 0 6px 20px rgba(252,70,107,0.4);
                     }
                     .position-row { 
-                        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; 
-                        padding: 2px 2px; border-bottom: 1px solid rgba(238, 238, 238, 0.8); 
-                        align-items: center; font-size: 15px; font-weight: 500;
+                        display: grid; 
+                        grid-template-columns: 60px 1fr 1fr; 
+                        gap: 6px; 
+                        padding: 6px 0; 
+                        border-bottom: 1px solid rgba(0,0,0,0.05); 
+                        align-items: center; 
+                        font-size: 12px; 
+                        font-weight: 500;
+                        transition: all 0.2s ease;
                     }
                     .position-row:last-child { border-bottom: none; }
-                    .position-row.header {
-                        background-color: #f8f9fa;
-                        font-weight: bold;
+                    .position-row:hover {
+                        background: rgba(102,126,234,0.05);
+                        border-radius: 8px;
+                        padding-left: 8px;
+                        padding-right: 8px;
                     }
-                    .position-label { font-weight: 700; color: #495057; }
+                    .position-row.header {
+                        background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+                        border-radius: 6px;
+                        font-weight: 700;
+                        color: #2c3e50;
+                        padding: 6px 8px;
+                        margin-bottom: 4px;
+                        border: none;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        font-size: 10px;
+                    }
+                    .position-label { 
+                        font-weight: 700; 
+                        color: #495057; 
+                        text-align: center;
+                    }
                     .position-name {
-                        font-weight: 500;
-                        color: #333;
+                        font-weight: 600;
+                        color: #2c3e50;
                         display: flex;
                         align-items: center;
+                        justify-content: center;
+                        background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+                        border-radius: 8px;
+                        padding: 8px;
+                        font-size: 13px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
                     }
                     .position-input {
                         width: 100%;
-                        padding: 2px 4px;
-                        border: 1px solid #ddd;
-                        border-radius: 4px;
-                        font-size: 14px;
+                        padding: 6px 8px;
+                        border: 1px solid rgba(0,0,0,0.1);
+                        border-radius: 6px;
+                        font-size: 11px;
                         text-align: center;
-                        background-color: #fff;
+                        background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,249,250,0.9));
+                        font-weight: 600;
+                        color: #2c3e50;
+                        transition: all 0.3s ease;
+                        font-family: 'Monaco', 'Menlo', monospace;
                     }
                     .position-input:focus {
                         outline: none;
-                        border-color: #007bff;
-                        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                        border-color: #667eea;
+                        box-shadow: 0 0 0 4px rgba(102,126,234,0.15);
+                        background: white;
+                        transform: scale(1.02);
+                    }
+                    .position-input:hover {
+                        border-color: rgba(102,126,234,0.5);
+                        background: white;
                     }
                     .position-controls {
-                        margin-top: 15px;
                         display: flex;
-                        gap: 10px;
+                        gap: 12px;
+                        margin-top: 20px;
                         justify-content: center;
+                        padding-top: 15px;
+                        border-top: 1px solid rgba(0,0,0,0.05);
                     }
                     .save-btn, .reset-btn {
-                        padding: 8px 16px;
+                        padding: 12px 24px;
                         border: none;
-                        border-radius: 4px;
+                        border-radius: 12px;
                         font-size: 14px;
+                        font-weight: 700;
                         cursor: pointer;
-                        transition: background-color 0.2s;
+                        transition: all 0.3s ease;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        position: relative;
+                        overflow: hidden;
+                        min-width: 100px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .save-btn::before, .reset-btn::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: -100%;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+                        transition: left 0.5s;
+                    }
+                    .save-btn:hover::before, .reset-btn:hover::before {
+                        left: 100%;
                     }
                     .save-btn {
-                        background-color: #28a745;
+                        background: linear-gradient(135deg, #00c9ff, #92fe9d);
                         color: white;
+                        box-shadow: 0 6px 25px rgba(0,201,255,0.4);
+                        border: 2px solid rgba(255,255,255,0.2);
                     }
                     .save-btn:hover {
-                        background-color: #218838;
+                        background: linear-gradient(135deg, #00b4e6, #7ee87f);
+                        transform: translateY(-3px);
+                        box-shadow: 0 10px 35px rgba(0,201,255,0.5);
+                    }
+                    .save-btn:active {
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 15px rgba(0,201,255,0.3);
                     }
                     .reset-btn {
-                        background-color: #6c757d;
+                        background: linear-gradient(135deg, #667eea, #764ba2);
                         color: white;
+                        box-shadow: 0 6px 25px rgba(102,126,234,0.4);
+                        border: 2px solid rgba(255,255,255,0.2);
                     }
                     .reset-btn:hover {
-                        background-color: #5a6268;
+                        background: linear-gradient(135deg, #5a6fd8, #6a4190);
+                        transform: translateY(-3px);
+                        box-shadow: 0 10px 35px rgba(102,126,234,0.5);
                     }
-                    .refresh-info { 
-                        text-align: center; padding: 20px; 
-                        background: linear-gradient(135deg, #e9ecef, #dee2e6); 
-                        border-radius: 12px; margin-top: 5px; color: #495057;
-                        font-size: 16px; font-weight: 500;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    .reset-btn:active {
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+                    }
+                    .refresh-info {
+                        margin-top: 20px;
+                        padding: 16px 20px;
+                        background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+                        border-radius: 12px;
+                        border: 1px solid rgba(102,126,234,0.2);
+                        font-size: 14px;
+                        color: #2c3e50;
+                        box-shadow: 0 4px 20px rgba(102,126,234,0.1);
+                        backdrop-filter: blur(10px);
+                        position: relative;
+                        overflow: hidden;
+                        font-weight: 500;
+                        text-align: center;
+                    }
+                    .refresh-info::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 3px;
+                        background: linear-gradient(90deg, #667eea, #764ba2);
+                        border-radius: 12px 12px 0 0;
                     }
                     .control-section {
                         max-width: 1160px;
@@ -4708,6 +4885,7 @@ class CryptoTrader:
                     .log-container {
                         height: 450px; overflow-y: auto; background: rgba(248, 249, 250, 0.8);
                         border-radius: 8px; padding: 15px; border: 2px solid rgba(233, 236, 239, 0.5);
+                        margin-top: 0;
                     }
                     .log-entry {
                         margin-bottom: 8px; font-size: 14px; line-height: 1.4;
@@ -5008,20 +5186,27 @@ class CryptoTrader:
                                     <span class="price-label">DOWN:</span> {{ data.prices.down_price or 'N/A' }}
                                 </div>
                             </div>
-                            <!-- 币安价格显示区域 -->
-                            <div class="up-down-prices-container">
-                                <div class="up-price-display">
-                                    <span class="price-label">零点:</span> <span id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
-                                    <span class="price-label">实时:</span> <span id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
-                                    <span class="price-label">涨幅:</span> <span id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
+                            <!-- 币安价格和资产显示区域 -->
+                            <div class="binance-price-container">
+                                <div class="binance-price-item">
+                                    <span class="binance-label">零点:</span> <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                                </div>
+                                <div class="binance-price-item">
+                                    <span class="binance-label">实时:</span> <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                </div>
+                                <div class="binance-price-item">
+                                    <span class="binance-label">涨幅:</span> <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
                                 </div>
                             </div>
-                            <!-- 资产显示区域 -->
-                            <div class="up-down-prices-container">
-                                <div class="down-price-display">
-                                    <span class="price-label">Portfolio:</span> <span id="portfolio">{{ data.account.portfolio or '0' }}</span>
-                                    <span class="price-label">Cash:</span> <span id="cash">{{ data.account.cash or '0' }}</span>
-                                    <span class="price-label">零点 CASH:</span> <span id="zeroTimeCash">{{ data.account.zero_time_cash or '--' }}</span>
+                            <div class="binance-price-container">
+                                <div class="binance-price-item">
+                                    <span class="binance-label">Portfolio:</span> <span class="value" id="portfolio">{{ data.account.portfolio or '0' }}</span>
+                                </div>
+                                <div class="binance-price-item">
+                                    <span class="binance-label">Cash:</span> <span class="value" id="cash">{{ data.account.cash or '0' }}</span>
+                                </div>
+                                <div class="binance-price-item">
+                                    <span class="binance-label">零点 CASH:</span> <span class="value" id="zeroTimeCash">{{ data.account.zero_time_cash or '--' }}</span>
                                 </div>
                             </div>
                             <!-- 币种和交易时间显示区域 -->
