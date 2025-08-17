@@ -4117,7 +4117,12 @@ class CryptoTrader:
                             date_str = row[0].strip()
                             cash = float(row[1].strip())
                             profit = float(row[2].strip())
-                            profit_rate = float(row[3].strip())
+                            # 处理百分比格式的利润率
+                            profit_rate_str = row[3].strip()
+                            if profit_rate_str.endswith('%'):
+                                profit_rate = float(profit_rate_str.rstrip('%')) / 100
+                            else:
+                                profit_rate = float(profit_rate_str)
                             
                             # 验证日期格式
                             datetime.strptime(date_str, '%Y-%m-%d')
@@ -4125,7 +4130,12 @@ class CryptoTrader:
                             # 如果有更多列，也验证它们
                             if len(row) >= 6:
                                 total_profit = float(row[4].strip())
-                                total_profit_rate = float(row[5].strip())
+                                # 处理百分比格式的总利润率
+                                total_profit_rate_str = row[5].strip()
+                                if total_profit_rate_str.endswith('%'):
+                                    total_profit_rate = float(total_profit_rate_str.rstrip('%')) / 100
+                                else:
+                                    total_profit_rate = float(total_profit_rate_str)
                                 
                             valid_rows.append(row)
                         else:
