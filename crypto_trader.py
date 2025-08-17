@@ -199,12 +199,10 @@ class CryptoTrader:
             'yes2_price_entry': '0', 'yes2_amount_entry': '0',
             'yes3_price_entry': '0', 'yes3_amount_entry': '0',
             'yes4_price_entry': '0', 'yes4_amount_entry': '0',
-            'yes5_price_entry': '0',
             'no1_price_entry': '0', 'no1_amount_entry': '0',
             'no2_price_entry': '0', 'no2_amount_entry': '0',
             'no3_price_entry': '0', 'no3_amount_entry': '0',
             'no4_price_entry': '0', 'no4_amount_entry': '0',
-            'no5_price_entry': '0',
             
             # 显示标签
             'trade_count_label': '22',
@@ -260,13 +258,11 @@ class CryptoTrader:
                     'Up2': {'target_price': 0, 'amount': 0},
                     'Up3': {'target_price': 0, 'amount': 0},
                     'Up4': {'target_price': 0, 'amount': 0},
-                    'Up5': {'target_price': 0, 'amount': 0},
 
                     'Down1': {'target_price': 0, 'amount': 0},
                     'Down2': {'target_price': 0, 'amount': 0},
                     'Down3': {'target_price': 0, 'amount': 0},
-                    'Down4': {'target_price': 0, 'amount': 0},
-                    'Down5': {'target_price': 0, 'amount': 0}
+                    'Down4': {'target_price': 0, 'amount': 0}
                 },
                 'url_history': [],
                 'selected_coin': 'BTC'  # 默认选择的币种
@@ -4317,8 +4313,6 @@ class CryptoTrader:
                     'up3_amount': self.get_web_value('yes3_amount_entry'),
                     'up4_price': self.get_web_value('yes4_price_entry'),
                     'up4_amount': self.get_web_value('yes4_amount_entry'),
-                    'up5_price': self.get_web_value('yes5_price_entry'),
-                    'up5_amount': self.get_web_value('yes5_amount_entry'),
                     'down1_price': self.get_web_value('no1_price_entry'),
                     'down1_amount': self.get_web_value('no1_amount_entry'),
                     'down2_price': self.get_web_value('no2_price_entry'),
@@ -4326,9 +4320,7 @@ class CryptoTrader:
                     'down3_price': self.get_web_value('no3_price_entry'),
                     'down3_amount': self.get_web_value('no3_amount_entry'),
                     'down4_price': self.get_web_value('no4_price_entry'),
-                    'down4_amount': self.get_web_value('no4_amount_entry'),
-                    'down5_price': self.get_web_value('no5_price_entry'),
-                    'down5_amount': self.get_web_value('no5_amount_entry')
+                    'down4_amount': self.get_web_value('no4_amount_entry')
                 },
                 'cash_history': sorted(self.cash_history, key=lambda x: x[0], reverse=True) if hasattr(self, 'cash_history') else []
             }
@@ -4455,34 +4447,44 @@ class CryptoTrader:
                         transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,123,255,0.1);
                     }
                     .coin-select-item {
+                        display: flex;
+                        align-items: center;
+                        font-size: 14px;
+                        gap: 4px;
                         flex: 0 0 auto;
                         min-width: 120px;
                         max-width: 120px;
                     }
                     .time-select-item {
+                        display: flex;
+                        align-items: center;
+                        font-size: 14px;
+                        gap: 4px;
                         flex: 0 0 auto;
                         min-width: 140px;
                         max-width: 140px;
                     }
                     .info-item label { 
-                        font-weight: 700; color: #495057; 
-                        font-size: 16px; 
+                        font-weight: 600; color: #6c757d; 
+                        font-size: 14px; 
                         flex-shrink: 0;
                         margin-right: 2px;
                     }
                     .info-item .value { 
-                        font-size: 16px; color: #2c3e50; font-weight: 600;
+                        font-size: 14px; color: #2c3e50; font-weight: 600;
                         font-family: 'Monaco', 'Menlo', monospace;
                         flex: 1;
                     }
                     .info-item select {
-                        padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 8px;
-                        font-size: 14px; font-weight: 500; background: white;
+                        padding: 4px 8px; border: 1px solid #dee2e6; border-radius: 4px;
+                        font-size: 14px; font-weight: 600; background: white;
+                        font-family: 'Monaco', 'Menlo', monospace;
+                        color: #2c3e50;
                         transition: all 0.3s ease; cursor: pointer;
                         flex: 1;
                     }
                     .info-item select:focus {
-                        border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+                        border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
                         outline: none;
                     }
                     .binance-price-container {
@@ -4870,7 +4872,7 @@ class CryptoTrader:
                         color: #721c24; border: 2px solid #f5c6cb; display: block;
                     }
                     .log-section {
-                        margin-top: 30px; background: rgba(255, 255, 255, 0.9);
+                        margin-top: 3px; background: rgba(255, 255, 255, 0.9);
                         border-radius: 12px; padding: 20px; color: #2c3e50;
                         font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
                         box-shadow: 0 4px 20px rgba(0,0,0,0.08); backdrop-filter: blur(5px);
@@ -5189,24 +5191,24 @@ class CryptoTrader:
                             <!-- 币安价格和资产显示区域 -->
                             <div class="binance-price-container">
                                 <div class="binance-price-item">
-                                    <span class="binance-label">零点:</span> <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                                    <span class="binance-label">零点价格:</span> <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
                                 </div>
                                 <div class="binance-price-item">
-                                    <span class="binance-label">实时:</span> <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                    <span class="binance-label">实时价格:</span> <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
                                 </div>
                                 <div class="binance-price-item">
-                                    <span class="binance-label">涨幅:</span> <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
+                                    <span class="binance-label">涨跌幅:</span> <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
                                 </div>
                             </div>
                             <div class="binance-price-container">
                                 <div class="binance-price-item">
-                                    <span class="binance-label">Portfolio:</span> <span class="value" id="portfolio">{{ data.account.portfolio or '0' }}</span>
+                                    <span class="binance-label">预计收益:</span> <span class="value" id="portfolio">{{ data.account.portfolio or '0' }}</span>
                                 </div>
                                 <div class="binance-price-item">
-                                    <span class="binance-label">Cash:</span> <span class="value" id="cash">{{ data.account.cash or '0' }}</span>
+                                    <span class="binance-label">剩余本金:</span> <span class="value" id="cash">{{ data.account.cash or '0' }}</span>
                                 </div>
                                 <div class="binance-price-item">
-                                    <span class="binance-label">零点 CASH:</span> <span class="value" id="zeroTimeCash">{{ data.account.zero_time_cash or '--' }}</span>
+                                    <span class="binance-label">当天本金:</span> <span class="value" id="zeroTimeCash">{{ data.account.zero_time_cash or '--' }}</span>
                                 </div>
                             </div>
                             <!-- 币种和交易时间显示区域 -->
@@ -5279,11 +5281,7 @@ class CryptoTrader:
                                             <input type="number" class="position-input" id="up4_price" name="up4_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                             <input type="number" class="position-input" id="up4_amount" name="up4_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Up5</div>
-                                            <input type="number" class="position-input" id="up5_price" name="up5_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="up5_amount" name="up5_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
+
                                     </div>
                                     
                                     <div class="position-section down-section">
@@ -5312,11 +5310,7 @@ class CryptoTrader:
                                             <input type="number" class="position-input" id="down4_price" name="down4_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                             <input type="number" class="position-input" id="down4_amount" name="down4_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
                                         </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Down5</div>
-                                            <input type="number" class="position-input" id="down5_price" name="down5_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="down5_amount" name="down5_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
+
                                     </div>
                                 </div>
 
@@ -5798,8 +5792,6 @@ class CryptoTrader:
                         'up3_amount': self.get_web_value('yes3_amount_entry') or '0',
                         'up4_price': self.get_web_value('yes4_price_entry') or '0',
                         'up4_amount': self.get_web_value('yes4_amount_entry') or '0',
-                        'up5_price': self.get_web_value('yes5_price_entry') or '0',
-                        'up5_amount': self.get_web_value('yes5_amount_entry') or '0',
                         'down1_price': self.get_web_value('no1_price_entry') or '0',
                         'down1_amount': self.get_web_value('no1_amount_entry') or '0',
                         'down2_price': self.get_web_value('no2_price_entry') or '0',
@@ -5807,9 +5799,7 @@ class CryptoTrader:
                         'down3_price': self.get_web_value('no3_price_entry') or '0',
                         'down3_amount': self.get_web_value('no3_amount_entry') or '0',
                         'down4_price': self.get_web_value('no4_price_entry') or '0',
-                        'down4_amount': self.get_web_value('no4_amount_entry') or '0',
-                        'down5_price': self.get_web_value('no5_price_entry') or '0',
-                        'down5_amount': self.get_web_value('no5_amount_entry') or '0'
+                        'down4_amount': self.get_web_value('no4_amount_entry') or '0'
                     },
                     'coin': self.get_web_value('coin_combobox') or 'BTC',
                     'auto_find_time': self.get_web_value('auto_find_time_combobox') or '1:00'
@@ -6093,8 +6083,6 @@ class CryptoTrader:
                     'up3_amount': data.get('up3_amount', 0),
                     'up4_price': data.get('up4_price', 0),
                     'up4_amount': data.get('up4_amount', 0),
-                    'up5_price': data.get('up5_price', 0),
-                    'up5_amount': data.get('up5_amount', 0),
                     'down1_price': data.get('down1_price', 0),
                     'down1_amount': data.get('down1_amount', 0),
                     'down2_price': data.get('down2_price', 0),
@@ -6102,9 +6090,7 @@ class CryptoTrader:
                     'down3_price': data.get('down3_price', 0),
                     'down3_amount': data.get('down3_amount', 0),
                     'down4_price': data.get('down4_price', 0),
-                    'down4_amount': data.get('down4_amount', 0),
-                    'down5_price': data.get('down5_price', 0),
-                    'down5_amount': data.get('down5_amount', 0)
+                    'down4_amount': data.get('down4_amount', 0)
                 }
                 
                 # 更新内存中的配置
@@ -6119,8 +6105,6 @@ class CryptoTrader:
                 self.set_web_value('yes3_amount_entry', str(data.get('up3_amount', 0)))
                 self.set_web_value('yes4_price_entry', str(data.get('up4_price', 0)))
                 self.set_web_value('yes4_amount_entry', str(data.get('up4_amount', 0)))
-                self.set_web_value('yes5_price_entry', str(data.get('up5_price', 0)))
-                self.set_web_value('yes5_amount_entry', str(data.get('up5_amount', 0)))
                 self.set_web_value('no1_price_entry', str(data.get('down1_price', 0)))
                 self.set_web_value('no1_amount_entry', str(data.get('down1_amount', 0)))
                 self.set_web_value('no2_price_entry', str(data.get('down2_price', 0)))
@@ -6129,8 +6113,6 @@ class CryptoTrader:
                 self.set_web_value('no3_amount_entry', str(data.get('down3_amount', 0)))
                 self.set_web_value('no4_price_entry', str(data.get('down4_price', 0)))
                 self.set_web_value('no4_amount_entry', str(data.get('down4_amount', 0)))
-                self.set_web_value('no5_price_entry', str(data.get('down5_price', 0)))
-                self.set_web_value('no5_amount_entry', str(data.get('down5_amount', 0)))
                 
                 # 保存到文件
                 self.save_config()
