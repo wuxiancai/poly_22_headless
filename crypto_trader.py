@@ -4791,9 +4791,11 @@ class CryptoTrader:
                                 // 更新账户信息
                                 const portfolioElement = document.querySelector('#portfolio');
                                 const cashElement = document.querySelector('#cash');
+                                const zeroTimeCashElement = document.querySelector('#zeroTimeCash');
                                 
                                 if (portfolioElement) portfolioElement.textContent = data.account.portfolio;
                                 if (cashElement) cashElement.textContent = data.account.cash;
+                                if (zeroTimeCashElement) zeroTimeCashElement.textContent = data.account.zero_time_cash || '--';
                                 
                                 // 更新状态信息
                                 const statusElement = document.querySelector('.status-value');
@@ -4950,17 +4952,17 @@ class CryptoTrader:
                             <!-- 币安价格显示区域 -->
                             <div class="up-down-prices-container">
                                 <div class="up-price-display">
-                                    <span class="price-label">零点:</span> {{ data.prices.binance_zero_price or '--' }}
-                                    <span class="price-label">实时:</span> {{ data.prices.binance_price or '--' }}
-                                    <span class="price-label">涨幅:</span> {{ data.prices.binance_rate or '--' }}
+                                    <span class="price-label">零点:</span> <span id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                                    <span class="price-label">实时:</span> <span id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                    <span class="price-label">涨幅:</span> <span id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
                                 </div>
                             </div>
                             <!-- 资产显示区域 -->
                             <div class="up-down-prices-container">
                                 <div class="down-price-display">
-                                    <span class="price-label">Portfolio:</span> {{ data.account.portfolio or '0' }}
-                                    <span class="price-label">Cash:</span> {{ data.account.cash or '0' }}
-                                    <span class="price-label">零点 CASH:</span> {{ data.account.zero_time_cash or '--' }}
+                                    <span class="price-label">Portfolio:</span> <span id="portfolio">{{ data.account.portfolio or '0' }}</span>
+                                    <span class="price-label">Cash:</span> <span id="cash">{{ data.account.cash or '0' }}</span>
+                                    <span class="price-label">零点 CASH:</span> <span id="zeroTimeCash">{{ data.account.zero_time_cash or '--' }}</span>
                                 </div>
                             </div>
                             <!-- 币种和交易时间显示区域 -->
