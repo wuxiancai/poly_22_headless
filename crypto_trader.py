@@ -4884,20 +4884,22 @@ class CryptoTrader:
                     .url-input-group input {
                         flex: 1; padding: 14px 18px; border: 2px solid #ced4da;
                         border-radius: 8px; font-size: 16px; transition: all 0.3s ease;
+                        background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
+                        color: #2F3E46;
                     }
                     .url-input-group input:focus {
                         border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
                         outline: none;
                     }
                     .url-input-group button {
-                        padding: 6px 8px; background: linear-gradient(45deg, #28a745, #20c997);
-                        color: white; border: none; border-radius: 8px; cursor: pointer;
+                        padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
+                        color: #2F3E46; border: none; border-radius: 8px; cursor: pointer;
                         font-size: 16px; font-weight: 600; white-space: nowrap;
-                        transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+                        transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);
                     }
                     .url-input-group button:hover {
-                        background: linear-gradient(45deg, #218838, #1e7e34);
-                        transform: translateY(-2px); box-shadow: 0 6px 20px rgba(40,167,69,0.4);
+                        background: linear-gradient(135deg, #9BB5FF, #B8F2DD);
+                        transform: translateY(-2px); box-shadow: 0 6px 20px rgba(168,192,255,0.4);
                     }
                     .url-input-group button:disabled {
                         background: #6c757d; cursor: not-allowed; transform: none;
@@ -5542,10 +5544,10 @@ class CryptoTrader:
                             <div class="url-input-group">
                                 <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
                                 <button id="startBtn" onclick="startTrading()">启动监控</button>
-                                <button id="stopBtn" onclick="stopMonitoring()" style="padding: 6px 8px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">🛑 停止监控</button>
-                                <button id="startChromeBtn" onclick="startChrome()" style="padding: 6px 8px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🚀 启动浏览器</button>
-                                <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 6px 8px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
-                                <button id="restartBtn" onclick="restartProgram()" style="padding: 6px 8px; background: linear-gradient(45deg, #fd7e14, #e55a00); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(253,126,20,0.3); margin-left: 10px;">🔄 重启程序</button>
+                                <button id="stopBtn" onclick="stopMonitoring()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);">🛑 停止监控</button>
+                                <button id="startChromeBtn" onclick="startChrome()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);">🚀 启动浏览器</button>
+                                <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
+                                <button id="restartBtn" onclick="restartProgram()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🔄 重启程序</button>
                             </div>
                             <div id="statusMessage" class="status-message"></div>
                         </div>
