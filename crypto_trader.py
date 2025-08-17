@@ -544,7 +544,7 @@ class CryptoTrader:
                             if response.getcode() == 200:
                                 self.logger.info(f"✅ \033[34mChrome无头模式启动成功!!!可以点击'启动监控'按钮了!\033[0m")
                                 # 设置浏览器启动状态，用于前端按钮状态控制
-                                self.set_web_state('browser_started', True)
+                                self.set_web_value('browser_status', '运行中')
                                 return
                         except Exception as host_e:
                             self.logger.debug(f"尝试连接{host}:9222失败: {str(host_e)}")
@@ -5561,7 +5561,8 @@ class CryptoTrader:
             """获取监控状态API"""
             try:
                 # 检查浏览器是否已启动
-                monitoring_active = self.get_web_value('browser_started') == True
+                browser_status = self.get_web_value('browser_status') or '未连接'
+                monitoring_active = browser_status == '运行中'
                 
                 return jsonify({
                     'monitoring_active': monitoring_active,
