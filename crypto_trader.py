@@ -6147,6 +6147,9 @@ class CryptoTrader:
                 if not data:
                     return jsonify({'success': False, 'message': '无效的数据'})
                 
+                # 获取当前配置以便比较变化
+                current_positions = self.config.get('positions', {})
+                
                 # 保存到配置文件
                 positions_config = {
                     'up1_price': data.get('up1_price', 0),
@@ -6191,7 +6194,33 @@ class CryptoTrader:
                 # 保存到文件
                 self.save_config()
                 
-                self.logger.info(f"交易仓位设置已保存: {positions_config}")
+                # 只记录实际发生变化的字段，使用简洁的日志格式
+                field_mapping = {
+                    'up1_price': 'UP1 价格',
+                    'up1_amount': 'UP1 金额',
+                    'up2_price': 'UP2 价格',
+                    'up2_amount': 'UP2 金额',
+                    'up3_price': 'UP3 价格',
+                    'up3_amount': 'UP3 金额',
+                    'up4_price': 'UP4 价格',
+                    'up4_amount': 'UP4 金额',
+                    'down1_price': 'DOWN1 价格',
+                    'down1_amount': 'DOWN1 金额',
+                    'down2_price': 'DOWN2 价格',
+                    'down2_amount': 'DOWN2 金额',
+                    'down3_price': 'DOWN3 价格',
+                    'down3_amount': 'DOWN3 金额',
+                    'down4_price': 'DOWN4 价格',
+                    'down4_amount': 'DOWN4 金额'
+                }
+                
+                # 检查并记录变化的字段
+                for field, value in data.items():
+                    current_value = current_positions.get(field, 0)
+                    if float(value) != float(current_value):
+                        field_name = field_mapping.get(field, field)
+                        self.logger.info(f"{field_name}设置为 {value}")
+                
                 return jsonify({'success': True, 'message': '交易仓位设置已保存'})
             except Exception as e:
                 self.logger.error(f"保存交易仓位失败: {str(e)}")
