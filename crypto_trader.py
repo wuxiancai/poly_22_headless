@@ -542,7 +542,7 @@ class CryptoTrader:
                         try:
                             response = urllib.request.urlopen(f'http://{host}:9222/json', timeout=5)
                             if response.getcode() == 200:
-                                self.logger.info(f"✅ \033[34mChrome无头模式启动成功!!!可以点击"启动监控"按钮了!\033[0m")
+                                self.logger.info(f"✅ \033[34mChrome无头模式启动成功!!!可以点击'启动监控'按钮了!\033[0m")
                                 return
                         except Exception as host_e:
                             self.logger.debug(f"尝试连接{host}:9222失败: {str(host_e)}")
@@ -5169,6 +5169,9 @@ class CryptoTrader:
                     startBtn.disabled = true;
                     startBtn.textContent = '启动中...';
                     
+                    // 开始检查监控状态
+                    startMonitoringStatusCheck();
+                    
                     // 发送启动请求
                     fetch('/start', {
                         method: 'POST',
@@ -5181,14 +5184,16 @@ class CryptoTrader:
                     .then(data => {
                         if (data.success) {
                             showMessage(data.message, 'success');
-                            // 3秒后刷新页面以显示最新状态
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 3000);
+                            // 监控启动成功后，状态检查函数会自动更新按钮状态
                         } else {
                             showMessage(data.message, 'error');
                             startBtn.disabled = false;
                             startBtn.textContent = '启动监控';
+                            // 停止状态检查
+                            if (window.monitoringStatusInterval) {
+                                clearInterval(window.monitoringStatusInterval);
+                                window.monitoringStatusInterval = null;
+                            }
                         }
                     })
                     .catch(error => {
@@ -5196,6 +5201,11 @@ class CryptoTrader:
                         showMessage('启动失败，请检查网络连接', 'error');
                         startBtn.disabled = false;
                         startBtn.textContent = '启动监控';
+                        // 停止状态检查
+                        if (window.monitoringStatusInterval) {
+                            clearInterval(window.monitoringStatusInterval);
+                            window.monitoringStatusInterval = null;
+                        }
                     });
                 }
                 
@@ -5245,6 +5255,68 @@ class CryptoTrader:
                         stopBtn.disabled = false;
                         stopBtn.textContent = '🛑 停止监控';
                     });
+                }
+                
+                // 检查浏览器状态的函数
+                function checkBrowserStatus() {
+                    fetch('/api/browser_status')
+                    .then(response => response.json())
+                    .then(data => {
+                        const startBtn = document.getElementById('startBtn');
+                        if (data.browser_connected) {
+                            // 浏览器已连接，禁用启动按钮
+                            startBtn.disabled = true;
+                            startBtn.textContent = '🌐 运行中...';
+                            startBtn.style.backgroundColor = '#6c757d';
+                            startBtn.style.cursor = 'not-allowed';
+                            
+                            // 停止检查状态
+                            if (window.browserStatusInterval) {
+                                clearInterval(window.browserStatusInterval);
+                                window.browserStatusInterval = null;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('检查浏览器状态失败:', error);
+                    });
+                }
+                
+                // 启动浏览器状态检查
+                function startBrowserStatusCheck() {
+                    // 每2秒检查一次浏览器状态
+                    window.browserStatusInterval = setInterval(checkBrowserStatus, 2000);
+                }
+                
+                // 检查监控状态的函数
+                function checkMonitoringStatus() {
+                    fetch('/api/monitoring_status')
+                    .then(response => response.json())
+                    .then(data => {
+                        const startBtn = document.getElementById('startBtn');
+                        if (data.monitoring_active) {
+                            // 监控已启动，禁用启动按钮
+                            startBtn.disabled = true;
+                            startBtn.textContent = '程序运行中';
+                            startBtn.style.backgroundColor = '#6c757d';
+                            startBtn.style.cursor = 'not-allowed';
+                            
+                            // 停止检查状态
+                            if (window.monitoringStatusInterval) {
+                                clearInterval(window.monitoringStatusInterval);
+                                window.monitoringStatusInterval = null;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('检查监控状态失败:', error);
+                    });
+                }
+                
+                // 启动监控状态检查
+                function startMonitoringStatusCheck() {
+                    // 每2秒检查一次监控状态
+                    window.monitoringStatusInterval = setInterval(checkMonitoringStatus, 2000);
                 }
                 
                 // 日志相关变量
@@ -5454,6 +5526,47 @@ class CryptoTrader:
             except Exception as e:
                 self.logger.error(f"停止监控失败: {str(e)}")
                 return jsonify({'success': False, 'message': f'停止失败: {str(e)}'})
+        
+        @app.route("/api/browser_status", methods=['GET'])
+        def get_browser_status():
+            """获取浏览器状态API"""
+            try:
+                # 检查浏览器是否已连接
+                browser_connected = self.driver is not None
+                monitoring_active = self.running
+                
+                return jsonify({
+                    'browser_connected': browser_connected,
+                    'monitoring_active': monitoring_active,
+                    'status': 'connected' if browser_connected else 'disconnected'
+                })
+            except Exception as e:
+                self.logger.error(f"获取浏览器状态失败: {str(e)}")
+                return jsonify({
+                    'browser_connected': False,
+                    'monitoring_active': False,
+                    'status': 'error',
+                    'error': str(e)
+                })
+        
+        @app.route("/api/monitoring_status", methods=['GET'])
+        def get_monitoring_status():
+            """获取监控状态API"""
+            try:
+                # 检查监控是否已启动
+                monitoring_active = self.running and self.driver is not None
+                
+                return jsonify({
+                    'monitoring_active': monitoring_active,
+                    'status': 'running' if monitoring_active else 'stopped'
+                })
+            except Exception as e:
+                self.logger.error(f"获取监控状态失败: {str(e)}")
+                return jsonify({
+                    'monitoring_active': False,
+                    'status': 'error',
+                    'error': str(e)
+                })
         
         @app.route("/api/data")
         def get_data():
