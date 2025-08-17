@@ -4890,7 +4890,7 @@ class CryptoTrader:
                         outline: none;
                     }
                     .url-input-group button {
-                        padding: 14px 28px; background: linear-gradient(45deg, #28a745, #20c997);
+                        padding: 6px 8px; background: linear-gradient(45deg, #28a745, #20c997);
                         color: white; border: none; border-radius: 8px; cursor: pointer;
                         font-size: 16px; font-weight: 600; white-space: nowrap;
                         transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(40,167,69,0.3);
@@ -5398,10 +5398,10 @@ class CryptoTrader:
                             <div class="url-input-group">
                                 <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
                                 <button id="startBtn" onclick="startTrading()">启动监控</button>
-                                <button id="stopBtn" onclick="stopMonitoring()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">🛑 停止监控</button>
-                                <button id="startChromeBtn" onclick="startChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🚀 启动浏览器</button>
-                                <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 14px 28px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
-                                <button id="restartBtn" onclick="restartProgram()" style="padding: 14px 28px; background: linear-gradient(45deg, #fd7e14, #e55a00); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(253,126,20,0.3); margin-left: 10px;">🔄 重启程序</button>
+                                <button id="stopBtn" onclick="stopMonitoring()" style="padding: 6px 8px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">🛑 停止监控</button>
+                                <button id="startChromeBtn" onclick="startChrome()" style="padding: 6px 8px; background: linear-gradient(45deg, #17a2b8, #138496); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(23,162,184,0.3);">🚀 启动浏览器</button>
+                                <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 6px 8px; background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220,53,69,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
+                                <button id="restartBtn" onclick="restartProgram()" style="padding: 6px 8px; background: linear-gradient(45deg, #fd7e14, #e55a00); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(253,126,20,0.3); margin-left: 10px;">🔄 重启程序</button>
                             </div>
                             <div id="statusMessage" class="status-message"></div>
                         </div>
