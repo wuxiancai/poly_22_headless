@@ -470,7 +470,7 @@ class CryptoTrader:
 
     def start_chrome_ubuntu(self):
         """启动Chrome浏览器""" 
-        self.logger.info("\033[34m🚀 0开始启动Chrome浏览器进程...\033[0m")
+        self.logger.info("\033[34m🚀 开始启动Chrome浏览器进程...\033[0m")
         
         # 根据操作系统选择启动脚本
         if platform.system() == 'Darwin':
@@ -486,7 +486,7 @@ class CryptoTrader:
             raise FileNotFoundError(f"启动脚本不存在: {script_path}")
         
         # 启动Chrome进程（同步执行脚本，让脚本内部处理启动和检查）
-        self.logger.info(f"执行启动脚本: {script_path}")
+        self.logger.info("\033[34m✅ 开始执行启动脚本\033[0m")
         try:
             result = subprocess.run(['bash', script_path], 
                                   capture_output=True, text=True, timeout=10)
@@ -535,7 +535,7 @@ class CryptoTrader:
                                            capture_output=True, text=True, timeout=5)
                 
                 if lsof_result.returncode == 0 and lsof_result.stdout.strip():
-                    self.logger.info(f"端口9222正在被监听: {lsof_result.stdout.strip().split()[0]}")
+                    self.logger.info(f"\033[34m✅ 端口9222正在被监听: {lsof_result.stdout.strip().split()[0]}\033[0m")
                     
                     # 尝试localhost和127.0.0.1两个地址
                     for host in ['localhost', '127.0.0.1']:
@@ -708,7 +708,7 @@ class CryptoTrader:
                         try:
                             import requests
                             response = requests.get('http://127.0.0.1:9222/json', timeout=5)
-                            self.logger.info(f"✅ Chrome调试端口响应正常: {response.status_code}")
+                            self.logger.info(f"\033[34m✅ Chrome调试端口响应正常: {response.status_code}\033[0m")
                         except Exception as port_e:
                             self.logger.error(f"❌ \033[31mChrome调试端口无响应: {type(port_e).__name__}: {port_e}\033[0m")
                             if attempt < max_retries - 1:
@@ -5413,6 +5413,11 @@ class CryptoTrader:
                     updateLogs();
                     // 每5秒更新一次日志
                     logUpdateInterval = setInterval(updateLogs, 5000);
+                    
+                    // 页面加载时检查监控状态
+                    checkMonitoringStatus();
+                    // 启动定期监控状态检查
+                    startMonitoringStatusCheck();
                     
                     // 监听日志容器的滚动事件
                     const logContainer = document.getElementById('logContainer');
