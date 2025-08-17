@@ -838,6 +838,63 @@ class CryptoTrader:
         self.set_web_state('start_button', 'normal')
         self.running = False
 
+    def stop_monitoring(self):
+        """停止监控并取消所有定时器"""
+        try:
+            self.logger.info("🛑 开始停止监控...")
+            
+            # 设置停止事件
+            if hasattr(self, 'stop_event'):
+                self.stop_event.set()
+            
+            # 设置运行状态为False
+            self.running = False
+            
+            # 取消所有定时器
+            timer_list = [
+                'login_check_timer',
+                'url_check_timer', 
+                'refresh_page_timer',
+                'get_binance_zero_time_price_timer',
+                'get_binance_price_websocket_timer',
+                'comparison_binance_price_timer',
+                'schedule_auto_find_coin_timer',
+                'set_yes1_no1_default_target_price_timer',
+                'night_auto_sell_timer',
+                'auto_use_swap_timer',
+                'clear_chrome_mem_cache_timer',
+                'get_zero_time_cash_timer',
+                'record_and_show_cash_timer',
+                'binance_zero_price_timer'
+            ]
+            
+            cancelled_count = 0
+            for timer_name in timer_list:
+                if hasattr(self, timer_name):
+                    timer = getattr(self, timer_name)
+                    if timer is not None:
+                        try:
+                            if hasattr(timer, 'cancel'):
+                                timer.cancel()
+                                setattr(self, timer_name, None)
+                                cancelled_count += 1
+                                self.logger.debug(f"✅ 已取消定时器: {timer_name}")
+                        except Exception as e:
+                            self.logger.warning(f"⚠️ 取消定时器 {timer_name} 时出错: {e}")
+            
+            # 停止URL监控和页面刷新
+            self.stop_url_monitoring()
+            self.stop_refresh_page()
+            
+            # 重置按钮状态
+            self.set_web_state('start_button', 'normal')
+            
+            self.logger.info(f"✅ 监控已完全停止，共取消了 {cancelled_count} 个定时器")
+            
+        except Exception as e:
+            self.logger.error(f"❌ 停止监控时发生错误: {e}")
+            raise e
+
     def monitor_prices(self):
         """检查价格变化"""
         try:
@@ -5348,13 +5405,9 @@ class CryptoTrader:
         def stop_trading():
             """处理停止监控按钮点击事件"""
             try:
-                # 停止监控
-                if hasattr(self, 'stop_event'):
-                    self.stop_event.set()
-                    self.logger.info("监控已停止")
-                    return jsonify({'success': True, 'message': '监控已停止'})
-                else:
-                    return jsonify({'success': False, 'message': '监控未运行'})
+                # 调用完整的停止监控方法
+                self.stop_monitoring()
+                return jsonify({'success': True, 'message': '监控已停止'})
             except Exception as e:
                 self.logger.error(f"停止监控失败: {str(e)}")
                 return jsonify({'success': False, 'message': f'停止失败: {str(e)}'})
