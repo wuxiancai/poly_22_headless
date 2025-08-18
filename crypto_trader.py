@@ -178,6 +178,11 @@ class CryptoTrader:
             setattr(self, f'no{i}_amount', 0)
             
         # 初始化零点CASH值
+        
+        # 初始化 shares 属性
+        self.shares = None
+        self.price = None
+        self.amount = None
         self.zero_time_cash_value = 0
 
         # 初始化web数据存储 (替代GUI组件)
@@ -2652,6 +2657,7 @@ class CryptoTrader:
                 # 滚动到元素位置并使用JavaScript点击
                 self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", accept_button)
                 self.driver.execute_script("arguments[0].click();", accept_button)
+                self.logger.info(f"ACCEPT按钮元素: {accept_button}")
                 if accept_button:
                     self.logger.info("\033[34m✅ 点击ACCEPT按钮成功\033[0m")
             except TimeoutException:
