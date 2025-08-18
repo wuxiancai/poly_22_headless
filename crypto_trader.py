@@ -1919,7 +1919,8 @@ class CryptoTrader:
             
             if has_up_position:
                 # 有Up持仓
-                position_text = "方向: Up 数量: -- 价格: -- 金额: --"
+                
+                position_text = f"方向: Up 数量: {self.up_position_shares} 价格: {self.up_position_price} 金额: {self.up_position_amount}"
                 color_style = "color: green; font-weight: bold;"
                 
                 # 更新Web界面的持仓显示
@@ -1937,7 +1938,7 @@ class CryptoTrader:
                 }
             elif has_down_position:
                 # 有Down持仓
-                position_text = "方向: Down 数量: -- 价格: -- 金额: --"
+                position_text = f"方向: Down 数量: {self.down_position_shares} 价格: {self.down_position_price} 金额: {self.down_position_amount}"
                 color_style = "color: red; font-weight: bold;"
                 
                 # 更新Web界面的持仓显示
@@ -2600,7 +2601,7 @@ class CryptoTrader:
         try:
             # 点击卖出按钮
             try:
-                positions_sell_button = WebDriverWait(self.driver, 1).until(
+                positions_sell_button = WebDriverWait(self.driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.POSITION_SELL_BUTTON[0]))
                 )
                 # 滚动到元素位置并使用JavaScript点击
@@ -2621,7 +2622,7 @@ class CryptoTrader:
 
             # 点击 Sell confirm 卖出确认按钮
             try:
-                sell_confirm_button = WebDriverWait(self.driver, 1).until(
+                sell_confirm_button = WebDriverWait(self.driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.SELL_CONFIRM_BUTTON[0]))
                 )
                 # 滚动到元素位置并使用JavaScript点击
@@ -2642,25 +2643,16 @@ class CryptoTrader:
 
             # 等待ACCEPT弹窗出现
             try:
-                accept_button = WebDriverWait(self.driver, 2).until(
-                    EC.presence_of_element_located((By.XPATH, XPathConfig.ACCEPT_BUTTON[0]))
+                accept_button = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.XPATH, XPathConfig.ACCEPT_BUTTON[0]))
                 )
                 # 滚动到元素位置并使用JavaScript点击
                 self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", accept_button)
-                time.sleep(0.3)
                 self.driver.execute_script("arguments[0].click();", accept_button)
-                self.logger.info("\033[34m✅ 点击ACCEPT按钮成功\033[0m")
-            except TimeoutException:
-                # 尝试备用XPath
-                accept_button = self._find_element_with_retry(XPathConfig.ACCEPT_BUTTON, timeout=2, silent=True)
                 if accept_button:
-                    self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", accept_button)
-                    time.sleep(0.3)
-                    self.driver.execute_script("arguments[0].click();", accept_button)
-                    self.logger.info("\033[34m✅ 使用备用XPath点击ACCEPT按钮成功\033[0m")
-                else:
-                    # 弹窗没出现,不用处理
-                    self.logger.info("\033[31m❌ 没有出现ACCEPT弹窗,跳过点击\033[0m")
+                    self.logger.info("\033[34m✅ 点击ACCEPT按钮成功\033[0m")
+            except TimeoutException:
+                self.logger.info("\033[31m❌ 没有出现ACCEPT弹窗,跳过点击\033[0m")
         except Exception as e:
             self.logger.error(f"卖出失败: {str(e)}")
 
@@ -6240,7 +6232,7 @@ class CryptoTrader:
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for record in data.cash_history[:15] %}
+                                    {% for record in data.cash_history[:91] %}
                                     <tr style="{% if loop.index % 2 == 0 %}background-color: #f8f9fa;{% endif %}">
                                         <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ record[0] }}</td>
                                         <td style="padding: 10px; text-align: center; border: 1px solid #ddd; font-weight: bold;">{{ record[1] }}</td>
@@ -6255,7 +6247,7 @@ class CryptoTrader:
                             </table>
                         </div>
                         <div style="text-align: center; margin-top: 15px; color: #6c757d; font-size: 14px;">
-                            显示最近 15 条记录 | 总记录数: {{ data.cash_history|length }} 条 | 
+                            显示最近 91 条记录 | 总记录数: {{ data.cash_history|length }} 条 | 
                             <a href="http://localhost:5000/history" target="_blank" style="color: #007bff; text-decoration: none;">查看完整记录</a>
                         </div>
                         {% else %}
@@ -6447,7 +6439,7 @@ class CryptoTrader:
             """交易历史记录页面"""
             # 分页参数
             page = request.args.get('page', 1, type=int)
-            per_page = 200
+            per_page = 91
             
             # 按日期排序（最新日期在前）
             sorted_history = sorted(self.cash_history, key=lambda x: x[0], reverse=True)
