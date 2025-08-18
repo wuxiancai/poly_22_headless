@@ -294,29 +294,48 @@ fi
 read -p "🤖 是否创建systemd服务以便开机自启动？(y/n): " create_service
 
 if [[ $create_service == "y" || $create_service == "Y" ]]; then
-    SERVICE_NAME="crypto-trader"
-    SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+    SERVICE_NAME="run-poly@$CURRENT_USER"
+    SERVICE_FILE="/etc/systemd/system/run-poly@.service"
     
     echo "📝 创建systemd服务..."
     
-    # 根据是否启用NGINX调整服务配置
-    if [[ $NGINX_ENABLED == true ]]; then
-        # 使用NGINX时，Flask只绑定到localhost
-        sudo tee "$SERVICE_FILE" > /dev/null << EOF
+    # 检查项目中是否存在 run-poly.service 模板文件
+    if [[ -f "$PROJECT_DIR/run-poly.service" ]]; then
+        echo "📋 使用项目中的 run-poly.service 模板文件"
+        
+        # 根据是否启用NGINX调整服务配置
+        if [[ $NGINX_ENABLED == true ]]; then
+            # 使用NGINX时，保持原有配置（绑定到localhost）
+            sudo cp "$PROJECT_DIR/run-poly.service" "$SERVICE_FILE"
+        else
+            # 不使用NGINX时，修改Flask绑定到所有接口
+            sed 's/Environment=FLASK_HOST=127.0.0.1/Environment=FLASK_HOST=0.0.0.0/' "$PROJECT_DIR/run-poly.service" | \
+            sed 's/After=network.target nginx.service/After=network.target/' | \
+            sed 's/Requires=nginx.service//' | \
+            sed 's/Description=Crypto Trading Bot with NGINX Proxy/Description=Headless Crypto Trader/' | \
+            sudo tee "$SERVICE_FILE" > /dev/null
+        fi
+    else
+        echo "⚠️  未找到 run-poly.service 模板文件，创建默认配置"
+        
+        # 根据是否启用NGINX调整服务配置
+        if [[ $NGINX_ENABLED == true ]]; then
+            # 使用NGINX时，Flask只绑定到localhost
+            sudo tee "$SERVICE_FILE" > /dev/null << EOF
 [Unit]
 Description=Crypto Trading Bot with NGINX Proxy
 After=network.target nginx.service
-Wants=nginx.service
+Requires=nginx.service
 
 [Service]
 Type=simple
-User=$CURRENT_USER
-WorkingDirectory=$PROJECT_DIR
-Environment=PATH=$VENV_DIR/bin:/usr/bin:/bin
+User=%i
+WorkingDirectory=%h/poly_22_headless
+Environment=PATH=%h/poly_22_headless/venv/bin:/usr/bin:/bin
 Environment=FLASK_HOST=127.0.0.1
 Environment=FLASK_PORT=5000
 Environment=FLASK_ENV=production
-ExecStart=$VENV_DIR/bin/python $PROJECT_DIR/crypto_trader.py
+ExecStart=%h/poly_22_headless/venv/bin/python %h/poly_22_headless/crypto_trader.py
 Restart=always
 RestartSec=10
 KillMode=mixed
@@ -327,7 +346,7 @@ NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=$PROJECT_DIR
+ReadWritePaths=%h/poly_22_headless
 
 # 资源限制
 LimitNOFILE=65536
@@ -336,22 +355,22 @@ LimitNPROC=4096
 [Install]
 WantedBy=multi-user.target
 EOF
-    else
-        # 不使用NGINX时，Flask绑定到所有接口
-        sudo tee "$SERVICE_FILE" > /dev/null << EOF
+        else
+            # 不使用NGINX时，Flask绑定到所有接口
+            sudo tee "$SERVICE_FILE" > /dev/null << EOF
 [Unit]
 Description=Headless Crypto Trader
 After=network.target
 
 [Service]
 Type=simple
-User=$CURRENT_USER
-WorkingDirectory=$PROJECT_DIR
-Environment=PATH=$VENV_DIR/bin:/usr/bin:/bin
+User=%i
+WorkingDirectory=%h/poly_22_headless
+Environment=PATH=%h/poly_22_headless/venv/bin:/usr/bin:/bin
 Environment=FLASK_HOST=0.0.0.0
 Environment=FLASK_PORT=5000
 Environment=FLASK_ENV=production
-ExecStart=$VENV_DIR/bin/python $PROJECT_DIR/crypto_trader.py
+ExecStart=%h/poly_22_headless/venv/bin/python %h/poly_22_headless/crypto_trader.py
 Restart=always
 RestartSec=10
 KillMode=mixed
@@ -362,7 +381,7 @@ NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=$PROJECT_DIR
+ReadWritePaths=%h/poly_22_headless
 
 # 资源限制
 LimitNOFILE=65536
@@ -371,6 +390,7 @@ LimitNPROC=4096
 [Install]
 WantedBy=multi-user.target
 EOF
+        fi
     fi
 
     sudo systemctl daemon-reload
@@ -382,6 +402,7 @@ EOF
     echo "   停止服务: sudo systemctl stop $SERVICE_NAME"
     echo "   查看状态: sudo systemctl status $SERVICE_NAME"
     echo "   查看日志: sudo journalctl -u $SERVICE_NAME -f"
+    echo "   重启服务: sudo systemctl restart $SERVICE_NAME"
 fi
 
 # 9. 配置防火墙（如果启用了ufw且未使用NGINX）

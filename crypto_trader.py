@@ -38,6 +38,7 @@ import socket
 import urllib.request
 import requests
 
+
 class Logger:
     def __init__(self, name):
         self.logger = logging.getLogger(name)
@@ -1935,9 +1936,9 @@ class CryptoTrader:
                 self.logger.info(f"✅ \033[32m持仓信息已更新: {position_text}\033[0m")
                 return {
                     'direction': 'Up',
-                    'shares': '--',
-                    'price': '--',
-                    'amount': '--',
+                    'shares': self.shares,
+                    'price': self.price,
+                    'amount': self.amount,
                     'display_text': position_text,
                     'color_style': color_style
                 }
@@ -1953,9 +1954,9 @@ class CryptoTrader:
                 self.logger.info(f"✅ \033[31m持仓信息已更新: {position_text}\033[0m")
                 return {
                     'direction': 'Down',
-                    'shares': '--',
-                    'price': '--',
-                    'amount': '--',
+                    'shares': self.shares,
+                    'price': self.price,
+                    'amount': self.amount,
                     'display_text': position_text,
                     'color_style': color_style
                 }
@@ -2216,8 +2217,6 @@ class CryptoTrader:
 
                         # 执行交易操作
                         self.click_buy_no()
-
-                        # Web模式下使用金额值而不是GUI对象
                         self.send_amount_and_click_buy_confirm_button(self.get_web_value('no2_amount_entry'))
                         
                         time.sleep(2)
@@ -2651,13 +2650,13 @@ class CryptoTrader:
 
             # 等待ACCEPT弹窗出现
             try:
-                accept_button = WebDriverWait(self.driver, 5).until(
+                accept_button = WebDriverWait(self.driver, 2).until(
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.ACCEPT_BUTTON[0]))
                 )
                 # 滚动到元素位置并使用JavaScript点击
                 self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", accept_button)
                 self.driver.execute_script("arguments[0].click();", accept_button)
-                self.logger.info(f"ACCEPT按钮元素: {accept_button}")
+                
                 if accept_button:
                     self.logger.info("\033[34m✅ 点击ACCEPT按钮成功\033[0m")
             except TimeoutException:
@@ -2667,8 +2666,8 @@ class CryptoTrader:
 
     def only_sell_up(self):
         """只卖出YES,且验证交易是否成功"""
-        # 重试 3 次
-        for retry in range(3):
+        # 重试 2 次
+        for retry in range(2):
             self.logger.info("\033[32m执行only_sell_up\033[0m")
 
             self.click_positions_sell_and_sell_confirm_and_accept()
@@ -2695,8 +2694,8 @@ class CryptoTrader:
       
     def only_sell_down(self):
         """只卖出Down,且验证交易是否成功"""
-        # 重试 3 次
-        for retry in range(3): 
+        # 重试 2 次
+        for retry in range(2): 
             self.logger.info("\033[32m执行only_sell_down\033[0m")
 
             self.click_positions_sell_and_sell_confirm_and_accept()
@@ -3163,8 +3162,8 @@ class CryptoTrader:
 
     def find_position_label_up(self):
         """查找Yes持仓标签"""
-        max_retries = 3
-        retry_delay = 1
+        max_retries = 2  # 减少重试次数
+        retry_delay = 0.3  # 大幅减少重试延迟
         
         for attempt in range(max_retries):
             try:
@@ -3177,36 +3176,36 @@ class CryptoTrader:
                     try:
                         position_label_up = self.driver.find_element(By.XPATH, XPathConfig.POSITION_UP_LABEL[0])
                     except (NoSuchElementException, StaleElementReferenceException):
-                        position_label_up = self._find_element_with_retry(XPathConfig.POSITION_UP_LABEL, timeout=3, silent=True)
+                        position_label_up = self._find_element_with_retry(XPathConfig.POSITION_UP_LABEL, timeout=1, silent=True)
                         
                     if position_label_up is not None and position_label_up:
-                        self.logger.info("✅ find-element,找到了Up持仓标签: {position_label_up.text}")
+                        self.logger.debug(f"✅ find-element,找到了Up持仓标签: {position_label_up.text}")
                         return True
                     else:
-                        self.logger.info("❌ \033[31mfind_element,未找到Up持仓标签\033[0m")
+                        self.logger.debug("❌ find_element,未找到Up持仓标签")
                         return False
                 except NoSuchElementException:
-                    position_label_up = self._find_element_with_retry(XPathConfig.POSITION_UP_LABEL, timeout=3, silent=True)
+                    position_label_up = self._find_element_with_retry(XPathConfig.POSITION_UP_LABEL, timeout=1, silent=True)
                     if position_label_up is not None and position_label_up:
-                        self.logger.info(f"✅ with-retry,找到了Up持仓标签: {position_label_up.text}")
+                        self.logger.debug(f"✅ with-retry,找到了Up持仓标签: {position_label_up.text}")
                         return True
                     else:
-                        self.logger.info("❌ \033[31muse with-retry,未找到Up持仓标签\033[0m")
+                        self.logger.debug("❌ use with-retry,未找到Up持仓标签")
                         return False
                          
             except TimeoutException:
                 self.logger.debug(f"第{attempt + 1}次尝试未找到UP标签,正常情况!")
             
             if attempt < max_retries - 1:
-                self.logger.info(f"等待{retry_delay}秒后重试...")
+                self.logger.debug(f"等待{retry_delay}秒后重试...")
                 time.sleep(retry_delay)
-                self.driver.refresh()
+                # 移除页面刷新以提高速度
         return False
         
     def find_position_label_down(self):
         """查找Down持仓标签"""
-        max_retries = 3
-        retry_delay = 1
+        max_retries = 2  # 减少重试次数
+        retry_delay = 0.3  # 大幅减少重试延迟
         
         for attempt in range(max_retries):
             try:
@@ -3219,30 +3218,30 @@ class CryptoTrader:
                     try:
                         position_label_down = self.driver.find_element(By.XPATH, XPathConfig.POSITION_DOWN_LABEL[0])
                     except (NoSuchElementException, StaleElementReferenceException):
-                        position_label_down = self._find_element_with_retry(XPathConfig.POSITION_DOWN_LABEL, timeout=3, silent=True)
+                        position_label_down = self._find_element_with_retry(XPathConfig.POSITION_DOWN_LABEL, timeout=1, silent=True)
                         
                     if position_label_down is not None and position_label_down:
-                        self.logger.info(f"✅ find-element,找到了Down持仓标签: {position_label_down.text}")
+                        self.logger.debug(f"✅ find-element,找到了Down持仓标签: {position_label_down.text}")
                         return True
                     else:
-                        self.logger.info("❌ \033[31mfind-element,未找到Down持仓标签\033[0m")
+                        self.logger.debug("❌ find-element,未找到Down持仓标签")
                         return False
                 except NoSuchElementException:
-                    position_label_down = self._find_element_with_retry(XPathConfig.POSITION_DOWN_LABEL, timeout=3, silent=True)
+                    position_label_down = self._find_element_with_retry(XPathConfig.POSITION_DOWN_LABEL, timeout=1, silent=True)
                     if position_label_down is not None and position_label_down:
-                        self.logger.info(f"✅ with-retry,找到了Down持仓标签: {position_label_down.text}")
+                        self.logger.debug(f"✅ with-retry,找到了Down持仓标签: {position_label_down.text}")
                         return True
                     else:
-                        self.logger.info("❌ \033[31mwith-retry,未找到Down持仓标签\033[0m")
+                        self.logger.debug("❌ with-retry,未找到Down持仓标签")
                         return False
                                
             except TimeoutException:
-                self.logger.warning(f"❌ \033[31m第{attempt + 1}次尝试未找到Down标签\033[0m")
+                self.logger.debug(f"第{attempt + 1}次尝试未找到Down标签")
                 
             if attempt < max_retries - 1:
-                self.logger.info(f"等待{retry_delay}秒后重试...")
+                self.logger.debug(f"等待{retry_delay}秒后重试...")
                 time.sleep(retry_delay)
-                self.driver.refresh()
+                # 移除页面刷新以提高速度
         return False
       
     def _find_element_with_retry(self, xpaths, timeout=3, silent=False):
@@ -6835,8 +6834,9 @@ class CryptoTrader:
                 self.logger.info("收到程序重启请求")
                 
                 # 执行重启命令
-                import subprocess
-                result = subprocess.run(['sudo', 'systemctl', 'restart', 'run-poly.service'], 
+                current_user = os.getenv('USER') or os.getenv('USERNAME') or 'admin'
+                service_name = f'run-poly@{current_user}.service'
+                result = subprocess.run(['sudo', 'systemctl', 'restart', service_name], 
                                       capture_output=True, text=True, timeout=10)
                 
                 if result.returncode == 0:
