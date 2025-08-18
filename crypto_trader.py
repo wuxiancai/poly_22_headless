@@ -1920,7 +1920,7 @@ class CryptoTrader:
                 # 检查Yes1价格匹配
                 if 0 <= round((up_price - yes1_price), 2) <= self.price_premium and up_price > 10:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[32mUp 1: {up_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mUp 1: {up_price}¢ 价格匹配,执行自动买入,第{retry+1}次尝试\033[0m")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_down()
@@ -1983,7 +1983,7 @@ class CryptoTrader:
 
                 elif 0 <= round((down_price - no1_price), 2) <= self.price_premium and down_price > 10:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[32mDown 1: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mDown 1: {down_price}¢ 价格匹配,执行自动买入,第{retry+1}次尝试\033[0m")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_up()
@@ -2065,7 +2065,7 @@ class CryptoTrader:
                 # 检查Yes2价格匹配
                 if 0 <= round((up_price - yes2_price), 2) <= self.price_premium and up_price > 10:
                     for retry in range(3):
-                        self.logger.info(f"✅  \033[32mUp 2: {up_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅  \033[32mUp 2: {up_price}¢ 价格匹配,执行自动买入,第{retry+1}次尝试\033[0m")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_down()
@@ -2123,7 +2123,7 @@ class CryptoTrader:
                 # 检查No2价格匹配
                 elif 0 <= round((down_price - no2_price), 2) <= self.price_premium and down_price > 10:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[32mDown 2: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mDown 2: {down_price}¢ 价格匹配,执行自动买入,第{retry+1}次尝试\033[0m")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_up()
@@ -2201,7 +2201,7 @@ class CryptoTrader:
                 # 检查Yes3价格匹配
                 if 0 <= round((up_price - yes3_price), 2) <= self.price_premium and up_price > 10:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[32mUp 3: {up_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mUp 3: {up_price}¢ 价格匹配,执行自动买入,第{retry+1}次尝试\033[0m")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_down()
@@ -2263,7 +2263,7 @@ class CryptoTrader:
                 # 检查No3价格匹配
                 elif 0 <= round((down_price - no3_price), 2) <= self.price_premium and down_price > 10:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[32mDown 3: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mDown 3: {down_price}¢ 价格匹配,执行自动买入,第{retry+1}次尝试\033[0m")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_up()
@@ -2342,7 +2342,7 @@ class CryptoTrader:
                 # 检查Yes4价格匹配
                 if 0 <= round((up_price - yes4_price), 2) <= self.price_premium and up_price > 10:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[32mUp 4: {up_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mUp 4: {up_price}¢ 价格匹配,执行自动买入,第{retry+1}次尝试\033[0m")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_down()
@@ -2404,7 +2404,7 @@ class CryptoTrader:
                 # 检查No4价格匹配
                 elif 0 <= round((down_price - no4_price), 2) <= self.price_premium and down_price > 10:
                     for retry in range(3):
-                        self.logger.info(f"✅ \033[32mDown 4: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
+                        self.logger.info(f"✅ \033[32mDown 4: {down_price}¢ 价格匹配,执行自动买入,第{retry+1}次尝试\033[0m")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
                         if self.buy_count > 14:
                             self.only_sell_up()
@@ -2672,7 +2672,7 @@ class CryptoTrader:
         """
         try:
             for attempt in range(2):
-                self.logger.info("\033[34m✅ 开始第{attempt + 1}次验证尝试(基于\033[31m2\033[0m次重试)\033[0m")
+                self.logger.info("\033[34m✅ 开始第{attempt+1}次验证尝试(基于\033[31m2\033[0m次重试)\033[0m")
                 # 检查 3次,每次等待1秒检查交易记录
                 max_retries = 3  # 最大重试次数
                 wait_interval = 1  # 检查间隔
@@ -4636,10 +4636,29 @@ class CryptoTrader:
                         border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
                         outline: none;
                     }
+                    .position-container {
+                        padding: 5px 5px;
+                        background: rgba(248, 249, 250, 0.9);
+                        border-radius: 6px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        flex-wrap: wrap;
+                    }
+                    .position-content {
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #007bff;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        word-wrap: break-word;
+                        text-align: center;
+                        width: 100%;
+                    }
                     .binance-price-container {
                         display: flex;
-                        margin-top: 0px;      /* 上间距 */
-                        margin-bottom: 0px;   /* 下间距 */
                         flex-direction: row;
                         gap: 5px;
                         flex: 1;
@@ -4648,7 +4667,7 @@ class CryptoTrader:
                     }
                     /* 减少上方币安价格区与下方资产区之间的垂直间距 */
                     .binance-price-container + .binance-price-container {
-                        margin-top: 2px;
+                        margin-top: 0px;
                     }
                     .binance-price-item {
                         display: flex;
@@ -4672,15 +4691,9 @@ class CryptoTrader:
                         justify-content: space-between;
                         align-items: center;
                         gap: 25px;
-                        padding: 2px;
-                        background: transparent;
-                        border-radius: 16px;
-                        margin-bottom: 2px;
-                        box-shadow: none;
-                        backdrop-filter: none;
-                        border: none;
+                        
                         flex: 2;
-                        min-height: 120px;
+                        min-height: 80px;
                     }
                     
                     .up-price-display, .down-price-display {
@@ -4688,7 +4701,7 @@ class CryptoTrader:
                         font-weight: 800;
                         color: #2F3E46; /* 深灰蓝，比纯黑柔和 */
                         text-align: center;
-                        padding: 20px 30px;
+                        padding: 12px 20px;
                         border-radius: 12px;
                         box-shadow: 0 6px 25px rgba(0,0,0,0.15);
                         min-width: 180px;
@@ -4701,12 +4714,12 @@ class CryptoTrader:
                     
                     .up-price-display {
                         background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
-                        border: 2px solid rgba(255,255,255,0.3);
+                        border: none;
                     }
                     
                     .down-price-display {
                         background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
-                        border: 2px solid rgba(255,255,255,0.3);
+                        border: none;
                     }
                     
                     .up-price-display:hover, .down-price-display:hover {
@@ -4838,7 +4851,7 @@ class CryptoTrader:
                         font-weight: 700;
                         color: #2c3e50;
                         padding: 6px 8px;
-                        margin-bottom: 4px;
+                        
                         border: none;
                         text-transform: uppercase;
                         letter-spacing: 0.5px;
@@ -4979,12 +4992,11 @@ class CryptoTrader:
                     }
                     .control-section {
                         max-width: 1160px;
-                        margin: 5px auto 0 auto;
                         padding: 10px 10px 0 10px;
                         border-top: 2px solid rgba(222, 226, 230, 0.5);
                     }
                     .url-input-group {
-                        display: flex; gap: 15px; margin-bottom: 15px;
+                        display: flex; gap: 15px; 
                     }
                     .url-input-group input {
                         flex: 1; padding: 14px 18px; border: 2px solid #ced4da;
@@ -5024,24 +5036,19 @@ class CryptoTrader:
                     }
                     .log-section {
                         margin-top: 3px; background: rgba(255, 255, 255, 0.9);
-                        border-radius: 12px; padding: 20px; color: #2c3e50;
+                        border-radius: 2px; padding: 2px; color: #2c3e50;
                         font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.08); backdrop-filter: blur(5px);
+                        box-shadow: 0 4px 2px rgba(0,0,0,0.08); backdrop-filter: blur(5px);
                         border: 1px solid rgba(233, 236, 239, 0.5);
                     }
-                    .log-section h3 {
-                        margin: 0 0 15px 0; color: #2c3e50; font-size: 20px;
-                        border-bottom: 3px solid #007bff; padding-bottom: 8px;
-                        background: linear-gradient(45deg, #007bff, #0056b3);
-                        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-                    }
+                    
                     .log-container {
-                        height: 450px; overflow-y: auto; background: rgba(248, 249, 250, 0.8);
+                        height: 500px; overflow-y: auto; background: rgba(248, 249, 250, 0.8);
                         border-radius: 8px; padding: 15px; border: 2px solid rgba(233, 236, 239, 0.5);
                         margin-top: 0;
                     }
                     .log-entry {
-                        margin-bottom: 8px; font-size: 14px; line-height: 1.4;
+                        margin-bottom: 8px; font-size: 10px; line-height: 1.4;
                         word-wrap: break-word;
                         color: #000000;
                     }
@@ -5081,7 +5088,7 @@ class CryptoTrader:
                     
                     /* 时间显示和倒计时样式 */
                     .time-display-section {
-                        margin: 5px 0;
+                        
                         padding: 5px 10px;
                         background: rgba(248, 249, 250, 0.9);
                         border-radius: 6px;
@@ -5206,6 +5213,9 @@ class CryptoTrader:
                                 if (cashElement) cashElement.textContent = data.account.cash;
                                 if (zeroTimeCashElement) zeroTimeCashElement.textContent = data.account.zero_time_cash || '--';
                                 
+                                // 更新持仓信息
+                                updatePositionInfo();
+                                
                                 // 更新状态信息
                                 const statusElement = document.querySelector('.status-value');
                                 const urlElement = document.querySelector('.url-value');
@@ -5288,6 +5298,43 @@ class CryptoTrader:
                         // 初始化时间显示和倒计时
                         initializeTimeDisplay();
                     });
+                    
+                    function updatePositionInfo() {
+                        fetch('/api/logs')
+                            .then(response => response.json())
+                            .then(logs => {
+                                const positionContainer = document.getElementById('positionContainer');
+                                const positionContent = document.getElementById('positionContent');
+                                
+                                if (!positionContainer || !positionContent) return;
+                                
+                                // 查找最新的交易验证成功日志
+                                const tradePattern = /✅ 交易验证成功: (.+)/;
+                                let latestPosition = null;
+                                
+                                for (let i = logs.length - 1; i >= 0; i--) {
+                                    const log = logs[i];
+                                    if (log.message && tradePattern.test(log.message)) {
+                                        const match = log.message.match(tradePattern);
+                                        if (match) {
+                                            latestPosition = match[1];
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                if (latestPosition) {
+                                    positionContent.textContent = '持仓: ' + latestPosition;
+                                    positionContainer.style.display = 'block';
+                                } else {
+                                    positionContent.textContent = '持仓: 暂无持仓';
+                                    positionContainer.style.display = 'block';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('获取持仓信息失败:', error);
+                            });
+                    }
                     
                     function startChrome() {
                         fetch('/api/start_chrome', {
@@ -5496,6 +5543,14 @@ class CryptoTrader:
                                     <span class="price-label">DOWN:</span> {{ data.prices.down_price or 'N/A' }}
                                 </div>
                             </div>
+                            
+                            <!-- 持仓显示区域 -->
+                            <div class="position-container" id="positionContainer" style="display: none;">
+                                <div class="position-content" id="positionContent">
+                                    持仓: 暂无持仓
+                                </div>
+                            </div>
+                            
                             <!-- 币安价格和资产显示区域 -->
                             <div class="binance-price-container">
                                 <div class="binance-price-item">
@@ -5977,7 +6032,7 @@ class CryptoTrader:
                 </script>
                 
                 <!-- 交易记录表格 -->
-                <div style="max-width: 1160px; margin: 5px auto 0 auto; padding: 10px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
+                <div style="max-width: 1160px; padding: 10px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
                     
                     {% if data.cash_history and data.cash_history|length > 0 %}
                     <div style="overflow-x: auto;">
