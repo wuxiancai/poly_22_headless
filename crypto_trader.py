@@ -6697,39 +6697,35 @@ class CryptoTrader:
             """获取系统日志"""
             try:
                 logs = []
-                # 从Logger类的日志记录中获取最近的日志
-                if hasattr(self.logger, 'log_records'):
-                    logs = self.logger.log_records[-100:]  # 最近100条日志
+                # 只读取%h/poly_16/logs/目录下的最新日志文件（监控目录）
+                latest_log_file = Logger.get_latest_log_file()
+                if latest_log_file and os.path.exists(latest_log_file):
+                    with open(latest_log_file, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()[-100:]  # 最近100行
+                        for line in lines:
+                            line = line.strip()
+                            if line:
+                                # 解析日志格式: 时间 - 级别 - 消息
+                                parts = line.split(' - ', 2)
+                                if len(parts) >= 3:
+                                    logs.append({
+                                        'time': parts[0],
+                                        'level': parts[1],
+                                        'message': parts[2]
+                                    })
+                                else:
+                                    logs.append({
+                                        'time': datetime.now().strftime('%H:%M:%S'),
+                                        'level': 'INFO',
+                                        'message': line
+                                    })
                 else:
-                    # 如果没有内存日志，尝试读取%h/poly_16/logs/目录下的最新日志文件
-                    latest_log_file = Logger.get_latest_log_file()
-                    if latest_log_file and os.path.exists(latest_log_file):
-                        with open(latest_log_file, 'r', encoding='utf-8') as f:
-                            lines = f.readlines()[-100:]  # 最近100行
-                            for line in lines:
-                                line = line.strip()
-                                if line:
-                                    # 解析日志格式: 时间 - 级别 - 消息
-                                    parts = line.split(' - ', 2)
-                                    if len(parts) >= 3:
-                                        logs.append({
-                                            'time': parts[0],
-                                            'level': parts[1],
-                                            'message': parts[2]
-                                        })
-                                    else:
-                                        logs.append({
-                                            'time': datetime.now().strftime('%H:%M:%S'),
-                                            'level': 'INFO',
-                                            'message': line
-                                        })
-                    else:
-                        # 如果找不到日志文件，返回提示信息
-                        logs.append({
-                            'time': datetime.now().strftime('%H:%M:%S'),
-                            'level': 'INFO',
-                            'message': '未找到%h/poly_16/logs/目录下的日志文件'
-                        })
+                    # 如果找不到日志文件，返回提示信息
+                    logs.append({
+                        'time': datetime.now().strftime('%H:%M:%S'),
+                        'level': 'INFO',
+                        'message': '未找到%h/poly_16/logs/目录下的日志文件'
+                    })
                 
                 return jsonify({'success': True, 'logs': logs})
             except Exception as e:
@@ -6739,18 +6735,14 @@ class CryptoTrader:
         def clear_logs():
             """清空日志"""
             try:
-                # 清空内存中的日志记录
-                if hasattr(self.logger, 'log_records'):
-                    self.logger.log_records.clear()
-                
-                # 清空%h/poly_16/logs/目录下的最新日志文件
+                # 只清空%h/poly_16/logs/目录下的最新日志文件（监控目录）
                 latest_log_file = Logger.get_latest_log_file()
                 if latest_log_file and os.path.exists(latest_log_file):
                     with open(latest_log_file, 'w', encoding='utf-8') as f:
                         f.write('')
                 
-                self.logger.info("日志已清空")
-                return jsonify({'success': True, 'message': '日志已清空'})
+                self.logger.info("监控目录日志已清空")
+                return jsonify({'success': True, 'message': '监控目录日志已清空'})
             except Exception as e:
                 return jsonify({'success': False, 'message': f'清空日志失败: {str(e)}'})
         
