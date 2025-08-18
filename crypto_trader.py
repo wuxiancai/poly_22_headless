@@ -5243,11 +5243,11 @@ class CryptoTrader:
                                 if (urlElement) urlElement.textContent = data.status.url;
                                 if (browserElement) browserElement.textContent = data.status.browser_status;
                                 
-                                // 更新URL输入框
-                                const urlInputElement = document.querySelector('#urlInput');
-                                if (urlInputElement && data.status.url && data.status.url !== '未设置' && !window.preventUrlAutoUpdate) {
-                                    urlInputElement.value = data.status.url;
-                                }
+                                // URL输入框不再自动更新，避免覆盖用户输入
+                                // const urlInputElement = document.querySelector('#urlInput');
+                                // if (urlInputElement && data.status.url && data.status.url !== '未设置') {
+                                //     urlInputElement.value = data.status.url;
+                                // }
                                 
                                 // 更新仓位信息
                                 for (let i = 1; i <= 5; i++) {
