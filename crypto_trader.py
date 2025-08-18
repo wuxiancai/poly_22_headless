@@ -1845,9 +1845,9 @@ class CryptoTrader:
                 # 兼容旧的GUI对象（如果还有的话）
                 amount = amount_value.get()
 
-            # 2. 定位输入框（短等待，避免卡死）
+            # 2. 定位输入框（增加等待时间，提高成功率）
             try:
-                amount_input = WebDriverWait(self.driver, 0.3).until(
+                amount_input = WebDriverWait(self.driver, 1).until(
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.AMOUNT_INPUT[0]))
                 )
                 # 3. 清空并输入金额
@@ -1855,18 +1855,37 @@ class CryptoTrader:
                 amount_input.send_keys(str(amount))
                 self.logger.info(f"输入金额: {amount}")
             except TimeoutException:
-                self.logger.error("定位金额输入框超时")
+                # 尝试备用XPath
+                try:
+                    amount_input = self._find_element_with_retry(XPathConfig.AMOUNT_INPUT, timeout=2, silent=True)
+                    if amount_input:
+                        amount_input.clear()
+                        amount_input.send_keys(str(amount))
+                        self.logger.info(f"✅ 使用备用XPath输入金额: {amount}")
+                    else:
+                        self.logger.error("定位金额输入框超时")
+                except Exception as e:
+                    self.logger.error(f"定位金额输入框失败: {str(e)}")
 
             # 4. 立即点击确认按钮
             try:
-                buy_confirm_button = WebDriverWait(self.driver, 0.3).until(
+                buy_confirm_button = WebDriverWait(self.driver, 1).until(
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.BUY_CONFIRM_BUTTON[0]))
                 )
                 # 点击确认按钮
                 buy_confirm_button.click()
                 self.logger.info("✅ 点击确认按钮成功")
             except TimeoutException:
-                self.logger.error("定位确认按钮超时")
+                # 尝试备用XPath
+                try:
+                    buy_confirm_button = self._find_element_with_retry(XPathConfig.BUY_CONFIRM_BUTTON, timeout=2, silent=True)
+                    if buy_confirm_button:
+                        buy_confirm_button.click()
+                        self.logger.info("✅ 使用备用XPath点击确认按钮成功")
+                    else:
+                        self.logger.error("定位确认按钮超时")
+                except Exception as e:
+                    self.logger.error(f"定位确认按钮失败: {str(e)}")
 
             # 5. 等待ACCEPT弹窗出现,然后点击ACCEPT按钮
             try:
@@ -1897,7 +1916,7 @@ class CryptoTrader:
                 self.trading = True
 
                 # 检查Yes1价格匹配
-                if 0 <= round((up_price - yes1_price), 2) <= self.price_premium and up_price > 50:
+                if 0 <= round((up_price - yes1_price), 2) <= self.price_premium and up_price > 10:
                     for retry in range(3):
                         self.logger.info(f"✅ \033[32mUp 1: {up_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
@@ -1960,7 +1979,7 @@ class CryptoTrader:
                             portfolio_value=self.portfolio_value
                         )
 
-                elif 0 <= round((down_price - no1_price), 2) <= self.price_premium and down_price > 50:
+                elif 0 <= round((down_price - no1_price), 2) <= self.price_premium and down_price > 10:
                     for retry in range(3):
                         self.logger.info(f"✅ \033[32mDown 1: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
@@ -1973,7 +1992,7 @@ class CryptoTrader:
                         # Web模式下使用金额值而不是GUI对象
                         self.send_amount_and_buy_confirm(self.get_web_value('no1_amount_entry'))
                         
-                        self.click_buy_yes()
+                        # self.click_buy_yes()
 
                         time.sleep(2)
                         if self.Verify_buy_down():
@@ -2042,7 +2061,7 @@ class CryptoTrader:
                 self.trading = True
 
                 # 检查Yes2价格匹配
-                if 0 <= round((up_price - yes2_price), 2) <= self.price_premium and up_price > 50:
+                if 0 <= round((up_price - yes2_price), 2) <= self.price_premium and up_price > 10:
                     for retry in range(3):
                         self.logger.info(f"✅  \033[32mUp 2: {up_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
@@ -2100,7 +2119,7 @@ class CryptoTrader:
                             portfolio_value=self.portfolio_value
                         )
                 # 检查No2价格匹配
-                elif 0 <= round((down_price - no2_price), 2) <= self.price_premium and down_price > 50:
+                elif 0 <= round((down_price - no2_price), 2) <= self.price_premium and down_price > 10:
                     for retry in range(3):
                         self.logger.info(f"✅ \033[32mDown 2: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
@@ -2178,7 +2197,7 @@ class CryptoTrader:
                 self.trading = True  # 开始交易
             
                 # 检查Yes3价格匹配
-                if 0 <= round((up_price - yes3_price), 2) <= self.price_premium and up_price > 50:
+                if 0 <= round((up_price - yes3_price), 2) <= self.price_premium and up_price > 10:
                     for retry in range(3):
                         self.logger.info(f"✅ \033[32mUp 3: {up_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
@@ -2240,7 +2259,7 @@ class CryptoTrader:
                         )   
 
                 # 检查No3价格匹配
-                elif 0 <= round((down_price - no3_price), 2) <= self.price_premium and down_price > 50:
+                elif 0 <= round((down_price - no3_price), 2) <= self.price_premium and down_price > 10:
                     for retry in range(3):
                         self.logger.info(f"✅ \033[32mDown 3: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
@@ -2319,7 +2338,7 @@ class CryptoTrader:
                 self.trading = True  # 开始交易
             
                 # 检查Yes4价格匹配
-                if 0 <= round((up_price - yes4_price), 2) <= self.price_premium and up_price > 50:
+                if 0 <= round((up_price - yes4_price), 2) <= self.price_premium and up_price > 10:
                     for retry in range(3):
                         self.logger.info(f"✅ \033[32mUp 4: {up_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
@@ -2381,7 +2400,7 @@ class CryptoTrader:
                             portfolio_value=self.portfolio_value
                         )
                 # 检查No4价格匹配
-                elif 0 <= round((down_price - no4_price), 2) <= self.price_premium and down_price > 50:
+                elif 0 <= round((down_price - no4_price), 2) <= self.price_premium and down_price > 10:
                     for retry in range(3):
                         self.logger.info(f"✅ \033[32mDown 4: {down_price}¢\033[0m 价格匹配,执行自动买入,第{retry+1}次尝试")
                         # 如果买入次数大于 18 次,那么先卖出,后买入
@@ -2480,34 +2499,67 @@ class CryptoTrader:
         try:
             # 点击卖出按钮
             try:
-                positions_sell_button = WebDriverWait(self.driver, 0.3).until(
+                positions_sell_button = WebDriverWait(self.driver, 1).until(
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.POSITION_SELL_BUTTON[0]))
                 )
-                positions_sell_button.click()
+                # 滚动到元素位置并使用JavaScript点击
+                self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", positions_sell_button)
+                time.sleep(0.3)
+                self.driver.execute_script("arguments[0].click();", positions_sell_button)
                 self.logger.info("\033[34m✅ 点击SELL按钮成功\033[0m")
             except TimeoutException:
-                self.logger.info("\033[31m❌ 没有出现SELL按钮,跳过点击\033[0m")
+                # 尝试备用XPath
+                positions_sell_button = self._find_element_with_retry(XPathConfig.POSITION_SELL_BUTTON, timeout=2, silent=True)
+                if positions_sell_button:
+                    self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", positions_sell_button)
+                    time.sleep(0.3)
+                    self.driver.execute_script("arguments[0].click();", positions_sell_button)
+                    self.logger.info("\033[34m✅ 使用备用XPath点击SELL按钮成功\033[0m")
+                else:
+                    self.logger.info("\033[31m❌ 没有出现SELL按钮,跳过点击\033[0m")
 
             # 点击卖出确认按钮
             try:
-                sell_confirm_button = WebDriverWait(self.driver, 0.3).until(
+                sell_confirm_button = WebDriverWait(self.driver, 1).until(
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.SELL_CONFIRM_BUTTON[0]))
                 )
-                sell_confirm_button.click()
+                # 滚动到元素位置并使用JavaScript点击
+                self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", sell_confirm_button)
+                time.sleep(0.3)
+                self.driver.execute_script("arguments[0].click();", sell_confirm_button)
                 self.logger.info("\033[34m✅ 点击SELL_CONFIRM按钮成功\033[0m")
             except TimeoutException:
-                self.logger.info("\033[31m❌ 没有出现SELL_CONFIRM按钮,跳过点击\033[0m")
+                # 尝试备用XPath
+                sell_confirm_button = self._find_element_with_retry(XPathConfig.SELL_CONFIRM_BUTTON, timeout=2, silent=True)
+                if sell_confirm_button:
+                    self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", sell_confirm_button)
+                    time.sleep(0.3)
+                    self.driver.execute_script("arguments[0].click();", sell_confirm_button)
+                    self.logger.info("\033[34m✅ 使用备用XPath点击SELL_CONFIRM按钮成功\033[0m")
+                else:
+                    self.logger.info("\033[31m❌ 没有出现SELL_CONFIRM按钮,跳过点击\033[0m")
 
             # 等待ACCEPT弹窗出现
             try:
-                accept_button = WebDriverWait(self.driver, 0.5).until(
+                accept_button = WebDriverWait(self.driver, 2).until(
                     EC.presence_of_element_located((By.XPATH, XPathConfig.ACCEPT_BUTTON[0]))
                 )
-                accept_button.click()
+                # 滚动到元素位置并使用JavaScript点击
+                self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", accept_button)
+                time.sleep(0.3)
+                self.driver.execute_script("arguments[0].click();", accept_button)
                 self.logger.info("\033[34m✅ 点击ACCEPT按钮成功\033[0m")
             except TimeoutException:
-                # 弹窗没出现,不用处理
-                self.logger.info("\033[31m❌ 没有出现ACCEPT弹窗,跳过点击\033[0m")
+                # 尝试备用XPath
+                accept_button = self._find_element_with_retry(XPathConfig.ACCEPT_BUTTON, timeout=2, silent=True)
+                if accept_button:
+                    self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", accept_button)
+                    time.sleep(0.3)
+                    self.driver.execute_script("arguments[0].click();", accept_button)
+                    self.logger.info("\033[34m✅ 使用备用XPath点击ACCEPT按钮成功\033[0m")
+                else:
+                    # 弹窗没出现,不用处理
+                    self.logger.info("\033[31m❌ 没有出现ACCEPT弹窗,跳过点击\033[0m")
         except Exception as e:
             self.logger.error(f"卖出失败: {str(e)}")
 
@@ -2826,12 +2878,38 @@ class CryptoTrader:
             try:
                 button = self.driver.find_element(By.XPATH, XPathConfig.BUY_YES_BUTTON[0])
             except (NoSuchElementException, StaleElementReferenceException):
-                button = self._find_element_with_retry(XPathConfig.BUY_YES_BUTTON, timeout=2, silent=True)
+                button = self._find_element_with_retry(XPathConfig.BUY_YES_BUTTON, timeout=3, silent=True)
                 
-            button.click()
+            if button:
+                # 先滚动到元素位置
+                self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", button)
+                time.sleep(0.5)  # 等待滚动完成
+                
+                # 使用JavaScript点击，避免被其他元素遮挡
+                self.driver.execute_script("arguments[0].click();", button)
+                self.logger.info("✅ 使用JavaScript点击Buy-Yes按钮成功")
+            else:
+                self.logger.error("未找到Buy-Yes按钮")
             
         except Exception as e:
             self.logger.error(f"点击 Buy-Yes 按钮失败: {str(e)}")
+            # 尝试备用方案：直接坐标点击
+            try:
+                self.logger.info("尝试备用点击方案...")
+                button = self._find_element_with_retry(XPathConfig.BUY_YES_BUTTON, timeout=2, silent=True)
+                if button:
+                    # 获取元素位置并点击
+                    location = button.location
+                    size = button.size
+                    x = location['x'] + size['width'] // 2
+                    y = location['y'] + size['height'] // 2
+                    
+                    # 使用ActionChains进行点击
+                    from selenium.webdriver.common.action_chains import ActionChains
+                    ActionChains(self.driver).move_to_element(button).click().perform()
+                    self.logger.info("✅ 使用ActionChains点击Buy-Yes按钮成功")
+            except Exception as backup_e:
+                self.logger.error(f"备用点击方案也失败: {str(backup_e)}")
 
     def click_buy_no(self):
         """点击 Buy-No 按钮"""
@@ -5109,6 +5187,12 @@ class CryptoTrader:
                                 if (statusElement) statusElement.textContent = data.status.monitoring;
                                 if (urlElement) urlElement.textContent = data.status.url;
                                 if (browserElement) browserElement.textContent = data.status.browser_status;
+                                
+                                // 更新URL输入框
+                                const urlInputElement = document.querySelector('#urlInput');
+                                if (urlInputElement && data.status.url && data.status.url !== '未设置') {
+                                    urlInputElement.value = data.status.url;
+                                }
                                 
                                 // 更新仓位信息
                                 for (let i = 1; i <= 5; i++) {
