@@ -599,6 +599,7 @@ if command -v google-chrome-stable &> /dev/null; then
         --disable-software-rasterizer \
         --disable-dev-shm-usage \
         --disable-extensions \
+        --window-size=2560,1600 \
         --disable-background-networking \
         --disable-default-apps \
         --disable-sync \
