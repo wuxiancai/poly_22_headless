@@ -5702,10 +5702,7 @@ class CryptoTrader:
                         
                         <!-- 网站监控信息 -->
                         <div class="monitor-controls-section">
-                                    
-                                    
-                                </div>
-                            
+                         
                             <!-- URL输入和启动控制 -->
                             <div class="control-section">
                                 <div class="url-input-group">
