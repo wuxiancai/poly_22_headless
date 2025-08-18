@@ -4688,7 +4688,7 @@ class CryptoTrader:
                     /* UP和DOWN价格显示独立样式 */
                     .up-down-prices-container {
                         display: flex;
-                        justify-content: space-between;
+                        justify-content: center;
                         align-items: center;
                         gap: 25px;
                         
@@ -4705,6 +4705,7 @@ class CryptoTrader:
                         border-radius: 12px;
                         box-shadow: 0 6px 25px rgba(0,0,0,0.15);
                         min-width: 180px;
+                        max-width: 250px;
                         flex: 1;
                         position: relative;
                         overflow: hidden;
@@ -5517,242 +5518,254 @@ class CryptoTrader:
             </head>
             <body>
                 <div class="container">
-                    
-                    <div class="header">
-                        <h1>🚀 Polymarket自动交易系统</h1>
-                    </div>
-                    
-                    <!-- 主要内容区域：左右分栏 -->
-                    <div class="main-layout">
-                        <!-- 左侧：日志显示区域 -->
-                        <div class="left-panel">
-                            <div class="log-section">
-                                <div class="log-container" id="logContainer">
-                                    <div class="log-loading">正在加载日志...</div>
-                                </div>
-                            </div>
+                    <div class="container">
+                        <div class="header">
+                            <h1>🚀 Polymarket自动交易系统</h1>
                         </div>
-                        <!-- 右侧：价格和交易区域 -->
-                        <div class="right-panel">
-                            <!-- UP和DOWN价格显示 -->
-                            <div class="up-down-prices-container">
-                                <div class="up-price-display" id="upPrice">
-                                    <span class="price-label">UP:</span> {{ data.prices.up_price or 'N/A' }}
-                                </div>
-                                <div class="down-price-display" id="downPrice">
-                                    <span class="price-label">DOWN:</span> {{ data.prices.down_price or 'N/A' }}
-                                </div>
-                            </div>
-                            
-                            <!-- 持仓显示区域 -->
-                            <div class="position-container" id="positionContainer" style="display: none;">
-                                <div class="position-content" id="positionContent">
-                                    持仓: 暂无持仓
+                        
+                        <!-- 主要内容区域：左右分栏 -->
+                        <div class="main-layout">
+                            <!-- 左侧：日志显示区域 -->
+                            <div class="left-panel">
+                                <div class="log-section">
+                                    <div class="log-container" id="logContainer">
+                                        <div class="log-loading">正在加载日志...</div>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <!-- 币安价格和资产显示区域 -->
-                            <div class="binance-price-container">
-                                <div class="binance-price-item">
-                                    <span class="binance-label">零点价格:</span> <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                            <!-- 右侧：价格和交易区域 -->
+                            <div class="right-panel">
+                                <!-- UP和DOWN价格显示 -->
+                                <div class="up-down-prices-container">
+                                    <div class="up-price-display" id="upPrice">
+                                        <span class="price-label">UP:</span> {{ data.prices.up_price or 'N/A' }}
+                                    </div>
+                                    <div class="down-price-display" id="downPrice">
+                                        <span class="price-label">DOWN:</span> {{ data.prices.down_price or 'N/A' }}
+                                    </div>
                                 </div>
-                                <div class="binance-price-item">
-                                    <span class="binance-label">实时价格:</span> <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                
+                                <!-- 持仓显示区域 -->
+                                <div class="position-container" id="positionContainer" style="display: none;">
+                                    <div class="position-content" id="positionContent">
+                                        持仓: 暂无持仓
+                                    </div>
                                 </div>
-                                <div class="binance-price-item">
-                                    <span class="binance-label">涨跌幅:</span> <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
+                                
+                                <!-- 币安价格和资产显示区域 -->
+                                <div class="binance-price-container">
+                                    <div class="binance-price-item">
+                                        <span class="binance-label">零点价格:</span> <span class="value" id="binanceZeroPrice">{{ data.prices.binance_zero_price or '--' }}</span>
+                                    </div>
+                                    <div class="binance-price-item">
+                                        <span class="binance-label">实时价格:</span> <span class="value" id="binancePrice">{{ data.prices.binance_price or '--' }}</span>
+                                    </div>
+                                    <div class="binance-price-item">
+                                        <span class="binance-label">涨跌幅:</span> <span class="value" id="binanceRate">{{ data.prices.binance_rate or '--' }}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="binance-price-container">
-                                <div class="binance-price-item">
-                                    <span class="binance-label">预计收益:</span> <span class="value" id="portfolio">{{ data.account.portfolio or '0' }}</span>
+                                <div class="binance-price-container">
+                                    <div class="binance-price-item">
+                                        <span class="binance-label">预计收益:</span> <span class="value" id="portfolio">{{ data.account.portfolio or '0' }}</span>
+                                    </div>
+                                    <div class="binance-price-item">
+                                        <span class="binance-label">剩余本金:</span> <span class="value" id="cash">{{ data.account.cash or '0' }}</span>
+                                    </div>
+                                    <div class="binance-price-item">
+                                        <span class="binance-label">当天本金:</span> <span class="value" id="zeroTimeCash">{{ data.account.zero_time_cash or '--' }}</span>
+                                    </div>
                                 </div>
-                                <div class="binance-price-item">
-                                    <span class="binance-label">剩余本金:</span> <span class="value" id="cash">{{ data.account.cash or '0' }}</span>
-                                </div>
-                                <div class="binance-price-item">
-                                    <span class="binance-label">当天本金:</span> <span class="value" id="zeroTimeCash">{{ data.account.zero_time_cash or '--' }}</span>
-                                </div>
-                            </div>
-                            <!-- 币种和交易时间显示区域 -->
-                            <div class="binance-price-container">
-                                <div class="info-item coin-select-item">
-                                        <label>币种:</label>
-                                        <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 60px; min-width: 60px;">
-                                            <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
-                                            <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
-                                            <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
-                                            <option value="XRP" {{ 'selected' if data.coin == 'XRP' else '' }}>XRP</option>
+                                <!-- 币种和交易时间显示区域 -->
+                                <div class="binance-price-container">
+                                    <div class="info-item coin-select-item">
+                                            <label>币种:</label>
+                                            <select id="coinSelect" onchange="updateCoin()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 60px; min-width: 60px;">
+                                                <option value="BTC" {{ 'selected' if data.coin == 'BTC' else '' }}>BTC</option>
+                                                <option value="ETH" {{ 'selected' if data.coin == 'ETH' else '' }}>ETH</option>
+                                                <option value="SOL" {{ 'selected' if data.coin == 'SOL' else '' }}>SOL</option>
+                                                <option value="XRP" {{ 'selected' if data.coin == 'XRP' else '' }}>XRP</option>
+                                            </select>
+                                        </div>
+                                    <div class="info-item time-select-item">
+                                        <label>交易时间:</label>
+                                        <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 60px; min-width: 60px;">
+                                            <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
+                                            <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
+                                            <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
+                                            <option value="4:00" {{ 'selected' if data.auto_find_time == '4:00' else '' }}>4:00</option>
+                                            <option value="5:00" {{ 'selected' if data.auto_find_time == '5:00' else '' }}>5:00</option>
+                                            <option value="6:00" {{ 'selected' if data.auto_find_time == '6:00' else '' }}>6:00</option>
+                                            <option value="7:00" {{ 'selected' if data.auto_find_time == '7:00' else '' }}>7:00</option>
+                                            <option value="8:00" {{ 'selected' if data.auto_find_time == '8:00' else '' }}>8:00</option>
+                                            <option value="9:00" {{ 'selected' if data.auto_find_time == '9:00' else '' }}>9:00</option>
+                                            <option value="10:00" {{ 'selected' if data.auto_find_time == '10:00' else '' }}>10:00</option>
+                                            <option value="11:00" {{ 'selected' if data.auto_find_time == '11:00' else '' }}>11:00</option>
+                                            <option value="12:00" {{ 'selected' if data.auto_find_time == '12:00' else '' }}>12:00</option>
+                                            <option value="13:00" {{ 'selected' if data.auto_find_time == '13:00' else '' }}>13:00</option>
+                                            <option value="14:00" {{ 'selected' if data.auto_find_time == '14:00' else '' }}>14:00</option>
+                                            <option value="15:00" {{ 'selected' if data.auto_find_time == '15:00' else '' }}>15:00</option>
+                                            <option value="16:00" {{ 'selected' if data.auto_find_time == '16:00' else '' }}>16:00</option>
+                                            <option value="17:00" {{ 'selected' if data.auto_find_time == '17:00' else '' }}>17:00</option>
+                                            <option value="18:00" {{ 'selected' if data.auto_find_time == '18:00' else '' }}>18:00</option>
+                                            <option value="19:00" {{ 'selected' if data.auto_find_time == '19:00' else '' }}>19:00</option>
+                                            <option value="20:00" {{ 'selected' if data.auto_find_time == '20:00' else '' }}>20:00</option>
+                                            <option value="21:00" {{ 'selected' if data.auto_find_time == '21:00' else '' }}>21:00</option>
+                                            <option value="22:00" {{ 'selected' if data.auto_find_time == '22:00' else '' }}>22:00</option>
+                                            <option value="23:00" {{ 'selected' if data.auto_find_time == '23:00' else '' }}>23:00</option>
                                         </select>
                                     </div>
-                                <div class="info-item time-select-item">
-                                    <label>交易时间:</label>
-                                    <select id="timeSelect" onchange="updateTime()" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 60px; min-width: 60px;">
-                                        <option value="1:00" {{ 'selected' if data.auto_find_time == '1:00' else '' }}>1:00</option>
-                                        <option value="2:00" {{ 'selected' if data.auto_find_time == '2:00' else '' }}>2:00</option>
-                                        <option value="3:00" {{ 'selected' if data.auto_find_time == '3:00' else '' }}>3:00</option>
-                                        <option value="4:00" {{ 'selected' if data.auto_find_time == '4:00' else '' }}>4:00</option>
-                                        <option value="5:00" {{ 'selected' if data.auto_find_time == '5:00' else '' }}>5:00</option>
-                                        <option value="6:00" {{ 'selected' if data.auto_find_time == '6:00' else '' }}>6:00</option>
-                                        <option value="7:00" {{ 'selected' if data.auto_find_time == '7:00' else '' }}>7:00</option>
-                                        <option value="8:00" {{ 'selected' if data.auto_find_time == '8:00' else '' }}>8:00</option>
-                                        <option value="9:00" {{ 'selected' if data.auto_find_time == '9:00' else '' }}>9:00</option>
-                                        <option value="10:00" {{ 'selected' if data.auto_find_time == '10:00' else '' }}>10:00</option>
-                                        <option value="11:00" {{ 'selected' if data.auto_find_time == '11:00' else '' }}>11:00</option>
-                                        <option value="12:00" {{ 'selected' if data.auto_find_time == '12:00' else '' }}>12:00</option>
-                                        <option value="13:00" {{ 'selected' if data.auto_find_time == '13:00' else '' }}>13:00</option>
-                                        <option value="14:00" {{ 'selected' if data.auto_find_time == '14:00' else '' }}>14:00</option>
-                                        <option value="15:00" {{ 'selected' if data.auto_find_time == '15:00' else '' }}>15:00</option>
-                                        <option value="16:00" {{ 'selected' if data.auto_find_time == '16:00' else '' }}>16:00</option>
-                                        <option value="17:00" {{ 'selected' if data.auto_find_time == '17:00' else '' }}>17:00</option>
-                                        <option value="18:00" {{ 'selected' if data.auto_find_time == '18:00' else '' }}>18:00</option>
-                                        <option value="19:00" {{ 'selected' if data.auto_find_time == '19:00' else '' }}>19:00</option>
-                                        <option value="20:00" {{ 'selected' if data.auto_find_time == '20:00' else '' }}>20:00</option>
-                                        <option value="21:00" {{ 'selected' if data.auto_find_time == '21:00' else '' }}>21:00</option>
-                                        <option value="22:00" {{ 'selected' if data.auto_find_time == '22:00' else '' }}>22:00</option>
-                                        <option value="23:00" {{ 'selected' if data.auto_find_time == '23:00' else '' }}>23:00</option>
-                                    </select>
                                 </div>
-                            </div>
-                            <!-- 交易仓位显示区域 -->
-                            <div class="card">
-                            <form id="positionsForm">
-                                <div class="positions-grid">
-                                    <div class="position-section up-section">
-                                        <div class="position-row header">
-                                            <div class="position-label">方向</div>
-                                            <div class="position-label">价格</div>
-                                            <div class="position-label">金额</div>
-                                        </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Up1</div>
-                                            <input type="number" class="position-input" id="up1_price" name="up1_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="up1_amount" name="up1_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Up2</div>
-                                            <input type="number" class="position-input" id="up2_price" name="up2_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="up2_amount" name="up2_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Up3</div>
-                                            <input type="number" class="position-input" id="up3_price" name="up3_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="up3_amount" name="up3_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Up4</div>
-                                            <input type="number" class="position-input" id="up4_price" name="up4_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="up4_amount" name="up4_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
+                                <!-- 交易仓位显示区域 -->
+                                <div class="card">
+                                <form id="positionsForm">
+                                    <div class="positions-grid">
+                                        <div class="position-section up-section">
+                                            <div class="position-row header">
+                                                <div class="position-label">方向</div>
+                                                <div class="position-label">价格</div>
+                                                <div class="position-label">金额</div>
+                                            </div>
+                                            <div class="position-row">
+                                                <div class="position-name">Up1</div>
+                                                <input type="number" class="position-input" id="up1_price" name="up1_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                                <input type="number" class="position-input" id="up1_amount" name="up1_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            </div>
+                                            <div class="position-row">
+                                                <div class="position-name">Up2</div>
+                                                <input type="number" class="position-input" id="up2_price" name="up2_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                                <input type="number" class="position-input" id="up2_amount" name="up2_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            </div>
+                                            <div class="position-row">
+                                                <div class="position-name">Up3</div>
+                                                <input type="number" class="position-input" id="up3_price" name="up3_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                                <input type="number" class="position-input" id="up3_amount" name="up3_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            </div>
+                                            <div class="position-row">
+                                                <div class="position-name">Up4</div>
+                                                <input type="number" class="position-input" id="up4_price" name="up4_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                                <input type="number" class="position-input" id="up4_amount" name="up4_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            </div>
 
+                                        </div>
+                                        
+                                        <div class="position-section down-section">
+                                            <div class="position-row header">
+                                                <div class="position-label">方向</div>
+                                                <div class="position-label">价格</div>
+                                                <div class="position-label">金额</div>
+                                            </div>
+                                            <div class="position-row">
+                                                <div class="position-name">Down1</div>
+                                                <input type="number" class="position-input" id="down1_price" name="down1_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                                <input type="number" class="position-input" id="down1_amount" name="down1_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            </div>
+                                            <div class="position-row">
+                                                <div class="position-name">Down2</div>
+                                                <input type="number" class="position-input" id="down2_price" name="down2_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                                <input type="number" class="position-input" id="down2_amount" name="down2_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            </div>
+                                            <div class="position-row">
+                                                <div class="position-name">Down3</div>
+                                                <input type="number" class="position-input" id="down3_price" name="down3_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                                <input type="number" class="position-input" id="down3_amount" name="down3_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            </div>
+                                            <div class="position-row">
+                                                <div class="position-name">Down4</div>
+                                                <input type="number" class="position-input" id="down4_price" name="down4_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                                <input type="number" class="position-input" id="down4_amount" name="down4_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
+                                            </div>
+
+                                        </div>
                                     </div>
+
+                                    <!-- 时间显示和倒计时 -->
+                                    <div class="time-display-section">
+                                        <div class="current-time">
+                                            <span id="currentTime">2025-08-17 18:08:30</span>
+                                        </div>
+                                        <div class="countdown-container">
+                                            <span class="countdown-label">距离当天交易结束还有:</span>
+                                            <div class="simple-clock">
+                                                <span id="hours">06</span>:
+                                                <span id="minutes">50</span>:
+                                                <span id="seconds">30</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </form>                           
+                            </div>
+                            
+                        </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 网站监控信息 -->
+                        <div class="monitor-controls-section">
                                     
-                                    <div class="position-section down-section">
-                                        <div class="position-row header">
-                                            <div class="position-label">方向</div>
-                                            <div class="position-label">价格</div>
-                                            <div class="position-label">金额</div>
-                                        </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Down1</div>
-                                            <input type="number" class="position-input" id="down1_price" name="down1_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="down1_amount" name="down1_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Down2</div>
-                                            <input type="number" class="position-input" id="down2_price" name="down2_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="down2_amount" name="down2_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Down3</div>
-                                            <input type="number" class="position-input" id="down3_price" name="down3_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="down3_amount" name="down3_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
-                                        <div class="position-row">
-                                            <div class="position-name">Down4</div>
-                                            <input type="number" class="position-input" id="down4_price" name="down4_price" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                            <input type="number" class="position-input" id="down4_amount" name="down4_amount" value="0" step="0.01" min="0" oninput="autoSavePosition(this)">
-                                        </div>
-
-                                    </div>
+                                    
                                 </div>
-
-                                <!-- 时间显示和倒计时 -->
-                                <div class="time-display-section">
-                                    <div class="current-time">
-                                        <span id="currentTime">2025-08-17 18:08:30</span>
-                                    </div>
-                                    <div class="countdown-container">
-                                        <span class="countdown-label">距离当天交易结束还有:</span>
-                                        <div class="simple-clock">
-                                            <span id="hours">06</span>:
-                                            <span id="minutes">50</span>:
-                                            <span id="seconds">30</span>
-                                        </div>
-                                    </div>
+                            
+                            <!-- URL输入和启动控制 -->
+                            <div class="control-section">
+                                <div class="url-input-group">
+                                    <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
+                                    <button id="startBtn" onclick="startTrading()">启动监控</button>
+                                    <button id="stopBtn" onclick="stopMonitoring()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);">🛑 停止监控</button>
+                                    <button id="startChromeBtn" onclick="startChrome()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);">🚀 启动浏览器</button>
+                                    <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
+                                    <button id="restartBtn" onclick="restartProgram()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🔄 重启程序</button>
                                 </div>
-
-                            </form>                           
-                        </div>
-                        
-                    </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 网站监控信息 -->
-                    <div class="monitor-controls-section">
-                                
-                                
+                                <div id="statusMessage" class="status-message"></div>
                             </div>
-                        
-                        <!-- URL输入和启动控制 -->
-                        <div class="control-section">
-                            <div class="url-input-group">
-                                <input type="text" id="urlInput" placeholder="请输入Polymarket交易URL" value="{{ data.url or '' }}">
-                                <button id="startBtn" onclick="startTrading()">启动监控</button>
-                                <button id="stopBtn" onclick="stopMonitoring()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);">🛑 停止监控</button>
-                                <button id="startChromeBtn" onclick="startChrome()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);">🚀 启动浏览器</button>
-                                <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
-                                <button id="restartBtn" onclick="restartProgram()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🔄 重启程序</button>
-                            </div>
-                            <div id="statusMessage" class="status-message"></div>
                         </div>
-                    </div>
-                
-                <script>
-                function startTrading() {
-                    const urlInput = document.getElementById('urlInput');
-                    const startBtn = document.getElementById('startBtn');
-                    const statusMessage = document.getElementById('statusMessage');
                     
-                    const url = urlInput.value.trim();
-                    if (!url) {
-                        showMessage('请输入有效的URL地址', 'error');
-                        return;
-                    }
-                    
-                    // 禁用按钮，显示加载状态
-                    startBtn.disabled = true;
-                    startBtn.textContent = '启动中...';
-                    
-                    // 开始检查监控状态
-                    startMonitoringStatusCheck();
-                    
-                    // 发送启动请求
-                    fetch('/start', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ url: url })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showMessage(data.message, 'success');
-                            // 监控启动成功后，状态检查函数会自动更新按钮状态
-                        } else {
-                            showMessage(data.message, 'error');
+                    <script>
+                    function startTrading() {
+                        const urlInput = document.getElementById('urlInput');
+                        const startBtn = document.getElementById('startBtn');
+                        const statusMessage = document.getElementById('statusMessage');
+                        
+                        const url = urlInput.value.trim();
+                        if (!url) {
+                            showMessage('请输入有效的URL地址', 'error');
+                            return;
+                        }
+                        
+                        // 禁用按钮，显示加载状态
+                        startBtn.disabled = true;
+                        startBtn.textContent = '启动中...';
+                        
+                        // 开始检查监控状态
+                        startMonitoringStatusCheck();
+                        
+                        // 发送启动请求
+                        fetch('/start', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ url: url })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showMessage(data.message, 'success');
+                                // 监控启动成功后，状态检查函数会自动更新按钮状态
+                            } else {
+                                showMessage(data.message, 'error');
+                                startBtn.disabled = false;
+                                startBtn.textContent = '启动监控';
+                                // 停止状态检查
+                                if (window.monitoringStatusInterval) {
+                                    clearInterval(window.monitoringStatusInterval);
+                                    window.monitoringStatusInterval = null;
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showMessage('启动失败，请检查网络连接', 'error');
                             startBtn.disabled = false;
                             startBtn.textContent = '启动监控';
                             // 停止状态检查
@@ -5760,323 +5773,312 @@ class CryptoTrader:
                                 clearInterval(window.monitoringStatusInterval);
                                 window.monitoringStatusInterval = null;
                             }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showMessage('启动失败，请检查网络连接', 'error');
-                        startBtn.disabled = false;
-                        startBtn.textContent = '启动监控';
-                        // 停止状态检查
-                        if (window.monitoringStatusInterval) {
-                            clearInterval(window.monitoringStatusInterval);
-                            window.monitoringStatusInterval = null;
-                        }
-                    });
-                }
-                
-                function showMessage(message, type) {
-                    const statusMessage = document.getElementById('statusMessage');
-                    statusMessage.textContent = message;
-                    statusMessage.className = `status-message ${type}`;
-                    
-                    // 5秒后隐藏消息
-                    setTimeout(() => {
-                        statusMessage.style.display = 'none';
-                    }, 5000);
-                }
-                
-                function stopMonitoring() {
-                    const stopBtn = document.getElementById('stopBtn');
-                    const statusMessage = document.getElementById('statusMessage');
-                    
-                    // 禁用按钮，显示加载状态
-                    stopBtn.disabled = true;
-                    stopBtn.textContent = '停止中...';
-                    
-                    // 发送停止请求
-                    fetch('/stop', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showMessage(data.message, 'success');
-                            // 3秒后刷新页面以显示最新状态
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 3000);
-                        } else {
-                            showMessage(data.message, 'error');
-                            stopBtn.disabled = false;
-                            stopBtn.textContent = '🛑 停止监控';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showMessage('停止失败，请检查网络连接', 'error');
-                        stopBtn.disabled = false;
-                        stopBtn.textContent = '🛑 停止监控';
-                    });
-                }
-                
-                // 检查浏览器状态的函数
-                function checkBrowserStatus() {
-                    fetch('/api/browser_status')
-                    .then(response => response.json())
-                    .then(data => {
-                        const startBtn = document.getElementById('startBtn');
-                        if (data.browser_connected) {
-                            // 浏览器已连接，禁用启动按钮
-                            startBtn.disabled = true;
-                            startBtn.textContent = '🌐 运行中...';
-                            startBtn.style.backgroundColor = '#6c757d';
-                            startBtn.style.cursor = 'not-allowed';
-                            
-                            // 停止检查状态
-                            if (window.browserStatusInterval) {
-                                clearInterval(window.browserStatusInterval);
-                                window.browserStatusInterval = null;
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('检查浏览器状态失败:', error);
-                    });
-                }
-                
-                // 启动浏览器状态检查
-                function startBrowserStatusCheck() {
-                    // 每2秒检查一次浏览器状态
-                    window.browserStatusInterval = setInterval(checkBrowserStatus, 2000);
-                }
-                
-                // 检查监控状态的函数
-                function checkMonitoringStatus() {
-                    fetch('/api/monitoring_status')
-                    .then(response => response.json())
-                    .then(data => {
-                        const startBtn = document.getElementById('startBtn');
-                        if (data.monitoring_active) {
-                            // 监控已启动，禁用启动按钮
-                            startBtn.disabled = true;
-                            startBtn.textContent = '程序运行中';
-                            startBtn.style.backgroundColor = '#6c757d';
-                            startBtn.style.cursor = 'not-allowed';
-                            
-                            // 停止检查状态
-                            if (window.monitoringStatusInterval) {
-                                clearInterval(window.monitoringStatusInterval);
-                                window.monitoringStatusInterval = null;
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('检查监控状态失败:', error);
-                    });
-                }
-                
-                // 启动监控状态检查
-                function startMonitoringStatusCheck() {
-                    // 每2秒检查一次监控状态
-                    window.monitoringStatusInterval = setInterval(checkMonitoringStatus, 2000);
-                }
-                
-                // 日志相关变量
-                let autoScroll = true;
-                let logUpdateInterval;
-                let userScrolling = false;
-                
-                // ANSI颜色代码转换函数
-                function convertAnsiToHtml(text) {
-                    // 直接使用字符串替换，避免正则表达式转义问题
-                    let result = text;
-                    
-                    // ANSI颜色代码替换
-                    result = result.replace(/\\033\\[30m/g, '<span style="color: #000000">'); // 黑色
-                    result = result.replace(/\\033\\[31m/g, '<span style="color: #dc3545">'); // 红色
-                    result = result.replace(/\\033\\[32m/g, '<span style="color: #28a745">'); // 绿色
-                    result = result.replace(/\\033\\[33m/g, '<span style="color: #ffc107">'); // 黄色
-                    result = result.replace(/\\033\\[34m/g, '<span style="color: #007bff">'); // 蓝色
-                    result = result.replace(/\\033\\[35m/g, '<span style="color: #6f42c1">'); // 紫色
-                    result = result.replace(/\\033\\[36m/g, '<span style="color: #17a2b8">'); // 青色
-                    result = result.replace(/\\033\\[37m/g, '<span style="color: #ffffff">'); // 白色
-                    result = result.replace(/\\033\\[0m/g, '</span>'); // 重置
-                    result = result.replace(/\\033\\[1m/g, '<span style="font-weight: bold">'); // 粗体
-                    result = result.replace(/\\033\\[4m/g, '<span style="text-decoration: underline">'); // 下划线
-                    
-                    return result;
-                }
-                
-                // 日志相关函数
-                function updateLogs() {
-                    fetch('/api/logs')
-                        .then(response => response.json())
-                        .then(data => {
-                            const logContainer = document.getElementById('logContainer');
-                            if (data.logs && data.logs.length > 0) {
-                                logContainer.innerHTML = data.logs.map(log => {
-                                    const convertedMessage = convertAnsiToHtml(log.message);
-                                    return `<div class="log-entry ${log.level.toLowerCase()}">
-                                        <span class="log-time">${log.time}</span>
-                                        <span class="log-level">[${log.level}]</span>
-                                        <span class="log-message">${convertedMessage}</span>
-                                    </div>`;
-                                }).join('');
-                                
-                                if (autoScroll) {
-                                    logContainer.scrollTop = logContainer.scrollHeight;
-                                }
-                            } else {
-                                logContainer.innerHTML = '<div class="log-empty">暂无日志记录</div>';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('获取日志失败:', error);
-                            document.getElementById('logContainer').innerHTML = '<div class="log-error">日志加载失败</div>';
-                        });
-                }
-                
-
-                
-
-                
-                // 自动保存单个输入框的值
-                function autoSavePosition(inputElement) {
-                    const fieldName = inputElement.name;
-                    const fieldValue = parseFloat(inputElement.value) || 0;
-                    
-                    // 创建只包含当前字段的数据对象
-                    const positions = {};
-                    positions[fieldName] = fieldValue;
-                    
-                    // 静默保存，不显示成功消息
-                    fetch('/api/positions/save', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(positions)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success) {
-                            console.error('自动保存失败:', data.message || '未知错误');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('自动保存错误:', error);
-                    });
-                }
-                
-
-                
-                // 页面加载完成后启动日志更新
-                document.addEventListener('DOMContentLoaded', function() {
-                    updateLogs();
-                    // 每5秒更新一次日志
-                    logUpdateInterval = setInterval(updateLogs, 5000);
-                    
-                    // 页面加载时检查监控状态
-                    checkMonitoringStatus();
-                    // 启动定期监控状态检查
-                    startMonitoringStatusCheck();
-                    
-                    // 监听日志容器的滚动事件
-                    const logContainer = document.getElementById('logContainer');
-                    if (logContainer) {
-                        logContainer.addEventListener('scroll', function() {
-                            // 检查是否滚动到底部（允许5px的误差）
-                            const isAtBottom = logContainer.scrollTop >= (logContainer.scrollHeight - logContainer.clientHeight - 5);
-                            
-                            if (isAtBottom) {
-                                // 用户滚动到底部，重新启用自动滚动
-                                autoScroll = true;
-                                userScrolling = false;
-                            } else {
-                                // 用户手动滚动到其他位置，停止自动滚动
-                                autoScroll = false;
-                                userScrolling = true;
-                            }
                         });
                     }
-                });
-                
-                // 定期检查价格更新
-                function checkPriceUpdates() {
-                    fetch('/api/data')
+                    
+                    function showMessage(message, type) {
+                        const statusMessage = document.getElementById('statusMessage');
+                        statusMessage.textContent = message;
+                        statusMessage.className = `status-message ${type}`;
+                        
+                        // 5秒后隐藏消息
+                        setTimeout(() => {
+                            statusMessage.style.display = 'none';
+                        }, 5000);
+                    }
+                    
+                    function stopMonitoring() {
+                        const stopBtn = document.getElementById('stopBtn');
+                        const statusMessage = document.getElementById('statusMessage');
+                        
+                        // 禁用按钮，显示加载状态
+                        stopBtn.disabled = true;
+                        stopBtn.textContent = '停止中...';
+                        
+                        // 发送停止请求
+                        fetch('/stop', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        })
                         .then(response => response.json())
                         .then(data => {
-                            // 更新UP1价格
-                            const up1Input = document.getElementById('up1_price');
-                            const down1Input = document.getElementById('down1_price');
-                            
-                            if (up1Input && data.yes1_price_entry && data.yes1_price_entry !== up1Input.value) {
-                                up1Input.value = data.yes1_price_entry;
-                            }
-                            
-                            if (down1Input && data.no1_price_entry && data.no1_price_entry !== down1Input.value) {
-                                down1Input.value = data.no1_price_entry;
+                            if (data.success) {
+                                showMessage(data.message, 'success');
+                                // 3秒后刷新页面以显示最新状态
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 3000);
+                            } else {
+                                showMessage(data.message, 'error');
+                                stopBtn.disabled = false;
+                                stopBtn.textContent = '🛑 停止监控';
                             }
                         })
                         .catch(error => {
-                            console.log('价格检查失败:', error);
+                            console.error('Error:', error);
+                            showMessage('停止失败，请检查网络连接', 'error');
+                            stopBtn.disabled = false;
+                            stopBtn.textContent = '🛑 停止监控';
                         });
-                }
-                
-                // 每2秒检查一次价格更新
-                setInterval(checkPriceUpdates, 2000);
-                </script>
-                
-                <!-- 交易记录表格 -->
-                <div style="max-width: 1160px; padding: 10px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
+                    }
                     
-                    {% if data.cash_history and data.cash_history|length > 0 %}
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <thead>
-                                <tr style="background: linear-gradient(135deg, #007bff, #0056b3); color: white;">
-                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">日期</th>
-                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Cash</th>
-                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">利润</th>
-                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">利润率</th>
-                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">总利润</th>
-                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">总利润率</th>
-                                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">交易次数</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in data.cash_history[:15] %}
-                                <tr style="{% if loop.index % 2 == 0 %}background-color: #f8f9fa;{% endif %}">
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ record[0] }}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; font-weight: bold;">{{ record[1] }}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[2]|float > 0 %}#28a745{% elif record[2]|float < 0 %}#dc3545{% else %}#6c757d{% endif %}; font-weight: bold;">{{ record[2] }}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[3]|replace('%','')|float > 0 %}#28a745{% elif record[3]|replace('%','')|float < 0 %}#dc3545{% else %}#6c757d{% endif %};">{{ record[3] }}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[4]|float > 0 %}#28a745{% elif record[4]|float < 0 %}#dc3545{% else %}#6c757d{% endif %}; font-weight: bold;">{{ record[4] }}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[5]|replace('%','')|float > 0 %}#28a745{% elif record[5]|replace('%','')|float < 0 %}#dc3545{% else %}#6c757d{% endif %};">{{ record[5] }}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ record[6] if record|length > 6 else '' }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    // 检查浏览器状态的函数
+                    function checkBrowserStatus() {
+                        fetch('/api/browser_status')
+                        .then(response => response.json())
+                        .then(data => {
+                            const startBtn = document.getElementById('startBtn');
+                            if (data.browser_connected) {
+                                // 浏览器已连接，禁用启动按钮
+                                startBtn.disabled = true;
+                                startBtn.textContent = '🌐 运行中...';
+                                startBtn.style.backgroundColor = '#6c757d';
+                                startBtn.style.cursor = 'not-allowed';
+                                
+                                // 停止检查状态
+                                if (window.browserStatusInterval) {
+                                    clearInterval(window.browserStatusInterval);
+                                    window.browserStatusInterval = null;
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('检查浏览器状态失败:', error);
+                        });
+                    }
+                    
+                    // 启动浏览器状态检查
+                    function startBrowserStatusCheck() {
+                        // 每2秒检查一次浏览器状态
+                        window.browserStatusInterval = setInterval(checkBrowserStatus, 2000);
+                    }
+                    
+                    // 检查监控状态的函数
+                    function checkMonitoringStatus() {
+                        fetch('/api/monitoring_status')
+                        .then(response => response.json())
+                        .then(data => {
+                            const startBtn = document.getElementById('startBtn');
+                            if (data.monitoring_active) {
+                                // 监控已启动，禁用启动按钮
+                                startBtn.disabled = true;
+                                startBtn.textContent = '程序运行中';
+                                startBtn.style.backgroundColor = '#6c757d';
+                                startBtn.style.cursor = 'not-allowed';
+                                
+                                // 停止检查状态
+                                if (window.monitoringStatusInterval) {
+                                    clearInterval(window.monitoringStatusInterval);
+                                    window.monitoringStatusInterval = null;
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('检查监控状态失败:', error);
+                        });
+                    }
+                    
+                    // 启动监控状态检查
+                    function startMonitoringStatusCheck() {
+                        // 每2秒检查一次监控状态
+                        window.monitoringStatusInterval = setInterval(checkMonitoringStatus, 2000);
+                    }
+                    
+                    // 日志相关变量
+                    let autoScroll = true;
+                    let logUpdateInterval;
+                    let userScrolling = false;
+                    
+                    // ANSI颜色代码转换函数
+                    function convertAnsiToHtml(text) {
+                        // 直接使用字符串替换，避免正则表达式转义问题
+                        let result = text;
+                        
+                        // ANSI颜色代码替换
+                        result = result.replace(/\\033\\[30m/g, '<span style="color: #000000">'); // 黑色
+                        result = result.replace(/\\033\\[31m/g, '<span style="color: #dc3545">'); // 红色
+                        result = result.replace(/\\033\\[32m/g, '<span style="color: #28a745">'); // 绿色
+                        result = result.replace(/\\033\\[33m/g, '<span style="color: #ffc107">'); // 黄色
+                        result = result.replace(/\\033\\[34m/g, '<span style="color: #007bff">'); // 蓝色
+                        result = result.replace(/\\033\\[35m/g, '<span style="color: #6f42c1">'); // 紫色
+                        result = result.replace(/\\033\\[36m/g, '<span style="color: #17a2b8">'); // 青色
+                        result = result.replace(/\\033\\[37m/g, '<span style="color: #ffffff">'); // 白色
+                        result = result.replace(/\\033\\[0m/g, '</span>'); // 重置
+                        result = result.replace(/\\033\\[1m/g, '<span style="font-weight: bold">'); // 粗体
+                        result = result.replace(/\\033\\[4m/g, '<span style="text-decoration: underline">'); // 下划线
+                        
+                        return result;
+                    }
+                    
+                    // 日志相关函数
+                    function updateLogs() {
+                        fetch('/api/logs')
+                            .then(response => response.json())
+                            .then(data => {
+                                const logContainer = document.getElementById('logContainer');
+                                if (data.logs && data.logs.length > 0) {
+                                    logContainer.innerHTML = data.logs.map(log => {
+                                        const convertedMessage = convertAnsiToHtml(log.message);
+                                        return `<div class="log-entry ${log.level.toLowerCase()}">
+                                            <span class="log-time">${log.time}</span>
+                                            <span class="log-level">[${log.level}]</span>
+                                            <span class="log-message">${convertedMessage}</span>
+                                        </div>`;
+                                    }).join('');
+                                    
+                                    if (autoScroll) {
+                                        logContainer.scrollTop = logContainer.scrollHeight;
+                                    }
+                                } else {
+                                    logContainer.innerHTML = '<div class="log-empty">暂无日志记录</div>';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('获取日志失败:', error);
+                                document.getElementById('logContainer').innerHTML = '<div class="log-error">日志加载失败</div>';
+                            });
+                    }
+                    
+
+                    
+
+                    
+                    // 自动保存单个输入框的值
+                    function autoSavePosition(inputElement) {
+                        const fieldName = inputElement.name;
+                        const fieldValue = parseFloat(inputElement.value) || 0;
+                        
+                        // 创建只包含当前字段的数据对象
+                        const positions = {};
+                        positions[fieldName] = fieldValue;
+                        
+                        // 静默保存，不显示成功消息
+                        fetch('/api/positions/save', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(positions)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.success) {
+                                console.error('自动保存失败:', data.message || '未知错误');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('自动保存错误:', error);
+                        });
+                    }
+                    
+
+                    
+                    // 页面加载完成后启动日志更新
+                    document.addEventListener('DOMContentLoaded', function() {
+                        updateLogs();
+                        // 每5秒更新一次日志
+                        logUpdateInterval = setInterval(updateLogs, 5000);
+                        
+                        // 页面加载时检查监控状态
+                        checkMonitoringStatus();
+                        // 启动定期监控状态检查
+                        startMonitoringStatusCheck();
+                        
+                        // 监听日志容器的滚动事件
+                        const logContainer = document.getElementById('logContainer');
+                        if (logContainer) {
+                            logContainer.addEventListener('scroll', function() {
+                                // 检查是否滚动到底部（允许5px的误差）
+                                const isAtBottom = logContainer.scrollTop >= (logContainer.scrollHeight - logContainer.clientHeight - 5);
+                                
+                                if (isAtBottom) {
+                                    // 用户滚动到底部，重新启用自动滚动
+                                    autoScroll = true;
+                                    userScrolling = false;
+                                } else {
+                                    // 用户手动滚动到其他位置，停止自动滚动
+                                    autoScroll = false;
+                                    userScrolling = true;
+                                }
+                            });
+                        }
+                    });
+                    
+                    // 定期检查价格更新
+                    function checkPriceUpdates() {
+                        fetch('/api/data')
+                            .then(response => response.json())
+                            .then(data => {
+                                // 更新UP1价格
+                                const up1Input = document.getElementById('up1_price');
+                                const down1Input = document.getElementById('down1_price');
+                                
+                                if (up1Input && data.yes1_price_entry && data.yes1_price_entry !== up1Input.value) {
+                                    up1Input.value = data.yes1_price_entry;
+                                }
+                                
+                                if (down1Input && data.no1_price_entry && data.no1_price_entry !== down1Input.value) {
+                                    down1Input.value = data.no1_price_entry;
+                                }
+                            })
+                            .catch(error => {
+                                console.log('价格检查失败:', error);
+                            });
+                    }
+                    
+                    // 每2秒检查一次价格更新
+                    setInterval(checkPriceUpdates, 2000);
+                    </script>
+                    
+                    <!-- 交易记录表格 -->
+                    <div style="max-width: 1160px; padding: 10px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
+                        
+                        {% if data.cash_history and data.cash_history|length > 0 %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <thead>
+                                    <tr style="background: linear-gradient(135deg, #007bff, #0056b3); color: white;">
+                                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">日期</th>
+                                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Cash</th>
+                                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">利润</th>
+                                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">利润率</th>
+                                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">总利润</th>
+                                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">总利润率</th>
+                                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">交易次数</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in data.cash_history[:15] %}
+                                    <tr style="{% if loop.index % 2 == 0 %}background-color: #f8f9fa;{% endif %}">
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ record[0] }}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; font-weight: bold;">{{ record[1] }}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[2]|float > 0 %}#28a745{% elif record[2]|float < 0 %}#dc3545{% else %}#6c757d{% endif %}; font-weight: bold;">{{ record[2] }}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[3]|replace('%','')|float > 0 %}#28a745{% elif record[3]|replace('%','')|float < 0 %}#dc3545{% else %}#6c757d{% endif %};">{{ record[3] }}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[4]|float > 0 %}#28a745{% elif record[4]|float < 0 %}#dc3545{% else %}#6c757d{% endif %}; font-weight: bold;">{{ record[4] }}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: {% if record[5]|replace('%','')|float > 0 %}#28a745{% elif record[5]|replace('%','')|float < 0 %}#dc3545{% else %}#6c757d{% endif %};">{{ record[5] }}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ record[6] if record|length > 6 else '' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="text-align: center; margin-top: 15px; color: #6c757d; font-size: 14px;">
+                            显示最近 15 条记录 | 总记录数: {{ data.cash_history|length }} 条 | 
+                            <a href="http://localhost:5000/history" target="_blank" style="color: #007bff; text-decoration: none;">查看完整记录</a>
+                        </div>
+                        {% else %}
+                        <div style="text-align: center; padding: 40px; color: #6c757d;">
+                            <p style="font-size: 18px; margin: 0;">📈 暂无交易记录</p>
+                            <p style="font-size: 14px; margin: 10px 0 0 0;">数据将在每日 0:30 自动记录</p>
+                        </div>
+                        {% endif %}
+                        <div style="text-align: center; margin-top: 5px; padding: 10px; background-color: #e9ecef; border-radius: 5px; font-size: 12px; color: #6c757d;">
+                            📅 数据来源：每日 0:30 自动记录 | 💾 数据持久化：追加模式，程序重启不丢失 | 🔄 页面实时：24小时在线，随时可访问
+                        </div>
                     </div>
-                    <div style="text-align: center; margin-top: 15px; color: #6c757d; font-size: 14px;">
-                        显示最近 15 条记录 | 总记录数: {{ data.cash_history|length }} 条 | 
-                        <a href="http://localhost:5000/history" target="_blank" style="color: #007bff; text-decoration: none;">查看完整记录</a>
                     </div>
-                    {% else %}
-                    <div style="text-align: center; padding: 40px; color: #6c757d;">
-                        <p style="font-size: 18px; margin: 0;">📈 暂无交易记录</p>
-                        <p style="font-size: 14px; margin: 10px 0 0 0;">数据将在每日 0:30 自动记录</p>
-                    </div>
-                    {% endif %}
-                    <div style="text-align: center; margin-top: 5px; padding: 10px; background-color: #e9ecef; border-radius: 5px; font-size: 12px; color: #6c757d;">
-                        📅 数据来源：每日 0:30 自动记录 | 💾 数据持久化：追加模式，程序重启不丢失 | 🔄 页面实时：24小时在线，随时可访问
-                    </div>
-                </div>
                 </div>
             </body>
             </html>
@@ -6271,6 +6273,7 @@ class CryptoTrader:
                 </style>
             </head>
             <body>
+                
                 <div class=\"container\">
                     <h2>Polymarket自动交易记录</h2>
                     <div class=\"page-info\">
