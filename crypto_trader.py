@@ -1920,7 +1920,7 @@ class CryptoTrader:
             if has_up_position:
                 # 有Up持仓
                 
-                position_text = f"方向: Up 数量: {self.up_position_shares} 价格: {self.up_position_price} 金额: {self.up_position_amount}"
+                position_text = f"方向: Up 数量: {self.shares} 价格: {self.price} 金额: {self.amount}"
                 color_style = "color: green; font-weight: bold;"
                 
                 # 更新Web界面的持仓显示
@@ -1938,7 +1938,7 @@ class CryptoTrader:
                 }
             elif has_down_position:
                 # 有Down持仓
-                position_text = f"方向: Down 数量: {self.down_position_shares} 价格: {self.down_position_price} 金额: {self.down_position_amount}"
+                position_text = f"方向: Down 数量: {self.shares} 价格: {self.price} 金额: {self.amount}"
                 color_style = "color: red; font-weight: bold;"
                 
                 # 更新Web界面的持仓显示
