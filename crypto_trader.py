@@ -50,9 +50,8 @@ class Logger:
 
         # 如果logger已经有处理器，则不再添加新的处理器
         if not self.logger.handlers:
-            # 创建%h/poly_16/logs/目录（如果不存在）
-            home_dir = os.path.expanduser("~")
-            log_dir = os.path.join(home_dir, "poly_16", "logs")
+            # 创建本地logs目录（如果不存在）
+            log_dir = "logs"
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
                 
