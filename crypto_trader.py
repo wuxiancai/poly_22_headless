@@ -50,12 +50,14 @@ class Logger:
 
         # 如果logger已经有处理器，则不再添加新的处理器
         if not self.logger.handlers:
-            # 创建logs目录（如果不存在）
-            if not os.path.exists('logs'):
-                os.makedirs('logs')
+            # 创建%h/poly_16/logs/目录（如果不存在）
+            home_dir = os.path.expanduser("~")
+            log_dir = os.path.join(home_dir, "poly_16", "logs")
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
                 
             # 设置日志文件名（使用当前日期）
-            log_filename = f"logs/{datetime.now().strftime('%Y%m%d')}.log"
+            log_filename = os.path.join(log_dir, f"{datetime.now().strftime('%Y%m%d')}.log")
             
             # 创建文件处理器
             file_handler = logging.FileHandler(log_filename, encoding='utf-8')
