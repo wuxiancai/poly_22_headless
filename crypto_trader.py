@@ -4323,8 +4323,25 @@ class CryptoTrader:
                             else:
                                 profit_rate = float(profit_rate_str)
                             
-                            # 验证日期格式
-                            datetime.strptime(date_str, '%Y-%m-%d')
+                            # 验证并标准化日期格式
+                            try:
+                                # 尝试标准格式 YYYY-MM-DD
+                                parsed_date = datetime.strptime(date_str, '%Y-%m-%d')
+                            except ValueError:
+                                try:
+                                    # 尝试斜杠格式 YYYY/M/D 或 YYYY/MM/DD
+                                    parsed_date = datetime.strptime(date_str, '%Y/%m/%d')
+                                    # 标准化为 YYYY-MM-DD 格式
+                                    date_str = parsed_date.strftime('%Y-%m-%d')
+                                    self.logger.info(f"第{line_number}行日期格式已标准化: '{row[0]}' -> '{date_str}'")
+                                except ValueError:
+                                    try:
+                                        # 尝试其他可能的格式
+                                        parsed_date = datetime.strptime(date_str, '%Y/%#m/%#d')  # Windows格式
+                                        date_str = parsed_date.strftime('%Y-%m-%d')
+                                        self.logger.info(f"第{line_number}行日期格式已标准化: '{row[0]}' -> '{date_str}'")
+                                    except ValueError:
+                                        raise ValueError(f"日期格式不支持: {date_str}")
                             
                             # 如果有更多列，也验证它们
                             if len(row) >= 6:
@@ -4487,9 +4504,8 @@ class CryptoTrader:
                         min-height: 100vh;
                     }
                     .container { 
-                        max-width: 1160px; margin: 5px auto; background: rgba(255, 255, 255, 0.95); 
-                        padding: 10px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-                        backdrop-filter: blur(10px);
+                        max-width: 1160px; margin: 2px auto; background: rgba(255, 255, 255, 0.95); 
+                        padding: 2px; border-radius: 15px; backdrop-filter: blur(10px);
                     }
                     .header { text-align: center; margin-bottom: 5px; }
                     .header h1 { 
@@ -4544,8 +4560,8 @@ class CryptoTrader:
                         display: flex;
                         gap: 20px;
                         max-width: 1160px;
-                        margin: 0 auto;
-                        padding: 0 20px;
+    
+                        padding: 5px 5px;
                         align-items: flex-start;
                     }
                     
@@ -4570,8 +4586,8 @@ class CryptoTrader:
                     }
                     .monitor-controls-section {
                         max-width: 1160px;
-                        margin: 0 auto;
-                        padding: 0 20px;
+                        
+                        padding: 2px 1px;
                         display: flex;
                         flex-wrap: wrap;
                         gap: 15px;
@@ -4993,15 +5009,16 @@ class CryptoTrader:
                     }
                     .control-section {
                         max-width: 1160px;
+                        min-width: 1140px;
                         padding: 10px 10px 0 10px;
-                        border-top: 2px solid rgba(222, 226, 230, 0.5);
+                        
                     }
                     .url-input-group {
                         display: flex; gap: 15px; 
                     }
                     .url-input-group input {
-                        flex: 1; padding: 14px 18px; border: 2px solid #ced4da;
-                        border-radius: 8px; font-size: 16px; transition: all 0.3s ease;
+                        flex: 1; padding: 2px 18px; border: 2px solid #ced4da;
+                        border-radius: 8px; font-size: 14px; transition: all 0.3s ease;
                         background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
                         color: #2F3E46;
                     }
@@ -5036,16 +5053,16 @@ class CryptoTrader:
                         color: #721c24; border: 2px solid #f5c6cb; display: block;
                     }
                     .log-section {
-                        margin-top: 3px; background: rgba(255, 255, 255, 0.9);
+                        background: rgba(255, 255, 255, 0.9);
                         border-radius: 2px; padding: 2px; color: #2c3e50;
                         font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-                        box-shadow: 0 4px 2px rgba(0,0,0,0.08); backdrop-filter: blur(5px);
+                        backdrop-filter: blur(5px);
                         border: 1px solid rgba(233, 236, 239, 0.5);
                     }
                     
                     .log-container {
                         height: 500px; overflow-y: auto; background: rgba(248, 249, 250, 0.8);
-                        border-radius: 8px; padding: 15px; border: 2px solid rgba(233, 236, 239, 0.5);
+                        border-radius: 8px; padding: 18px; border: 2px solid rgba(233, 236, 239, 0.5);
                         margin-top: 0;
                     }
                     .log-entry {
@@ -5089,7 +5106,7 @@ class CryptoTrader:
                     
                     /* 时间显示和倒计时样式 */
                     .time-display-section {
-                        
+                        margin-top: 6px;
                         padding: 5px 10px;
                         background: rgba(248, 249, 250, 0.9);
                         border-radius: 6px;
@@ -5105,7 +5122,7 @@ class CryptoTrader:
                     }
                     
                     #currentTime {
-                        font-size: 10px;
+                        font-size: 16px;
                         font-weight: 600;
                         color: #2c3e50;
                         background: linear-gradient(45deg, #667eea, #764ba2);
@@ -5120,7 +5137,7 @@ class CryptoTrader:
                     }
                     
                     .countdown-label {
-                        font-size: 10px;
+                        font-size: 14px;
                         font-weight: 600;
                         background: linear-gradient(45deg, #667eea, #764ba2);
                         -webkit-background-clip: text;
@@ -5131,7 +5148,7 @@ class CryptoTrader:
                         display: flex;
                         gap: 1px;
                         align-items: center;
-                        font-size: 14px;
+                        font-size: 16px;
                         font-weight: bold;
                         color: #dc3545;
                     }
@@ -5526,12 +5543,12 @@ class CryptoTrader:
                         <!-- 主要内容区域：左右分栏 -->
                         <div class="main-layout">
                             <!-- 左侧：日志显示区域 -->
-                            <div class="left-panel">
-                                <div class="log-section">
-                                    <div class="log-container" id="logContainer">
-                                        <div class="log-loading">正在加载日志...</div>
-                                    </div>
-                                </div>
+                            <div class="left-panel log-section log-container" id="logContainer">
+                                
+                                    
+                                <div class="log-loading">正在加载日志...</div>
+                                    
+                                
                             </div>
                             <!-- 右侧：价格和交易区域 -->
                             <div class="right-panel">
@@ -6030,7 +6047,7 @@ class CryptoTrader:
                     </script>
                     
                     <!-- 交易记录表格 -->
-                    <div style="max-width: 1160px; padding: 10px; border-top: 2px solid #007bff; background-color: #f8f9fa;">
+                    <div style="max-width: 1160px; padding: 10px; background-color: #f8f9fa;">
                         
                         {% if data.cash_history and data.cash_history|length > 0 %}
                         <div style="overflow-x: auto;">
