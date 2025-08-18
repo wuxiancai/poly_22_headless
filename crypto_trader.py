@@ -2565,13 +2565,16 @@ class CryptoTrader:
         finally:
             self.trading = False
 
-    def sell_yes_or_no_position(self):
+    def manual_sell_yes_or_no_position(self):
         """手动卖出仓位"""
-        self.click_positions_sell_and_sell_confirm_and_accept()
+        if self.find_position_label_up():
+            self.only_sell_up()
+
+        if self.find_position_label_down():
+            self.only_sell_down()
+
         time.sleep(2)
         self.driver.refresh()
-        self.logger.info("\033[34m✅ 仓位已经卖出!\033[0m")
-        return True
         
     def reset_yes_no_amount(self):
         """重置 YES/NO ENTRY 金额"""
@@ -6420,7 +6423,7 @@ class CryptoTrader:
             """卖出仓位API"""
             try:
                 # 调用sell_yes_or_no_position函数
-                result = self.sell_yes_or_no_position()
+                result = self.manual_sell_yes_or_no_position()
                 return jsonify({
                     'success': True,
                     'message': '卖出仓位操作已执行',
