@@ -1436,8 +1436,8 @@ class CryptoTrader:
                     missing_info.append("Down价格")
                     
                 self.logger.warning(f"数据获取不完整，缺失: {', '.join(missing_info)}")
-                self.set_web_value('yes_price_label', 'Up: N/A')
-                self.set_web_value('no_price_label', 'Down: N/A')
+                self.set_web_value('yes_price_label', 'N/A')
+                self.set_web_value('no_price_label', 'N/A')
                 # 尝试刷新页面
                 try:
                     self.driver.refresh()
