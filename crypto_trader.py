@@ -5245,7 +5245,7 @@ class CryptoTrader:
                                 
                                 // 更新URL输入框
                                 const urlInputElement = document.querySelector('#urlInput');
-                                if (urlInputElement && data.status.url && data.status.url !== '未设置') {
+                                if (urlInputElement && data.status.url && data.status.url !== '未设置' && !window.preventUrlAutoUpdate) {
                                     urlInputElement.value = data.status.url;
                                 }
                                 
@@ -5315,6 +5315,15 @@ class CryptoTrader:
                         
                         // 初始化时间显示和倒计时
                         initializeTimeDisplay();
+                        
+                        // 添加URL输入框事件监听器
+                        const urlInput = document.getElementById('urlInput');
+                        if (urlInput) {
+                            urlInput.addEventListener('input', function() {
+                                // 用户手动输入时清除防止自动更新的标志
+                                window.preventUrlAutoUpdate = false;
+                            });
+                        }
                     });
                     
                     function updatePositionInfo() {
@@ -5408,6 +5417,8 @@ class CryptoTrader:
                             .then(data => {
                                 if (data.success) {
                                     showMessage('程序重启命令已发送，系统将在几秒后重启', 'success');
+                                    // 重启成功后重置前端状态
+                                    resetFrontendState();
                                 } else {
                                     showMessage('程序重启失败: ' + data.message, 'error');
                                 }
@@ -5417,6 +5428,41 @@ class CryptoTrader:
                                 showMessage('程序重启失败', 'error');
                             });
                         }
+                    }
+                    
+                    // 重置前端状态函数
+                    function resetFrontendState() {
+                        // 重置启动监控按钮状态
+                        const startBtn = document.getElementById('startBtn');
+                        if (startBtn) {
+                            startBtn.disabled = false;
+                            startBtn.textContent = '启动监控';
+                            startBtn.style.backgroundColor = '';
+                            startBtn.style.cursor = '';
+                        }
+                        
+                        // 清空URL输入框并防止自动更新
+                        const urlInput = document.getElementById('urlInput');
+                        if (urlInput) {
+                            urlInput.value = '';
+                            // 设置标志防止URL自动更新
+                            window.preventUrlAutoUpdate = true;
+                        }
+                        
+                        // 停止监控状态检查
+                        if (window.monitoringStatusInterval) {
+                            clearInterval(window.monitoringStatusInterval);
+                            window.monitoringStatusInterval = null;
+                        }
+                        
+                        // 重置其他按钮状态
+                        const stopBtn = document.getElementById('stopBtn');
+                        const startChromeBtn = document.getElementById('startChromeBtn');
+                        const stopChromeBtn = document.getElementById('stopChromeBtn');
+                        
+                        if (stopBtn) stopBtn.disabled = true;
+                        if (startChromeBtn) startChromeBtn.disabled = false;
+                        if (stopChromeBtn) stopChromeBtn.disabled = true;
                     }
                     
                     function updateCoin() {
