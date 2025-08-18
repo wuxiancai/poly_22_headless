@@ -1837,7 +1837,7 @@ class CryptoTrader:
             self.refresh_page_running = False
             self.logger.info("\033[31m❌ 刷新状态已停止\033[0m")
  
-    def send_amount_and_buy_confirm(self, amount_value):
+    def send_amount_and_click_buy_confirm_button(self, amount_value):
         """一次完成金额输入 + 确认点击"""
         try:
             # 1. 获取金额 (Web模式下直接使用传入的字符串值)
@@ -2006,7 +2006,7 @@ class CryptoTrader:
 
                         # 买入 UP1
                         # Web模式下传递金额值
-                        self.send_amount_and_buy_confirm(self.get_web_value('yes1_amount_entry'))
+                        self.send_amount_and_click_buy_confirm_button(self.get_web_value('yes1_amount_entry'))
 
                         time.sleep(1)
                         if self.Verify_buy_up():
@@ -2073,7 +2073,7 @@ class CryptoTrader:
                         self.click_buy_no() 
 
                         # Web模式下使用金额值而不是GUI对象
-                        self.send_amount_and_buy_confirm(self.get_web_value('no1_amount_entry'))
+                        self.send_amount_and_click_buy_confirm_button(self.get_web_value('no1_amount_entry'))
                         
                         # self.click_buy_yes()
 
@@ -2154,7 +2154,7 @@ class CryptoTrader:
                             self.only_sell_down()
 
                         # 传 Web 模式的金额值
-                        self.send_amount_and_buy_confirm(self.get_web_value('yes2_amount_entry'))
+                        self.send_amount_and_click_buy_confirm_button(self.get_web_value('yes2_amount_entry'))
                         
                         time.sleep(1)
                         if self.Verify_buy_up():
@@ -2217,7 +2217,7 @@ class CryptoTrader:
                         self.click_buy_no()
 
                         # Web模式下使用金额值而不是GUI对象
-                        self.send_amount_and_buy_confirm(self.get_web_value('no2_amount_entry'))
+                        self.send_amount_and_click_buy_confirm_button(self.get_web_value('no2_amount_entry'))
                         
                         time.sleep(2)
                         if self.Verify_buy_down():
@@ -2294,7 +2294,7 @@ class CryptoTrader:
                             self.only_sell_down()
 
                         # Web模式下使用金额值而不是GUI对象
-                        self.send_amount_and_buy_confirm(self.get_web_value('yes3_amount_entry'))
+                        self.send_amount_and_click_buy_confirm_button(self.get_web_value('yes3_amount_entry'))
 
                         time.sleep(2)
                         if self.Verify_buy_up():
@@ -2360,7 +2360,7 @@ class CryptoTrader:
                         # 执行交易操作
                         self.click_buy_no()
                         # Web模式下使用金额值而不是GUI对象
-                        self.send_amount_and_buy_confirm(self.get_web_value('no3_amount_entry'))
+                        self.send_amount_and_click_buy_confirm_button(self.get_web_value('no3_amount_entry'))
 
                         time.sleep(2)
                         if self.Verify_buy_down():
@@ -2439,7 +2439,7 @@ class CryptoTrader:
                             self.only_sell_down()
 
                         # Web模式下使用金额值而不是GUI对象
-                        self.send_amount_and_buy_confirm(self.get_web_value('yes4_amount_entry'))
+                        self.send_amount_and_click_buy_confirm_button(self.get_web_value('yes4_amount_entry'))
 
                         time.sleep(2)
                         if self.Verify_buy_up():
@@ -2506,7 +2506,7 @@ class CryptoTrader:
                         self.click_buy_no()
 
                         # Web模式下使用金额值而不是GUI对象
-                        self.send_amount_and_buy_confirm(self.get_web_value('no4_amount_entry'))
+                        self.send_amount_and_click_buy_confirm_button(self.get_web_value('no4_amount_entry'))
                         
                         time.sleep(2)
                         if self.Verify_buy_down():
@@ -2569,6 +2569,13 @@ class CryptoTrader:
         finally:
             self.trading = False
 
+    def sell_yes_or_no_position(self):
+        """手动卖出仓位"""
+        self.click_positions_sell_and_sell_confirm_and_accept()
+        time.sleep(2)
+        self.driver.refresh()
+        self.logger.info("\033[34m✅ 仓位已经卖出!\033[0m")
+
     def reset_yes_no_amount(self):
         """重置 YES/NO ENTRY 金额"""
         # 设置 UP1 和 DOWN1金额
@@ -2593,7 +2600,7 @@ class CryptoTrader:
         self.logger.info("\033[34m✅ 设置 YES1-4/NO1-4金额成功\033[0m")
 
     def click_positions_sell_and_sell_confirm_and_accept(self):
-        """卖出并点击确认"""
+        """点击 Positions_Sell按钮,然后点击卖出按钮,如果有 ACCEPT 弹窗,就点击ACCETP按钮"""
         try:
             # 点击卖出按钮
             try:
@@ -2616,7 +2623,7 @@ class CryptoTrader:
                 else:
                     self.logger.info("\033[31m❌ 没有出现SELL按钮,跳过点击\033[0m")
 
-            # 点击卖出确认按钮
+            # 点击 Sell confirm 卖出确认按钮
             try:
                 sell_confirm_button = WebDriverWait(self.driver, 1).until(
                     EC.element_to_be_clickable((By.XPATH, XPathConfig.SELL_CONFIRM_BUTTON[0]))
@@ -4765,10 +4772,32 @@ class CryptoTrader:
                         color: #007bff;
                         display: flex;
                         align-items: center;
-                        justify-content: center;
+                        justify-content: space-between;
                         word-wrap: break-word;
-                        text-align: center;
                         width: 100%;
+                    }
+                    .sell-position-btn {
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #007bff;
+                        background: linear-gradient(135deg, #A8C0FF, #C6FFDD);
+                        border: none;
+                        border-radius: 6px;
+                        padding: 5px 10px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        margin-left: 0;
+                        white-space: nowrap;
+                        flex-shrink: 0;
+                    }
+                    .sell-position-btn:hover:not(:disabled) {
+                        background: linear-gradient(135deg, #9BB5FF, #B8F2DD);
+                        transform: translateY(-1px);
+                    }
+                    .sell-position-btn:disabled {
+                        background-color: #6c757d;
+                        cursor: not-allowed;
+                        opacity: 0.6;
                     }
                     .binance-price-container {
                         display: flex;
@@ -5428,6 +5457,7 @@ class CryptoTrader:
                             .then(data => {
                                 const positionContainer = document.getElementById('positionContainer');
                                 const positionContent = document.getElementById('positionContent');
+                                const sellBtn = document.getElementById('sellPositionBtn');
                                 
                                 if (!positionContainer || !positionContent) return;
                                 
@@ -5448,10 +5478,23 @@ class CryptoTrader:
                                         positionContent.style.color = '#2c3e50'; // 默认颜色
                                     }
                                     
+                                    // 有持仓时保持卖出按钮样式
+                                    if (sellBtn) {
+                                        sellBtn.style.backgroundColor = '#dc3545';
+                                        sellBtn.style.cursor = 'pointer';
+                                    }
+                                    
                                     positionContainer.style.display = 'block';
                                 } else {
                                     positionContent.textContent = '方向: -- 数量: -- 价格: -- 金额: --';
                                     positionContent.style.color = '#2c3e50'; // 默认颜色
+                                    
+                                    // 无持仓时保持卖出按钮可点击
+                                    if (sellBtn) {
+                                        sellBtn.style.backgroundColor = '#dc3545';
+                                        sellBtn.style.cursor = 'pointer';
+                                    }
+                                    
                                     positionContainer.style.display = 'block';
                                 }
                             })
@@ -5459,12 +5502,64 @@ class CryptoTrader:
                                 console.error('获取持仓信息失败:', error);
                                 const positionContainer = document.getElementById('positionContainer');
                                 const positionContent = document.getElementById('positionContent');
+                                const sellBtn = document.getElementById('sellPositionBtn');
                                 if (positionContainer && positionContent) {
                                     positionContent.textContent = '方向: -- 数量: -- 价格: -- 金额: --';
                                     positionContent.style.color = '#dc3545'; // 红色表示错误
+                                    
+                                    // 获取失败时保持卖出按钮可点击
+                                    if (sellBtn) {
+                                        sellBtn.style.backgroundColor = '#dc3545';
+                                        sellBtn.style.cursor = 'pointer';
+                                    }
+                                    
                                     positionContainer.style.display = 'block';
                                 }
                             });
+                    }
+                    
+                    function sellPosition() {
+                        const sellBtn = document.getElementById('sellPositionBtn');
+                        
+                        // 如果按钮被禁用，直接返回
+                        if (sellBtn && sellBtn.disabled) {
+                            return;
+                        }
+                        
+                        // 禁用按钮防止重复点击
+                        if (sellBtn) {
+                            sellBtn.disabled = true;
+                            sellBtn.textContent = '卖出中...';
+                        }
+                        
+                        fetch('/api/sell_position', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('卖出操作成功！');
+                                // 刷新持仓信息
+                                updatePositionInfo();
+                            } else {
+                                alert('卖出操作失败：' + (data.message || '未知错误'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('卖出操作失败:', error);
+                            alert('卖出操作失败：网络错误');
+                        })
+                        .finally(() => {
+                            // 恢复按钮状态
+                            if (sellBtn) {
+                                sellBtn.textContent = '卖出仓位';
+                                // 按钮状态将由updatePositionInfo函数重新设置
+                                updatePositionInfo();
+                            }
+                        });
                     }
                     
                     function startChrome() {
@@ -5716,6 +5811,9 @@ class CryptoTrader:
                                 <div class="position-container" id="positionContainer" style="display: block;">
                                     <div class="position-content" id="positionContent">
                                         方向: -- 数量: -- 价格: -- 金额: --
+                                        <button id="sellPositionBtn" class="sell-position-btn" onclick="sellPosition()">
+                                            卖出仓位
+                                        </button>
                                     </div>
                                 </div>
                                 
@@ -6395,6 +6493,25 @@ class CryptoTrader:
                     'success': False,
                     'error': str(e),
                     'position_info': '暂无持仓信息'
+                }), 500
+        
+        @app.route("/api/sell_position", methods=['POST'])
+        def sell_position_api():
+            """卖出仓位API"""
+            try:
+                # 调用sell_yes_or_no_position函数
+                result = self.sell_yes_or_no_position()
+                return jsonify({
+                    'success': True,
+                    'message': '卖出仓位操作已执行',
+                    'result': result
+                })
+            except Exception as e:
+                self.logger.error(f"卖出仓位失败: {str(e)}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e),
+                    'message': '卖出仓位操作失败'
                 }), 500
         
         @app.route("/history")
