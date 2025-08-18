@@ -74,6 +74,31 @@ class Logger:
             self.logger.addHandler(file_handler)
             self.logger.addHandler(console_handler)
     
+    @staticmethod
+    def get_latest_log_file():
+        """获取$HOME/poly_16/logs/目录下最新的日志文件"""
+        import glob
+        
+        # 获取$HOME/poly_16/logs/目录路径
+        home_dir = os.path.expanduser("~")
+        log_dir = os.path.join(home_dir, "poly_16", "logs")
+        
+        if not os.path.exists(log_dir):
+            return None
+            
+        # 查找所有符合日期格式的.log文件 (格式: YYYYMMDD.log)
+        log_pattern = os.path.join(log_dir, "????????.log")
+        log_files = glob.glob(log_pattern)
+        
+        if not log_files:
+            return None
+            
+        # 按文件名排序，获取最新的文件（日期最大的）
+        log_files.sort()
+        latest_log_file = log_files[-1]
+        
+        return latest_log_file
+    
     def _add_to_memory(self, level, message):
         """添加日志到内存记录"""
         record = {
@@ -6675,10 +6700,10 @@ class CryptoTrader:
                 if hasattr(self.logger, 'log_records'):
                     logs = self.logger.log_records[-100:]  # 最近100条日志
                 else:
-                    # 如果没有内存日志，尝试读取日志文件
-                    log_file = 'crypto_trader.log'
-                    if os.path.exists(log_file):
-                        with open(log_file, 'r', encoding='utf-8') as f:
+                    # 如果没有内存日志，尝试读取$HOME/poly_16/logs/目录下的最新日志文件
+                    latest_log_file = Logger.get_latest_log_file()
+                    if latest_log_file and os.path.exists(latest_log_file):
+                        with open(latest_log_file, 'r', encoding='utf-8') as f:
                             lines = f.readlines()[-100:]  # 最近100行
                             for line in lines:
                                 line = line.strip()
@@ -6697,6 +6722,13 @@ class CryptoTrader:
                                             'level': 'INFO',
                                             'message': line
                                         })
+                    else:
+                        # 如果找不到日志文件，返回提示信息
+                        logs.append({
+                            'time': datetime.now().strftime('%H:%M:%S'),
+                            'level': 'INFO',
+                            'message': '未找到$HOME/poly_16/logs/目录下的日志文件'
+                        })
                 
                 return jsonify({'success': True, 'logs': logs})
             except Exception as e:
@@ -6710,10 +6742,10 @@ class CryptoTrader:
                 if hasattr(self.logger, 'log_records'):
                     self.logger.log_records.clear()
                 
-                # 清空日志文件
-                log_file = 'crypto_trader.log'
-                if os.path.exists(log_file):
-                    with open(log_file, 'w', encoding='utf-8') as f:
+                # 清空$HOME/poly_16/logs/目录下的最新日志文件
+                latest_log_file = Logger.get_latest_log_file()
+                if latest_log_file and os.path.exists(latest_log_file):
+                    with open(latest_log_file, 'w', encoding='utf-8') as f:
                         f.write('')
                 
                 self.logger.info("日志已清空")
