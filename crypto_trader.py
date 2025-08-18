@@ -1909,6 +1909,85 @@ class CryptoTrader:
         self.trade_count -= 1
         self.set_web_value('trade_count_label', str(self.trade_count))
 
+    def get_positions(self):
+        """从验证函数里接收返回的持仓信息"""
+        try:
+            # 调用_verify_trade函数获取交易验证结果
+            result = self._verify_trade()
+            
+            if result and len(result) >= 4:
+                # _verify_trade返回 (success, direction, shares, price, amount)
+                success, direction, shares, price, amount = result
+                
+                if success:
+                    # 格式化持仓信息字符串
+                    position_text = f"方向:{direction} 数量:{shares} 价格:{price} 金额:{amount}"
+                    
+                    # 根据方向设置颜色
+                    if direction == "Up":
+                        color_style = "color: green; font-weight: bold;"
+                    elif direction == "Down":
+                        color_style = "color: red; font-weight: bold;"
+                    else:
+                        color_style = "color: black;"
+                    
+                    # 更新Web界面的持仓显示
+                    self.set_web_value('position_info', position_text)
+                    self.set_web_value('position_color', color_style)
+                    
+                    self.logger.info(f"✅  \033[34m持仓信息已更新: {position_text}\033[0m")
+                    return {
+                        'direction': direction,
+                        'shares': shares,
+                        'price': price,
+                        'amount': amount,
+                        'display_text': position_text,
+                        'color_style': color_style
+                    }
+                else:
+                    # 没有持仓
+                    no_position_text = "持仓: 暂无持仓"
+                    self.set_web_value('position_info', no_position_text)
+                    self.set_web_value('position_color', "color: gray;")
+                    self.logger.info("📊 当前无持仓")
+                    return {
+                        'direction': None,
+                        'shares': 0,
+                        'price': 0,
+                        'amount': 0,
+                        'display_text': no_position_text,
+                        'color_style': "color: gray;"
+                    }
+            else:
+                # _verify_trade返回格式不正确
+                error_text = "持仓: 获取失败"
+                self.set_web_value('position_info', error_text)
+                self.set_web_value('position_color', "color: red;")
+                self.logger.error("❌ _verify_trade返回格式不正确")
+                return {
+                    'direction': None,
+                    'shares': 0,
+                    'price': 0,
+                    'amount': 0,
+                    'display_text': error_text,
+                    'color_style': "color: red;"
+                }
+                
+        except Exception as e:
+            error_text = f"持仓: 获取异常 - {str(e)}"
+            self.set_web_value('position_info', error_text)
+            self.set_web_value('position_color', "color: red;")
+            self.logger.error(f"❌ 获取持仓信息异常: {str(e)}")
+            return {
+                'direction': None,
+                'shares': 0,
+                'price': 0,
+                'amount': 0,
+                'display_text': error_text,
+                'color_style': "color: red;"
+            }
+
+
     def First_trade(self, up_price, down_price):
         """第一次交易价格设置为 0.54 买入,最多重试3次,失败发邮件"""
         try:
@@ -1932,6 +2011,8 @@ class CryptoTrader:
                         time.sleep(1)
                         if self.Verify_buy_up():
                             self.buy_yes1_amount = float(self.get_web_value('yes1_amount_entry'))
+                            # 获取并更新持仓数据
+                            self.get_positions()
                             
                             # 重置Yes1和No1价格为0
                             # Web模式下不需要设置前景色
@@ -1999,6 +2080,8 @@ class CryptoTrader:
                         time.sleep(2)
                         if self.Verify_buy_down():
                             self.buy_no1_amount = float(self.get_web_value('no1_amount_entry'))
+                            # 获取并更新持仓数据
+                            self.get_positions()
 
                             # 重置Yes1和No1价格为0
                             self.set_web_value('yes1_price_entry', '0')
@@ -2076,7 +2159,9 @@ class CryptoTrader:
                         time.sleep(1)
                         if self.Verify_buy_up():
                             self.buy_yes2_amount = float(self.get_web_value('yes2_amount_entry'))
-                            
+                            # 获取并更新持仓数据
+                            self.get_positions()
+
                             # 重置Yes2和No2价格为0
                             self.set_web_value('yes2_price_entry', '0')
                             # Web模式下不需要设置前景色
@@ -2137,7 +2222,9 @@ class CryptoTrader:
                         time.sleep(2)
                         if self.Verify_buy_down():
                             self.buy_no2_amount = float(self.get_web_value('no2_amount_entry'))
-                            
+                            # 获取并更新持仓数据
+                            self.get_positions()
+
                             # 重置Yes2和No2价格为0
                             self.set_web_value('yes2_price_entry', '0')
                             # Web模式下不需要设置前景色
@@ -2213,7 +2300,9 @@ class CryptoTrader:
                         if self.Verify_buy_up():
                             # 获取 YES3 的金额
                             self.buy_yes3_amount = float(self.get_web_value('yes3_amount_entry'))
-                            
+                            # 获取并更新持仓数据
+                            self.get_positions()
+
                             # 重置Yes3和No3价格为0
                             self.set_web_value('yes3_price_entry', '0')
                             # Web模式下不需要设置前景色
@@ -2276,7 +2365,9 @@ class CryptoTrader:
                         time.sleep(2)
                         if self.Verify_buy_down():
                             self.buy_no3_amount = float(self.get_web_value('no3_amount_entry'))
-                            
+                            # 获取并更新持仓数据
+                            self.get_positions()
+
                             # 重置Yes3和No3价格为0
                             self.set_web_value('yes3_price_entry', '0')
                             # Web模式下不需要设置前景色
@@ -2353,7 +2444,9 @@ class CryptoTrader:
                         time.sleep(2)
                         if self.Verify_buy_up():
                             self.yes4_amount = float(self.get_web_value('yes4_amount_entry'))
-                            
+                            # 获取并更新持仓数据
+                            self.get_positions()
+
                             # 设置 YES4/No4的价格为0
                             self.set_web_value('no4_price_entry', '0') 
                             # Web模式下不需要设置前景色
@@ -2418,6 +2511,9 @@ class CryptoTrader:
                         time.sleep(2)
                         if self.Verify_buy_down():
                             self.no4_amount = float(self.get_web_value('no4_amount_entry'))
+                            # 获取并更新持仓数据
+                            self.get_positions()
+                            
                             # 设置 YES4/No4的价格为0
                             self.set_web_value('no4_price_entry', '0') 
                             # Web模式下不需要设置前景色
@@ -2683,12 +2779,12 @@ class CryptoTrader:
                         # 等待历史记录元素出现                  
                         try:
                             # 将元素查找超时时间从默认值减少到0.5秒，加快查找速度
-                            history_element = WebDriverWait(self.driver, 0.5).until(
+                            history_element = WebDriverWait(self.driver, 1).until(
                                 EC.presence_of_element_located((By.XPATH, XPathConfig.HISTORY[0]))
                             )
                         except (NoSuchElementException, StaleElementReferenceException, TimeoutException):
                             # 将重试查找超时时间从2秒减少到0.5秒
-                            history_element = self._find_element_with_retry(XPathConfig.HISTORY, timeout=0.5, silent=True)
+                            history_element = self._find_element_with_retry(XPathConfig.HISTORY, timeout=1, silent=True)
                         
                         if history_element:
                             # 获取历史记录文本
@@ -2696,10 +2792,10 @@ class CryptoTrader:
                             self.logger.info(f"✅ 找到交易记录: \033[34m{history_text}\033[0m")
                             
                             # 分别查找action_type和direction，避免同时匹配导致的问题
-                            action_found = re.search(rf"\b{action_type}\b", history_text, re.IGNORECASE)
-                            direction_found = re.search(rf"\b{direction}\b", history_text, re.IGNORECASE)
+                            self.action_found = re.search(rf"\b{action_type}\b", history_text, re.IGNORECASE)
+                            self.direction_found = re.search(rf"\b{direction}\b", history_text, re.IGNORECASE)
                             
-                            if action_found and direction_found:
+                            if self.action_found and self.direction_found:
                                 # 提取价格和金额 - 优化正则表达式
                                 price_match = re.search(r'at\s+(\d+\.?\d*)¢', history_text)
                                 amount_match = re.search(r'\(\$(\d+\.\d+)\)', history_text)
@@ -2708,11 +2804,12 @@ class CryptoTrader:
                                 
                                 self.price = float(price_match.group(1)) if price_match else 0
                                 self.amount = float(amount_match.group(1)) if amount_match else 0
+
                                 # shares可能是浮点数，先转为float再转为int
                                 self.shares = int(float(shares_match.group(1))) if shares_match else 0
 
                                 self.logger.info(f"✅ 交易验证成功: \033[33m{action_type} {direction} 价格: {self.price} 金额: {self.amount} Shares: {self.shares}\033[0m")
-                                return True, self.price, self.amount, self.shares
+                                return True, self.direction_found, self.shares, self.price, self.amount
                     
                     except StaleElementReferenceException:
                         self.logger.warning(f"检测到stale element错误,重新定位元素（第{retry + 1}次重试）")
@@ -5231,8 +5328,7 @@ class CryptoTrader:
                                 if (cashElement) cashElement.textContent = data.account.cash;
                                 if (zeroTimeCashElement) zeroTimeCashElement.textContent = data.account.zero_time_cash || '--';
                                 
-                                // 更新持仓信息
-                                updatePositionInfo();
+                                // 持仓信息将在交易验证成功后自动更新，无需在此处调用
                                 
                                 // 更新状态信息
                                 const statusElement = document.querySelector('.status-value');
@@ -5327,39 +5423,47 @@ class CryptoTrader:
                     });
                     
                     function updatePositionInfo() {
-                        fetch('/api/logs')
+                        fetch('/api/positions')
                             .then(response => response.json())
-                            .then(logs => {
+                            .then(data => {
                                 const positionContainer = document.getElementById('positionContainer');
                                 const positionContent = document.getElementById('positionContent');
                                 
                                 if (!positionContainer || !positionContent) return;
                                 
-                                // 查找最新的交易验证成功日志
-                                const tradePattern = /✅ 交易验证成功: (.+)/;
-                                let latestPosition = null;
-                                
-                                for (let i = logs.length - 1; i >= 0; i--) {
-                                    const log = logs[i];
-                                    if (log.message && tradePattern.test(log.message)) {
-                                        const match = log.message.match(tradePattern);
-                                        if (match) {
-                                            latestPosition = match[1];
-                                            break;
-                                        }
+                                if (data.success && data.position) {
+                                    const position = data.position;
+                                    // 格式化持仓信息：持仓:方向:direction 数量:shares 价格:price 金额:amount
+                                    const positionText = `方向:${position.direction} 数量:${position.shares} 价格:${position.price} 金额:${position.amount}`;
+                                    
+                                    // 设置文本内容
+                                    positionContent.innerHTML = positionText;
+                                    
+                                    // 根据方向设置颜色
+                                    if (position.direction === 'Up') {
+                                        positionContent.style.color = '#28a745'; // 绿色
+                                    } else if (position.direction === 'Down') {
+                                        positionContent.style.color = '#dc3545'; // 红色
+                                    } else {
+                                        positionContent.style.color = '#2c3e50'; // 默认颜色
                                     }
-                                }
-                                
-                                if (latestPosition) {
-                                    positionContent.textContent = '持仓: ' + latestPosition;
+                                    
                                     positionContainer.style.display = 'block';
                                 } else {
-                                    positionContent.textContent = '持仓: 暂无持仓';
+                                    positionContent.textContent = '方向: -- 数量: -- 价格: -- 金额: --';
+                                    positionContent.style.color = '#2c3e50'; // 默认颜色
                                     positionContainer.style.display = 'block';
                                 }
                             })
                             .catch(error => {
                                 console.error('获取持仓信息失败:', error);
+                                const positionContainer = document.getElementById('positionContainer');
+                                const positionContent = document.getElementById('positionContent');
+                                if (positionContainer && positionContent) {
+                                    positionContent.textContent = '方向: -- 数量: -- 价格: -- 金额: --';
+                                    positionContent.style.color = '#dc3545'; // 红色表示错误
+                                    positionContainer.style.display = 'block';
+                                }
                             });
                     }
                     
@@ -5609,9 +5713,9 @@ class CryptoTrader:
                                 </div>
                                 
                                 <!-- 持仓显示区域 -->
-                                <div class="position-container" id="positionContainer" style="display: none;">
+                                <div class="position-container" id="positionContainer" style="display: block;">
                                     <div class="position-content" id="positionContent">
-                                        持仓: 暂无持仓
+                                        方向: -- 数量: -- 价格: -- 金额: --
                                     </div>
                                 </div>
                                 
@@ -6274,6 +6378,24 @@ class CryptoTrader:
                 return jsonify(current_data)
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
+        
+        @app.route("/api/positions")
+        def get_positions_api():
+            """获取持仓信息API"""
+            try:
+                # 调用get_positions函数获取持仓信息
+                position_info = self.get_positions()
+                return jsonify({
+                    'success': True,
+                    'position_info': position_info
+                })
+            except Exception as e:
+                self.logger.error(f"获取持仓信息失败: {str(e)}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e),
+                    'position_info': '暂无持仓信息'
+                }), 500
         
         @app.route("/history")
         def history():
