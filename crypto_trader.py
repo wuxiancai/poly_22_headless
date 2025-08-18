@@ -4306,8 +4306,18 @@ class CryptoTrader:
                             date_str = row[0].strip()
                             cash = float(row[1].strip())
                             profit = float(row[2].strip())
-                            # 处理百分比格式的利润率
+                            
+                            # 处理百分比格式的利润率，特别处理被错误连接的情况
                             profit_rate_str = row[3].strip()
+                            
+                            # 检查是否包含日期信息（如 '0.00292025-08-18'）
+                            if re.search(r'\d{4}-\d{2}-\d{2}', profit_rate_str):
+                                # 尝试分离利润率和日期
+                                match = re.match(r'([\d\.%-]+)(\d{4}-\d{2}-\d{2}.*)', profit_rate_str)
+                                if match:
+                                    profit_rate_str = match.group(1)
+                                    self.logger.warning(f"第{line_number}行利润率字段包含日期信息，已分离: '{row[3]}' -> '{profit_rate_str}'")
+                            
                             if profit_rate_str.endswith('%'):
                                 profit_rate = float(profit_rate_str.rstrip('%')) / 100
                             else:
@@ -4321,12 +4331,27 @@ class CryptoTrader:
                                 total_profit = float(row[4].strip())
                                 # 处理百分比格式的总利润率
                                 total_profit_rate_str = row[5].strip()
+                                
+                                # 同样检查总利润率是否包含日期信息
+                                if re.search(r'\d{4}-\d{2}-\d{2}', total_profit_rate_str):
+                                    match = re.match(r'([\d\.%-]+)(\d{4}-\d{2}-\d{2}.*)', total_profit_rate_str)
+                                    if match:
+                                        total_profit_rate_str = match.group(1)
+                                        self.logger.warning(f"第{line_number}行总利润率字段包含日期信息，已分离: '{row[5]}' -> '{total_profit_rate_str}'")
+                                
                                 if total_profit_rate_str.endswith('%'):
                                     total_profit_rate = float(total_profit_rate_str.rstrip('%')) / 100
                                 else:
                                     total_profit_rate = float(total_profit_rate_str)
-                                
-                            valid_rows.append(row)
+                            
+                            # 重新构建修复后的行数据
+                            fixed_row = [date_str, f"{cash:.2f}", f"{profit:.2f}", f"{profit_rate*100:.2f}%"]
+                            if len(row) >= 6:
+                                fixed_row.extend([f"{total_profit:.2f}", f"{total_profit_rate*100:.2f}%"])
+                            if len(row) >= 7:
+                                fixed_row.append(row[6].strip())
+                            
+                            valid_rows.append(fixed_row)
                         else:
                             invalid_rows.append((line_number, row, "列数不足"))
                     except Exception as e:
