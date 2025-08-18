@@ -5929,7 +5929,7 @@ class CryptoTrader:
                                     <button id="stopBtn" onclick="stopMonitoring()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);">🛑 停止监控</button>
                                     <button id="startChromeBtn" onclick="startChrome()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3);">🚀 启动浏览器</button>
                                     <button id="stopChromeBtn" onclick="stopChrome()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🛑 关闭浏览器</button>
-                                    <button id="restartBtn" onclick="restartProgram()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🔄 重启程序</button>
+                                    <button id="restartBtn" onclick="restartProgram()" style="padding: 6px 8px; background: linear-gradient(135deg, #A8C0FF, #C6FFDD); color: #2F3E46; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168,192,255,0.3); margin-left: 10px;">🔄 重启系统</button>
                                 </div>
                                 <div id="statusMessage" class="status-message"></div>
                             </div>
@@ -6867,7 +6867,7 @@ class CryptoTrader:
                 
                 # 执行重启命令
                 current_user = os.getenv('USER') or os.getenv('USERNAME') or 'admin'
-                service_name = f'run-poly@{current_user}.service'
+                service_name = f'run-poly.service'
                 result = subprocess.run(['sudo', 'systemctl', 'restart', service_name], 
                                       capture_output=True, text=True, timeout=10)
                 
