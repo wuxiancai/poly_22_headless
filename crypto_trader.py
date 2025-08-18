@@ -1910,67 +1910,62 @@ class CryptoTrader:
         self.set_web_value('trade_count_label', str(self.trade_count))
 
     def get_positions(self):
-        """从验证函数里接收返回的持仓信息"""
+        """获取当前持仓信息"""
         try:
-            # 调用_verify_trade函数获取交易验证结果
-            result = self._verify_trade()
+            # 检查是否有Up持仓
+            has_up_position = self.find_position_label_up()
+            # 检查是否有Down持仓
+            has_down_position = self.find_position_label_down()
             
-            if result and len(result) >= 4:
-                # _verify_trade返回 (success, direction, shares, price, amount)
-                success, direction, shares, price, amount = result
+            if has_up_position:
+                # 有Up持仓
+                position_text = "方向: Up 数量: -- 价格: -- 金额: --"
+                color_style = "color: green; font-weight: bold;"
                 
-                if success:
-                    # 格式化持仓信息字符串
-                    position_text = f"方向:{direction} 数量:{shares} 价格:{price} 金额:{amount}"
-                    
-                    # 根据方向设置颜色
-                    if direction == "Up":
-                        color_style = "color: green; font-weight: bold;"
-                    elif direction == "Down":
-                        color_style = "color: red; font-weight: bold;"
-                    else:
-                        color_style = "color: black;"
-                    
-                    # 更新Web界面的持仓显示
-                    self.set_web_value('position_info', position_text)
-                    self.set_web_value('position_color', color_style)
-                    
-                    self.logger.info(f"✅  \033[34m持仓信息已更新: {position_text}\033[0m")
-                    return {
-                        'direction': direction,
-                        'shares': shares,
-                        'price': price,
-                        'amount': amount,
-                        'display_text': position_text,
-                        'color_style': color_style
-                    }
-                else:
-                    # 没有持仓
-                    no_position_text = "持仓: 暂无持仓"
-                    self.set_web_value('position_info', no_position_text)
-                    self.set_web_value('position_color', "color: gray;")
-                    self.logger.info("📊 当前无持仓")
-                    return {
-                        'direction': None,
-                        'shares': 0,
-                        'price': 0,
-                        'amount': 0,
-                        'display_text': no_position_text,
-                        'color_style': "color: gray;"
-                    }
+                # 更新Web界面的持仓显示
+                self.set_web_value('position_info', position_text)
+                self.set_web_value('position_color', color_style)
+                
+                self.logger.info(f"✅ \033[32m持仓信息已更新: {position_text}\033[0m")
+                return {
+                    'direction': 'Up',
+                    'shares': '--',
+                    'price': '--',
+                    'amount': '--',
+                    'display_text': position_text,
+                    'color_style': color_style
+                }
+            elif has_down_position:
+                # 有Down持仓
+                position_text = "方向: Down 数量: -- 价格: -- 金额: --"
+                color_style = "color: red; font-weight: bold;"
+                
+                # 更新Web界面的持仓显示
+                self.set_web_value('position_info', position_text)
+                self.set_web_value('position_color', color_style)
+                
+                self.logger.info(f"✅ \033[31m持仓信息已更新: {position_text}\033[0m")
+                return {
+                    'direction': 'Down',
+                    'shares': '--',
+                    'price': '--',
+                    'amount': '--',
+                    'display_text': position_text,
+                    'color_style': color_style
+                }
             else:
-                # _verify_trade返回格式不正确
-                error_text = "持仓: 获取失败"
-                self.set_web_value('position_info', error_text)
-                self.set_web_value('position_color', "color: red;")
-                self.logger.error("❌ _verify_trade返回格式不正确")
+                # 没有持仓
+                no_position_text = "方向: -- 数量: -- 价格: -- 金额: --"
+                self.set_web_value('position_info', no_position_text)
+                self.set_web_value('position_color', "color: gray;")
+                self.logger.info("📊 当前无持仓")
                 return {
                     'direction': None,
                     'shares': 0,
                     'price': 0,
                     'amount': 0,
-                    'display_text': error_text,
-                    'color_style': "color: red;"
+                    'display_text': no_position_text,
+                    'color_style': "color: gray;"
                 }
                 
         except Exception as e:
@@ -2009,7 +2004,7 @@ class CryptoTrader:
                         self.send_amount_and_click_buy_confirm_button(self.get_web_value('yes1_amount_entry'))
 
                         time.sleep(1)
-                        if self.Verify_buy_up():
+                        if self.verify_buy_up():
                             self.buy_yes1_amount = float(self.get_web_value('yes1_amount_entry'))
                             # 获取并更新持仓数据
                             self.get_positions()
@@ -2078,7 +2073,7 @@ class CryptoTrader:
                         # self.click_buy_yes()
 
                         time.sleep(2)
-                        if self.Verify_buy_down():
+                        if self.verify_buy_down():
                             self.buy_no1_amount = float(self.get_web_value('no1_amount_entry'))
                             # 获取并更新持仓数据
                             self.get_positions()
@@ -2157,7 +2152,7 @@ class CryptoTrader:
                         self.send_amount_and_click_buy_confirm_button(self.get_web_value('yes2_amount_entry'))
                         
                         time.sleep(1)
-                        if self.Verify_buy_up():
+                        if self.verify_buy_up():
                             self.buy_yes2_amount = float(self.get_web_value('yes2_amount_entry'))
                             # 获取并更新持仓数据
                             self.get_positions()
@@ -2220,7 +2215,7 @@ class CryptoTrader:
                         self.send_amount_and_click_buy_confirm_button(self.get_web_value('no2_amount_entry'))
                         
                         time.sleep(2)
-                        if self.Verify_buy_down():
+                        if self.verify_buy_down():
                             self.buy_no2_amount = float(self.get_web_value('no2_amount_entry'))
                             # 获取并更新持仓数据
                             self.get_positions()
@@ -2297,7 +2292,7 @@ class CryptoTrader:
                         self.send_amount_and_click_buy_confirm_button(self.get_web_value('yes3_amount_entry'))
 
                         time.sleep(2)
-                        if self.Verify_buy_up():
+                        if self.verify_buy_up():
                             # 获取 YES3 的金额
                             self.buy_yes3_amount = float(self.get_web_value('yes3_amount_entry'))
                             # 获取并更新持仓数据
@@ -2363,7 +2358,7 @@ class CryptoTrader:
                         self.send_amount_and_click_buy_confirm_button(self.get_web_value('no3_amount_entry'))
 
                         time.sleep(2)
-                        if self.Verify_buy_down():
+                        if self.verify_buy_down():
                             self.buy_no3_amount = float(self.get_web_value('no3_amount_entry'))
                             # 获取并更新持仓数据
                             self.get_positions()
@@ -2442,7 +2437,7 @@ class CryptoTrader:
                         self.send_amount_and_click_buy_confirm_button(self.get_web_value('yes4_amount_entry'))
 
                         time.sleep(2)
-                        if self.Verify_buy_up():
+                        if self.verify_buy_up():
                             self.yes4_amount = float(self.get_web_value('yes4_amount_entry'))
                             # 获取并更新持仓数据
                             self.get_positions()
@@ -2509,7 +2504,7 @@ class CryptoTrader:
                         self.send_amount_and_click_buy_confirm_button(self.get_web_value('no4_amount_entry'))
                         
                         time.sleep(2)
-                        if self.Verify_buy_down():
+                        if self.verify_buy_down():
                             self.no4_amount = float(self.get_web_value('no4_amount_entry'))
                             # 获取并更新持仓数据
                             self.get_positions()
@@ -2575,7 +2570,8 @@ class CryptoTrader:
         time.sleep(2)
         self.driver.refresh()
         self.logger.info("\033[34m✅ 仓位已经卖出!\033[0m")
-
+        return True
+        
     def reset_yes_no_amount(self):
         """重置 YES/NO ENTRY 金额"""
         # 设置 UP1 和 DOWN1金额
@@ -2725,7 +2721,7 @@ class CryptoTrader:
                 self.logger.warning(f"\033[31m❌ 卖出only_sell_down第{retry+1}次验证失败,重试\033[0m")
                 time.sleep(1)
 
-    def Verify_buy_up(self):
+    def verify_buy_up(self):
         """
         验证买入YES交易是否成功完成
         
@@ -2734,7 +2730,7 @@ class CryptoTrader:
         """
         return self._verify_trade('Bought', 'Up')[0]
         
-    def Verify_buy_down(self):
+    def verify_buy_down(self):
         """
         验证买入NO交易是否成功完成
         
@@ -2743,7 +2739,7 @@ class CryptoTrader:
         """
         return self._verify_trade('Bought', 'Down')[0]
     
-    def Verify_sold_up(self):
+    def verify_sold_up(self):
         """
         验证卖出YES交易是否成功完成
         
@@ -2752,7 +2748,7 @@ class CryptoTrader:
         """
         return self._verify_trade('Sold', 'Up')[0]
         
-    def Verify_sold_down(self):
+    def verify_sold_down(self):
         """
         验证卖出NO交易是否成功完成
         
@@ -2856,89 +2852,6 @@ class CryptoTrader:
             )
             buy_confirm_button.click()
     
-    def click_position_sell_no(self):
-        """点击 Positions-Sell-No 按钮"""
-        try:
-            if not self.driver and not self.is_restarting:
-                self.restart_browser(force_restart=True)
-
-            # 等待页面加载完成
-            WebDriverWait(self.driver, 10).until(
-                lambda driver: driver.execute_script('return document.readyState') == 'complete'
-            )
-            
-            position_value = self.find_position_label_up()
-            # position_value 的值是true 或 false
-            # 根据position_value的值决定点击哪个按钮
-            if position_value:
-                # 如果第一行是Up，点击第二的按钮
-                try:
-                    button = self.driver.find_element(By.XPATH, XPathConfig.POSITION_SELL_NO_BUTTON[0])
-                except NoSuchElementException:
-                    button = self._find_element_with_retry(
-                        XPathConfig.POSITION_SELL_NO_BUTTON,
-                        timeout=3,
-                        silent=True
-                    )
-            else:
-                # 如果第一行不存在或不是Up，使用默认的第一行按钮
-                try:
-                    button = self.driver.find_element(By.XPATH, XPathConfig.POSITION_SELL_BUTTON[0])
-                except NoSuchElementException:
-                    button = self._find_element_with_retry(
-                        XPathConfig.POSITION_SELL_BUTTON,
-                        timeout=3,
-                        silent=True
-                    )
-            # 执行点击
-            self.driver.execute_script("arguments[0].click();", button)
-            
-        except Exception as e:
-            error_msg = f"点击 Positions-Sell-No 按钮失败: {str(e)}"
-            self.logger.error(error_msg)
-            
-    def click_position_sell_yes(self):
-        """点击 Positions-Sell-Yes 按钮"""
-        try:
-            if not self.driver and not self.is_restarting:
-                self.restart_browser(force_restart=True)
-
-            # 等待页面加载完成
-            WebDriverWait(self.driver, 10).until(
-                lambda driver: driver.execute_script('return document.readyState') == 'complete'
-            )
-            
-            position_value = self.find_position_label_down()
-            
-            # 根据position_value的值决定点击哪个按钮
-            
-            if position_value:
-                # 如果第二行是No，点击第一行YES 的 SELL的按钮
-                try:
-                    button = self.driver.find_element(By.XPATH, XPathConfig.POSITION_SELL_YES_BUTTON[0])
-                except NoSuchElementException:
-                    button = self._find_element_with_retry(
-                        XPathConfig.POSITION_SELL_YES_BUTTON,
-                        timeout=3,
-                        silent=True
-                    )
-            else:
-                # 如果第二行不存在或不是No，使用默认的第一行按钮
-                try:
-                    button = self.driver.find_element(By.XPATH, XPathConfig.POSITION_SELL_BUTTON[0])
-                except NoSuchElementException:
-                    button = self._find_element_with_retry(
-                        XPathConfig.POSITION_SELL_BUTTON,
-                        timeout=3,
-                        silent=True
-                    )
-            # 执行点击
-            self.driver.execute_script("arguments[0].click();", button)
-             
-        except Exception as e:
-            error_msg = f"点击 Positions-Sell-Yes 按钮失败: {str(e)}"
-            self.logger.error(error_msg)
-            
     def click_sell_confirm_button(self):
         """点击sell-卖出按钮"""
         try:
@@ -3249,18 +3162,13 @@ class CryptoTrader:
 
     def find_position_label_up(self):
         """查找Yes持仓标签"""
-        max_retries = 2
-        retry_delay = 2
+        max_retries = 3
+        retry_delay = 1
         
         for attempt in range(max_retries):
             try:
                 if not self.driver and not self.is_restarting:
                     self.restart_browser(force_restart=True)
-                    
-                # 等待页面加载完成
-                WebDriverWait(self.driver, 10).until(
-                    lambda driver: driver.execute_script('return document.readyState') == 'complete'
-                )
                 
                 # 尝试获取Up标签
                 try:
@@ -3296,18 +3204,13 @@ class CryptoTrader:
         
     def find_position_label_down(self):
         """查找Down持仓标签"""
-        max_retries = 2
-        retry_delay = 2
+        max_retries = 3
+        retry_delay = 1
         
         for attempt in range(max_retries):
             try:
                 if not self.driver and not self.is_restarting:
                     self.restart_browser(force_restart=True)
-                    
-                # 等待页面加载完成
-                WebDriverWait(self.driver, 10).until(
-                    lambda driver: driver.execute_script('return document.readyState') == 'complete'
-                )
                 
                 # 尝试获取Down标签
                 try:
@@ -5190,6 +5093,31 @@ class CryptoTrader:
                         height: 500px; overflow-y: auto; background: rgba(248, 249, 250, 0.8);
                         border-radius: 8px; padding: 18px; border: 2px solid rgba(233, 236, 239, 0.5);
                         margin-top: 0;
+                        /* 自定义滚动条样式 */
+                        scrollbar-width: thin;
+                        scrollbar-color: transparent transparent;
+                    }
+                    /* Webkit浏览器滚动条样式 */
+                    .log-container::-webkit-scrollbar {
+                        width: 8px;
+                    }
+                    .log-container::-webkit-scrollbar-track {
+                        background: transparent;
+                    }
+                    .log-container::-webkit-scrollbar-thumb {
+                        background: transparent;
+                        border-radius: 4px;
+                        transition: background 0.3s ease;
+                    }
+                    /* 悬停时显示滚动条 */
+                    .log-container:hover {
+                        scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+                    }
+                    .log-container:hover::-webkit-scrollbar-thumb {
+                        background: rgba(0, 0, 0, 0.3);
+                    }
+                    .log-container:hover::-webkit-scrollbar-thumb:hover {
+                        background: rgba(0, 0, 0, 0.5);
                     }
                     .log-entry {
                         margin-bottom: 8px; font-size: 10px; line-height: 1.4;
