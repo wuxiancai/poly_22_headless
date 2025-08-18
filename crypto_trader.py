@@ -76,10 +76,10 @@ class Logger:
     
     @staticmethod
     def get_latest_log_file():
-        """获取$HOME/poly_16/logs/目录下最新的日志文件"""
+        """获取%h/poly_16/logs/目录下最新的日志文件"""
         import glob
         
-        # 获取$HOME/poly_16/logs/目录路径
+        # 获取%h/poly_16/logs/目录路径
         home_dir = os.path.expanduser("~")
         log_dir = os.path.join(home_dir, "poly_16", "logs")
         
@@ -6700,7 +6700,7 @@ class CryptoTrader:
                 if hasattr(self.logger, 'log_records'):
                     logs = self.logger.log_records[-100:]  # 最近100条日志
                 else:
-                    # 如果没有内存日志，尝试读取$HOME/poly_16/logs/目录下的最新日志文件
+                    # 如果没有内存日志，尝试读取%h/poly_16/logs/目录下的最新日志文件
                     latest_log_file = Logger.get_latest_log_file()
                     if latest_log_file and os.path.exists(latest_log_file):
                         with open(latest_log_file, 'r', encoding='utf-8') as f:
@@ -6727,7 +6727,7 @@ class CryptoTrader:
                         logs.append({
                             'time': datetime.now().strftime('%H:%M:%S'),
                             'level': 'INFO',
-                            'message': '未找到$HOME/poly_16/logs/目录下的日志文件'
+                            'message': '未找到%h/poly_16/logs/目录下的日志文件'
                         })
                 
                 return jsonify({'success': True, 'logs': logs})
@@ -6742,7 +6742,7 @@ class CryptoTrader:
                 if hasattr(self.logger, 'log_records'):
                     self.logger.log_records.clear()
                 
-                # 清空$HOME/poly_16/logs/目录下的最新日志文件
+                # 清空%h/poly_16/logs/目录下的最新日志文件
                 latest_log_file = Logger.get_latest_log_file()
                 if latest_log_file and os.path.exists(latest_log_file):
                     with open(latest_log_file, 'w', encoding='utf-8') as f:
